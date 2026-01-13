@@ -3,6 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 
+Color selected =  const Color(0xFFFFD351);
+Color mulchoChoice = const Color(0xFFFFEEBB);
+
 Color loginButton = const Color(0xFF804589);
 Color x2Coins =  const Color(0xFFFFE79D);
 Color greenText =  const Color(0xFF5CA65F);

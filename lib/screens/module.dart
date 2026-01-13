@@ -1,5 +1,7 @@
+import 'package:basabuddy/models/mulcho.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class Module extends StatefulWidget {
 
@@ -23,6 +25,11 @@ class _ModuleState extends State<Module> {
       child: Column(
         children: [
           Container(height:200),
+          ElevatedButton(onPressed: (){
+
+
+            context.go('/story');
+          }, child: Text("Sample Story"))
 
         ],
       ),
