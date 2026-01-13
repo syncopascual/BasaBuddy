@@ -1,5 +1,9 @@
+import 'package:basabuddy/screens/module.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../colors.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -7,14 +11,44 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+
+  int index = 1;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: OutlinedButton(
-          onPressed: (){
-      
-          },
-          child: Text("Home")),
-    );
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/bg_images/islands.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(height:200),
+            ///Vocab Island Button
+            ElevatedButton(
+                onPressed: (){
+                  context.push('/home/module/grassy');
+                },
+                child: Text("Vocab Island")),
+
+            ///Information Island Button
+            ElevatedButton(
+                onPressed: (){
+                  context.push('/home/module/winter');
+                },
+                child: Text("Information Island")),
+
+            ///Narrative Island Button
+            ElevatedButton(
+                onPressed: (){
+                  context.push('/home/module/desert');
+                },
+                child: Text("Narrative Island")),
+          ],
+        ),
+      ),
+       );
   }
 }
