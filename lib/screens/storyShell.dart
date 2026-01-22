@@ -94,27 +94,48 @@ class _StoryShellState extends State<StoryShell> {
               future: storyComponents,
               builder: (context, snapshot){
                 if(snapshot.hasData){
-                  return (storyWidget(snapshot.data![currentPage]));
+                  return Column(
+                    children: [
+                      storyWidget(snapshot.data![currentPage]),Row(
+                    children: [
+
+                      ///BACK button
+                      ElevatedButton(onPressed: (){
+                        ///if its the first page, dont do anything
+                        if(currentPage == 0){
+                          return;
+                        }
+                        setState(() {
+                          currentPage-=1;
+                        });
+                      }, child: Text('Back')),
+
+                      ///NEXT Button
+                      ElevatedButton(onPressed: (){
+                        ///if last page na
+                        /// increase user level for this module and navigate to home screen
+                        if(currentPage == snapshot.data?.length){
+
+                          context.go('/home');
+                          return;
+
+                        }
+                        setState(() {
+                          currentPage+=1;
+                        });
+                      }, child: Text('Next')),
+
+
+                    ],
+                  )]
+
+                  );
+                  ///Row containing next button and back button
+
                 } else {return CircularProgressIndicator();}
               }),
 
-          ///Row containing next button and back button
-          Row(
-            children: [
-              ElevatedButton(onPressed: (){
-                setState(() {
-                  currentPage-=1;
-                });
-              }, child: Text('Back')),
-              ElevatedButton(onPressed: (){
-                setState(() {
-                  currentPage+=1;
-                });
-              }, child: Text('Next')),
 
-
-            ],
-          )
         ],
       ),
     );

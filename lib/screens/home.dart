@@ -29,21 +29,21 @@ class _HomeState extends State<Home> {
             ///Vocab Island Button
             ElevatedButton(
                 onPressed: (){
-                  context.push('/home/module/grassy');
+                  context.push('/home/module/vocab');
                 },
                 child: Text("Vocab Island")),
 
             ///Information Island Button
             ElevatedButton(
                 onPressed: (){
-                  context.push('/home/module/winter');
+                  context.push('/home/module/information');
                 },
                 child: Text("Information Island")),
 
             ///Narrative Island Button
             ElevatedButton(
                 onPressed: (){
-                  context.push('/home/module/desert');
+                  context.push('/home/module/narrative');
                 },
                 child: Text("Narrative Island")),
           ],

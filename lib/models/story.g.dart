@@ -12,7 +12,7 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       title: json['title'] as String,
       module: json['module'] as String,
       level: (json['level'] as num).toInt(),
-      description: json['description'] as String,
+      description: json['description'] as String?,
     );
 
 Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{

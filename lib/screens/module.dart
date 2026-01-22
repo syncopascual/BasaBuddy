@@ -15,6 +15,19 @@ class Module extends StatefulWidget {
   State<Module> createState() => _ModuleState();
 }
 
+///function that sets the background image based on the module type
+String determineBackground(moduleType){
+  if(moduleType == 'narrative'){
+    return 'desert';
+  }
+  if(moduleType == 'information'){
+    return 'winter';
+  }
+  else{
+    return 'grassy';
+  }
+}
+
 class _ModuleState extends State<Module> {
   late Future<List<Story>> stories;
 
@@ -24,7 +37,8 @@ class _ModuleState extends State<Module> {
     //print(Supabase.instance.client.auth.currentUser);
     final response = await Supabase.instance.client
         .from('list_stories')
-        .select();
+        .select()
+        .eq('module', widget.moduleType);
     print("After Supabase query");
     print(response);
 
@@ -49,7 +63,7 @@ class _ModuleState extends State<Module> {
     return Container(
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: AssetImage("assets/bg_images/${widget.moduleType}.png"),
+          image: AssetImage("assets/bg_images/${determineBackground(widget.moduleType)}.png"),
           fit: BoxFit.cover,
         ),
       ),
@@ -64,12 +78,21 @@ class _ModuleState extends State<Module> {
                     return ListView.builder(
                       itemCount: snapshot.data?.length,
                         itemBuilder: (_, i){
-                      print("i: $i");
-                      return ElevatedButton(
-                          onPressed: (){
-                            context.go('/story/${snapshot.data?[i].storyId}');
-                          },
-                          child: Text(snapshot.data![i].title));
+                      return Container(
+                        decoration:  BoxDecoration(
+                            color: Colors.lightBlue, // Color must be inside BoxDecoration
+                            borderRadius: BorderRadius.circular(50.0), // Rounded corners
+                            border: Border.all(
+                              color: Colors.blueAccent,
+                              width: 2.0,
+                            ),
+                        ),
+                        child: ElevatedButton(
+                            onPressed: (){
+                              context.go('/story/${snapshot.data?[i].storyId}');
+                            },
+                            child: Text(snapshot.data![i].title)),
+                      );
                     });
                   } else {
                     return const Center(child: CircularProgressIndicator());

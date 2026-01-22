@@ -16,13 +16,7 @@ class Story {
   final String module;
   final int level;
 
-  final String description;
-
-
-
-
-
-
+  final String? description;
 
 
   Story({
