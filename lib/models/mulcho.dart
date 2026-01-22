@@ -7,25 +7,30 @@ part 'mulcho.g.dart';
 
 @JsonSerializable()
 class Mulcho {
-  final String id;
-  @JsonKey(name: 'user_id')
+  final int id;
+
+  @JsonKey(name: 'story_id')
   final String storyId;
-  final int page;
+
   final String question;
-  final List<String> choices;
+
+
+
+  final Map<String, String> choices;
   final String answer;
 
-  @JsonKey(name: 'created_at')
-  final DateTime createdAt;
+  @JsonKey(name: 'after_page')
+  final int afterPage;
+
+
 
   Mulcho({
     required this.id,
     required this.storyId,
-    required this.page,
+    required this.afterPage,
     required this.question,
     required this.choices,
-    required this.answer,
-    required this.createdAt,
+    required this.answer
   });
 
   factory Mulcho.fromJson(Map<String, dynamic> json) =>

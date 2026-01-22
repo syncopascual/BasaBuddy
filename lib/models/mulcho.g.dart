@@ -7,22 +7,19 @@ part of 'mulcho.dart';
 // **************************************************************************
 
 Mulcho _$MulchoFromJson(Map<String, dynamic> json) => Mulcho(
-      id: json['id'] as String,
-      storyId: json['user_id'] as String,
-      page: (json['page'] as num).toInt(),
+      id: (json['id'] as num).toInt(),
+      storyId: json['story_id'] as String,
+      afterPage: (json['after_page'] as num).toInt(),
       question: json['question'] as String,
-      choices:
-          (json['choices'] as List<dynamic>).map((e) => e as String).toList(),
+      choices: Map<String, String>.from(json['choices'] as Map),
       answer: json['answer'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
     );
 
 Map<String, dynamic> _$MulchoToJson(Mulcho instance) => <String, dynamic>{
       'id': instance.id,
-      'user_id': instance.storyId,
-      'page': instance.page,
+      'story_id': instance.storyId,
       'question': instance.question,
       'choices': instance.choices,
       'answer': instance.answer,
-      'created_at': instance.createdAt.toIso8601String(),
+      'after_page': instance.afterPage,
     };

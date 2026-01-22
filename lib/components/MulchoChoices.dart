@@ -39,7 +39,7 @@ class _MulchoChoicesState extends State<MulchoChoices> {
                   color:  selectedIndex == index ? selected : mulchoChoice,
                   borderRadius: BorderRadius.all(Radius.circular(15)),
                 ),
-                child: Text(widget.choices[index]),
+                child: Text(widget.choices[index], style: TextStyle(fontSize: 16),),
 
                 //child: Center(child: Text('Item $index')),
               );

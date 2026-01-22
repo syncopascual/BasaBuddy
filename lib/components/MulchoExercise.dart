@@ -33,10 +33,14 @@ class _MulchoExerciseState extends State<MulchoExercise> {
         ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ///Exercise Label
-
           Container(
+            height: 80,
+          ),
+          ///Exercise Label
+          Container(
+            margin: EdgeInsets.only(left: 20),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: selected,
@@ -47,9 +51,11 @@ class _MulchoExerciseState extends State<MulchoExercise> {
             child: Text("Exercise"),
           ),
 
+          Container(height: 10,),
+
           ///Question and Choices Body
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 36),
+            padding: EdgeInsets.symmetric(horizontal: 36, vertical: 36),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.all(Radius.circular(45)),
@@ -57,10 +63,10 @@ class _MulchoExerciseState extends State<MulchoExercise> {
             height: 500,
             child: Column(
               children: [
-                Text(widget.mulcho.question, style: TextStyle(color: Colors.black),),
+                Text(widget.mulcho.question, style: TextStyle(color: Colors.black, fontSize: 20),),
                 Container(
                   height: 300,
-                  child: MulchoChoices(selectedContainerIndex: choiceIndex, choices: widget.mulcho.choices),
+                  child: MulchoChoices(selectedContainerIndex: choiceIndex, choices: widget.mulcho.choices.values.toList()),
                 )
               ],
             ),

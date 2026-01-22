@@ -3,11 +3,12 @@ import 'package:basabuddy/models/mulcho.dart';
 import 'package:basabuddy/screens/home.dart';
 import 'package:basabuddy/screens/login.dart';
 import 'package:basabuddy/screens/module.dart';
-import 'package:basabuddy/screens/story.dart';
+import 'package:basabuddy/screens/storyShell.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
 import 'components/HomeShell.dart';
+import 'models/story.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -43,20 +44,11 @@ final router = GoRouter(
 
         ///Story Route -> Not sure if this is the best placement
         GoRoute(
-          path: '/story',
+          path: '/story/:storyId',
           pageBuilder: (context, state) {
-            return NoTransitionPage(child: Story());
+            final storyId = state.pathParameters['storyId']!;
+            return NoTransitionPage(child: StoryShell(storyId: storyId));
           },
-          routes: [
-            GoRoute(
-              path: 'exercise_mulcho',
-              builder: (context, state) {
-                final mulcho = state.extra as Mulcho;
-                return MulchoExercise(bgImage:"grassy", mulcho: mulcho);
-
-              },
-            ),
-          ],
         ),
 
         GoRoute(
