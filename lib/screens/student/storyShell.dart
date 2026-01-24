@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../components/Page.dart';
-import '../models/mulcho.dart';
-import '../models/storyPage.dart';
+import '../../components/Page.dart';
+import '../../models/mulcho.dart';
+import '../../models/storyPage.dart';
 
 ///This class fetches the story, its pages and exercises, from supabase
 /// Then orders them, displays them, and keeps track of the current page

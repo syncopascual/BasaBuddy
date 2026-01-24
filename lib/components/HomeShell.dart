@@ -6,10 +6,10 @@ import 'package:go_router/go_router.dart';
 import '../colors.dart';
 
 ///A sort of wrapper around the whole app, contains the bottom navigation bar
-class HomeShell extends StatelessWidget {
+class StudentHomeShell  extends StatelessWidget {
   final Widget child;
 
-  const HomeShell({required this.child});
+  const StudentHomeShell({required this.child});
 
   int _locationToIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
@@ -22,7 +22,7 @@ class HomeShell extends StatelessWidget {
   void _onTap(BuildContext context, int index) {
     switch (index) {
       case 0:
-        context.go('/home');
+        context.go('/student/home');
         break;
       case 1:
         context.go('/b');

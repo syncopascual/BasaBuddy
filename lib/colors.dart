@@ -9,6 +9,7 @@ Color mulchoChoice = const Color(0xFFFFEEBB);
 Color loginButton = const Color(0xFF804589);
 Color x2Coins =  const Color(0xFFFFE79D);
 Color greenText =  const Color(0xFF5CA65F);
+Color teacherAppBar = const Color(0xFFFFFFFF);
 
 
 Color timer = const Color(0xFFB57AE4);
@@ -127,9 +128,10 @@ var wardrobePalette = {
 };
 
 //Icon colors
-Color clockIcon = const Color(0xFFFFD43D);
+Color clockIcon = const Color(0xFFF2DBDB);
 Color fireIcon = const Color(0xFFF2721C);
 Color leavesIcon = const Color(0xFF6DC544);
+Color profileIcon = const Color(0xFFE8A3A3);
 
 Color pastelYellow = const Color(0xFFFFF599);
 

@@ -1,4 +1,4 @@
-import 'package:basabuddy/screens/home.dart';
+import 'package:basabuddy/screens/student/home.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -63,9 +63,14 @@ class _LoginState extends State<Login> {
             ///Login Button
             ElevatedButton(
                 onPressed: (){
-                  context.go('/home');
+                  context.go('/student/home');
                 },
                 child: Text("Login")),
+            ElevatedButton(
+                onPressed: (){
+                  context.go('/teacher/home');
+                },
+                child: Text("Teacher Login")),
           ],
         ),
       ),
