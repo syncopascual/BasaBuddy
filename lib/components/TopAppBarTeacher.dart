@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../colors.dart';
 
 class TopAppBarTeacher extends StatelessWidget implements PreferredSizeWidget{
-  TopAppBarTeacher(this.screenWidth);
+  TopAppBarTeacher(this.screenWidth, {required this.teacherName});
 
   final double screenWidth;
+  final String teacherName;
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -26,7 +28,7 @@ class TopAppBarTeacher extends StatelessWidget implements PreferredSizeWidget{
           ),
 
         Center(
-        child: Text("Ma'am Cruz",
+        child: Text(teacherName,
         style: TextStyle(color: topBarText)
         ),
         ),

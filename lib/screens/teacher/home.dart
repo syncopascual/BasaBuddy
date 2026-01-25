@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'class_page.dart';
 import '../../colors.dart';
@@ -11,7 +12,17 @@ class TeacherHome extends StatefulWidget {
 }
 
 class _TeacherHomeState extends State<TeacherHome> {
-  final List<Map<String, String>> classes = const [
+
+  List<Map<String, String>> classes = []; // initially empty
+  bool loading = true; // show loading indicator
+
+  @override
+  void initState() {
+    super.initState();
+    fetchClasses();
+  }
+  
+  /*final List<Map<String, String>> classes = const [
     {'name': '3- Ipil', 'year': 'AY 2024-2025', 'color': 'pink'},
     {'name': '3- Sampaguita', 'year': 'AY 2024-2025', 'color': 'green'},
     {'name': '3- Narra', 'year': 'AY 2024-2025', 'color': 'blue'},
@@ -20,7 +31,35 @@ class _TeacherHomeState extends State<TeacherHome> {
     {'name': '3- Mola', 'year': 'AY 2024-2025', 'color': 'blue'},
     {'name': '3- Naga', 'year': 'AY 2024-2025', 'color': 'green'},
     {'name': '3- Redwood', 'year': 'AY 2024-2025', 'color': 'blue'},
-  ];
+  ];*/
+
+  Future<void> fetchClasses() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    // Fetch assigned_classes array from teacher_classes table
+    final res = await Supabase.instance.client
+        .from('teacher_classes')
+        .select('classes')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    final assigned = res?['classes'] as List<dynamic>? ?? [];
+
+    // Map array to your UI structure
+    final colorOptions = ['pink', 'green', 'blue'];
+    setState(() {
+      classes = List<Map<String, String>>.generate(assigned.length, (index) {
+        return {
+          'name': assigned[index].toString(),
+          'year': 'AY 2024-2025', // default; can make dynamic later
+          'color': colorOptions[index % colorOptions.length],
+        };
+      });
+      loading = false;
+    });
+  }
+
 
   Color _getColor(String colorName) {
     switch (colorName) {
@@ -37,6 +76,11 @@ class _TeacherHomeState extends State<TeacherHome> {
 
   @override
   Widget build(BuildContext context) {
+    if (loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       body: Padding (
