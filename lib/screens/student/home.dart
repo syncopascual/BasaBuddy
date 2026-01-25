@@ -1,16 +1,16 @@
-import 'package:basabuddy/screens/module.dart';
+import 'package:basabuddy/screens/student/module.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../colors.dart';
+import '../../colors.dart';
 
-class Home extends StatefulWidget {
+class StudentHome  extends StatefulWidget {
   @override
-  State<Home> createState() => _HomeState();
+  State<StudentHome > createState() => _StudentHomeState();
 }
 
-class _HomeState extends State<Home> {
+class _StudentHomeState extends State<StudentHome > {
 
   int index = 1;
   @override
@@ -29,21 +29,21 @@ class _HomeState extends State<Home> {
             ///Vocab Island Button
             ElevatedButton(
                 onPressed: (){
-                  context.push('/home/module/vocab');
+                  context.push('/student/home/module/vocab');
                 },
                 child: Text("Vocab Island")),
 
             ///Information Island Button
             ElevatedButton(
                 onPressed: (){
-                  context.push('/home/module/information');
+                  context.push('/student/home/module/information');
                 },
                 child: Text("Information Island")),
 
             ///Narrative Island Button
             ElevatedButton(
                 onPressed: (){
-                  context.push('/home/module/narrative');
+                  context.push('/student/home/module/narrative');
                 },
                 child: Text("Narrative Island")),
           ],

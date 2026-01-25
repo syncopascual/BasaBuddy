@@ -1,17 +1,21 @@
 import 'package:basabuddy/components/MulchoExercise.dart';
 import 'package:basabuddy/models/mulcho.dart';
-import 'package:basabuddy/screens/home.dart';
+import 'package:basabuddy/screens/student/home.dart';
+import 'package:basabuddy/screens/teacher/home.dart';
 import 'package:basabuddy/screens/login.dart';
-import 'package:basabuddy/screens/module.dart';
-import 'package:basabuddy/screens/storyShell.dart';
+import 'package:basabuddy/screens/student/module.dart';
+import 'package:basabuddy/screens/student/storyShell.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
 import 'components/HomeShell.dart';
+import 'components/TeacherHomeShell.dart';
+
 import 'models/story.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final _shellTeacherNavigatorKey = GlobalKey<NavigatorState>();
 
 final router = GoRouter(
   navigatorKey: _rootNavigatorKey,
@@ -24,13 +28,13 @@ final router = GoRouter(
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
       builder: (context, state, child) {
-        return HomeShell(child: child);
+        return StudentHomeShell(child: child);
       },
       routes: [
         ///Home Route
         GoRoute(
-          path: '/home',
-          pageBuilder: (context, state) => NoTransitionPage(child: Home()),
+          path: '/student/home',
+          pageBuilder: (context, state) => NoTransitionPage(child: StudentHome()),
           routes: [
             GoRoute(
               path: 'module/:moduleType',
@@ -53,12 +57,29 @@ final router = GoRouter(
 
         GoRoute(
           path: '/b',
-          pageBuilder: (context, state) => NoTransitionPage(child: Home()),
+          pageBuilder: (context, state) => NoTransitionPage(child: StudentHome()),
         ),
         GoRoute(
           path: '/c',
-          pageBuilder: (context, state) => NoTransitionPage(child: Home()),
+          pageBuilder: (context, state) => NoTransitionPage(child: StudentHome()),
         ),
+      ],
+    ),
+    ShellRoute(
+      navigatorKey: _shellTeacherNavigatorKey,
+      builder: (context, state, child) {
+        return TeacherHomeShell(child: child);
+      },
+      routes: [
+        ///Student Home Route
+        GoRoute(
+          path: '/teacher/home',
+          pageBuilder: (context, state) => NoTransitionPage(child: TeacherHome()),
+          routes: [
+          ],
+        ),
+
+  
       ],
     ),
   ],
