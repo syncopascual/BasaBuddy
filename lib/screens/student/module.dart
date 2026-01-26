@@ -1,3 +1,4 @@
+import 'package:basabuddy/components/StoryButton.dart';
 import 'package:basabuddy/models/mulcho.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -29,10 +30,12 @@ String determineBackground(moduleType){
 }
 
 class _ModuleState extends State<Module> {
-  late Future<List<Story>> stories;
+  late Future<List> storiesAndLevel;
 
-  ///Fetch Stories from supabase
-  Future<List<Story>> _fetchStories() async {
+  ///Fetch Stories from supabase and get user level
+  Future<List> _fetchStoriesAndUserLevel() async {
+
+    ///Fetch stories
     print("MODULE.dart :: _fetchStories() called");
     //print(Supabase.instance.client.auth.currentUser);
     final response = await Supabase.instance.client
@@ -48,13 +51,25 @@ class _ModuleState extends State<Module> {
     print("Stories");
     print(stories);
 
-    return stories;
+    ///Get user level
+    final rawUserLevel = await Supabase.instance.client
+        .from('user_level_info')
+        .select();
+
+    int moduleLevel = rawUserLevel[0]["${widget.moduleType}_lvl"];
+    return [stories, moduleLevel];
+
   }
+
+  //Todo: improve type safety
+  ///Returns the user's level for this particular module
+
 
   @override
   void initState() {
     super.initState();
-    stories = _fetchStories(); // Start the async operation in initState
+    storiesAndLevel = _fetchStoriesAndUserLevel(); // Start the async operation in initState
+
   }
 
   @override
@@ -67,47 +82,36 @@ class _ModuleState extends State<Module> {
           fit: BoxFit.cover,
         ),
       ),
-      child: Column(
-        children: [
-          Container(
-            height: 400,
-            child: FutureBuilder(
-                future: stories,
-                builder: (context, snapshot){
-                  if(snapshot.hasData){
-                    return ListView.builder(
-                      itemCount: snapshot.data?.length,
-                        itemBuilder: (_, i){
+      child: Container(
+        height: 600,
+        child: FutureBuilder(
+            future: storiesAndLevel,
+            builder: (context, snapshot){
+              if(snapshot.hasData){
+                return ListView.builder(
+                    itemCount: snapshot.data?[0].length,
+                    itemBuilder: (_, i){
                       return Container(
-                        decoration:  BoxDecoration(
-                            color: Colors.lightBlue, // Color must be inside BoxDecoration
-                            borderRadius: BorderRadius.circular(50.0), // Rounded corners
-                            border: Border.all(
-                              color: Colors.blueAccent,
-                              width: 2.0,
-                            ),
+                        height: 150,
+                        child: Column(
+                          children: [
+                            StoryButton(
+                                userLevel: snapshot.data?[1],
+                                storyLevel: snapshot.data?[0][i].level,
+                                imageAsset: 'assets/story/papaya.png',
+                                onPressed: () {
+                                  context.go('/story/${snapshot.data?[0][i].storyId}');
+                                }),
+
+                          ],
                         ),
-                        child: ElevatedButton(
-                            onPressed: (){
-                              context.go('/story/${snapshot.data?[i].storyId}');
-                            },
-                            child: Text(snapshot.data![i].title)),
                       );
                     });
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
+              } else {
+                return const Center(child: CircularProgressIndicator());
 
-                  }
-                }),
-          ),
-          Container(height:200),
-          ElevatedButton(onPressed: (){
-
-
-            context.go('/story');
-          }, child: Text("Sample Story"))
-
-        ],
+              }
+            }),
       ),
     );
   }

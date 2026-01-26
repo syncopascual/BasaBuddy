@@ -12,11 +12,6 @@ class UserMoney {
 
   final int money;
 
-
-
-
-
-
   UserMoney({
     required this.id,
     required this.userId,
