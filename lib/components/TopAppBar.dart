@@ -1,4 +1,6 @@
+import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../colors.dart';
 
@@ -62,8 +64,12 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget{
 
           Container(
             margin: EdgeInsets.fromLTRB(0, 0, screenWidth * 0.04, 0),
-            child: Text("24",
-                style: TextStyle(color: topBarText)),
+            child: BlocBuilder<MoneyBloc, MoneyState>(
+              builder: (_, state){
+                return Text("${state.money}",
+                    style: TextStyle(color: topBarText));
+              }
+            ),
           ),
 
           ImageIcon(
