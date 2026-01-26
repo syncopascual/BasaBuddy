@@ -71,6 +71,11 @@ class _LoginState extends State<Login> {
                   context.go('/teacher/home');
                 },
                 child: Text("Teacher Login")),
+            ElevatedButton(
+                onPressed: (){
+                  context.go('/signup');
+                },
+                child: Text("Sign Up")),
           ],
         ),
       ),
