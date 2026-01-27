@@ -63,11 +63,32 @@ class _StoryShellState extends State<StoryShell> {
 
 
   late Future<List> storyComponents; ///pages and the different exercises
-  late Future<Map<int, String>> imageURLs;
+  Map<int, String> imageURLs = {};
+  int currentPage = 0;
+
+
+  void _precacheUpcoming(length) {
+    final nextIndexes = [
+      currentPage + 1,
+      currentPage + 2,
+    ];
+
+    for (final i in nextIndexes) {
+      if (i >= length) continue;
+
+      final url = imageURLs[i];
+      precacheImage(NetworkImage(url!), context);
+      print("_precacheUpcoming: precached file");
+    }
+  }
+
+
+
+
 
   ///Fetch the story's pages and exercises from supabase
-  /// returns 2 things: story pages+exercises, image urls
-  Future<(List, Map<int, String>)> _fetchPagesNexercises() async {
+
+  Future<List> _fetchPagesNexercises() async {
     print("STORYSHELL.dart: _fetchPagesNexercises() called, storyId: ${widget.storyId}");
 
     /// Fetch the story's pages
@@ -76,22 +97,29 @@ class _StoryShellState extends State<StoryShell> {
         .select()
         .eq('story_id', widget.storyId);
 
-    print("STORYSHELL.dart: pages fetched");
-    final List pages = (rawPages as List)
+    final List<Storypage> pages = (rawPages as List)
         .map((json) => Storypage.fromJson(json))
         .toList();
 
-    ///get the background image URLs for each page
-    Map<int, String> imageURLs = {};
-    for(int i = 0; i <pages.length; i++){
-      String url = Supabase.instance.client
-          .storage
-          .from('story-pages')
-          .getPublicUrl('${pages[i].storyId}/${pages[i].pageNum}.png');
 
-      /// page number and corresponding url{1: "url"}
-      imageURLs[pages[i].pageNum] = url;
+    for(int i = 0; i< pages.length;i++){
+
+      try{
+        String url = Supabase.instance.client
+            .storage
+            .from('story-pages')
+            .getPublicUrl('${pages[i].storyId}/${pages[i].pageNum}.png');
+        imageURLs[pages[i].pageNum] = url;
+      }
+    catch (e) {
+    print('Error listing files: $e');
     }
+    }
+
+    ///initial precache
+    _precacheUpcoming(pages.length);
+
+
 
     /*
     ///Fetch the story's multiple choice type exercises
@@ -110,7 +138,7 @@ class _StoryShellState extends State<StoryShell> {
     ///TODO:: order this correctly
     final pagesAndExercises = pages; //A mixed list
 
-    return (pagesAndExercises, imageURLs);
+    return pagesAndExercises;
   }
 
   Widget storyWidget(component, url){
@@ -127,16 +155,10 @@ class _StoryShellState extends State<StoryShell> {
     }
   }
 
-  //todo:: remove if not needed
-  /*
-  @override
-  void initState() async {
-    super.initState();
-    var (story, url) = await _fetchPagesNexercises();
-    storyComponents = story;
-  }*/
 
-  int currentPage = 1;
+
+
+
   @override
   Widget build(BuildContext context) {
     print("story.dart");
@@ -146,21 +168,13 @@ class _StoryShellState extends State<StoryShell> {
           if(snapshot.hasData){
 
             ///the loaded data
-            var ((storyComponents, urls)!) = snapshot.data;
-            print("storyShell.dart urls: $urls, current page: $currentPage");
+            var storyComponents = snapshot.data;
+            print("storyShell.dart urls: $imageURLs, current page: $currentPage");
             return Container(
-              /*
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  ///Current page index starts at zero, but urls go by the supabase page number
-                  ///which starts at 1
-                  image: NetworkImage(urls[currentPage + 1]!),
-                  fit: BoxFit.cover,
-                ),
-              ),*/
+
               child: Column(
                   children: [
-                    storyWidget(storyComponents[currentPage], urls[currentPage + 1]),Row(
+                    storyWidget(storyComponents?[currentPage], imageURLs[currentPage + 1]),Row(
                       children: [
 
                         ///BACK button
@@ -178,7 +192,7 @@ class _StoryShellState extends State<StoryShell> {
                         ElevatedButton(onPressed: () async {
                           ///if last page na
                           /// increase user level for this module and navigate to home screen
-                          if(currentPage == storyComponents.length - 1){
+                          if(currentPage == storyComponents!.length - 1){
 
                             updateUserLevel(widget.storyId);
 
@@ -191,6 +205,11 @@ class _StoryShellState extends State<StoryShell> {
                           }
                           setState(() {
                             currentPage+=1;
+                          });
+
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (!mounted) return;
+                            _precacheUpcoming(storyComponents.length);
                           });
                         }, child: Text('Next')),
 
