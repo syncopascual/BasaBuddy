@@ -8,9 +8,11 @@ import 'package:go_router/go_router.dart';
 class PageContainer extends StatefulWidget {
 
   final Storypage storyPage;
+  final String imageURL;
   const PageContainer({
     super.key,
     required this.storyPage,
+    required this.imageURL
   });
 
   @override
@@ -23,14 +25,14 @@ class _PageContainerState extends State<PageContainer> {
     return Container(
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: AssetImage("assets/bg_images/grassy.png"),
+          image: NetworkImage(widget.imageURL),
           fit: BoxFit.cover,
         ),
       ),
       child: Column(
         children: [
-          Container(height:200),
-          Image.asset('assets/story/papaya.png', height: 200),
+          Container(height:400),
+          //Image.asset('assets/story/papaya.png', height: 200),
           Container(height: 200,
             padding: EdgeInsets.symmetric(horizontal: 36, vertical: 36),
             decoration: BoxDecoration(
