@@ -1,8 +1,10 @@
 import 'dart:ffi';
 
+import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:basabuddy/components/MulchoExercise.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -58,11 +60,16 @@ void updateUserLevel(storyId) async{
 
 
 class _StoryShellState extends State<StoryShell> {
+
+
   late Future<List> storyComponents; ///pages and the different exercises
+  late Future<Map<int, String>> imageURLs;
 
   ///Fetch the story's pages and exercises from supabase
-  Future<List> _fetchPagesNexercises() async {
+  /// returns 2 things: story pages+exercises, image urls
+  Future<(List, Map<int, String>)> _fetchPagesNexercises() async {
     print("STORYSHELL.dart: _fetchPagesNexercises() called, storyId: ${widget.storyId}");
+
     /// Fetch the story's pages
     final rawPages = await Supabase.instance.client
         .from('story_page')
@@ -73,6 +80,18 @@ class _StoryShellState extends State<StoryShell> {
     final List pages = (rawPages as List)
         .map((json) => Storypage.fromJson(json))
         .toList();
+
+    ///get the background image URLs for each page
+    Map<int, String> imageURLs = {};
+    for(int i = 0; i <pages.length; i++){
+      String url = Supabase.instance.client
+          .storage
+          .from('story-pages')
+          .getPublicUrl('${pages[i].storyId}/${pages[i].pageNum}.png');
+
+      /// page number and corresponding url{1: "url"}
+      imageURLs[pages[i].pageNum] = url;
+    }
 
     /*
     ///Fetch the story's multiple choice type exercises
@@ -91,14 +110,14 @@ class _StoryShellState extends State<StoryShell> {
     ///TODO:: order this correctly
     final pagesAndExercises = pages; //A mixed list
 
-    return pagesAndExercises;
+    return (pagesAndExercises, imageURLs);
   }
 
-  Widget storyWidget(component){
+  Widget storyWidget(component, url){
     print(component.runtimeType);
     switch(component){
       case Storypage page:
-        final page = PageContainer(storyPage: component);
+        final page = PageContainer(storyPage: component, imageURL: url,);
         return page;
       case Mulcho mulcho:
         final page = MulchoExercise(mulcho: component, bgImage: 'grassy',);
@@ -108,79 +127,82 @@ class _StoryShellState extends State<StoryShell> {
     }
   }
 
-
+  //todo:: remove if not needed
+  /*
   @override
-  void initState() {
+  void initState() async {
     super.initState();
-    storyComponents = _fetchPagesNexercises() ; // Start the async operation in initState
-  }
+    var (story, url) = await _fetchPagesNexercises();
+    storyComponents = story;
+  }*/
 
-  int currentPage = 0;
+  int currentPage = 1;
   @override
   Widget build(BuildContext context) {
     print("story.dart");
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage("assets/bg_images/winter.png"),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Column(
-        children: [
-          FutureBuilder(
-              future: storyComponents,
-              builder: (context, snapshot){
-                if(snapshot.hasData){
-                  return Column(
-                    children: [
-                      storyWidget(snapshot.data![currentPage]),Row(
-                    children: [
+    return  FutureBuilder(
+        future: _fetchPagesNexercises(),
+        builder: (context, snapshot){
+          if(snapshot.hasData){
 
-                      ///BACK button
-                      ElevatedButton(onPressed: (){
-                        ///if its the first page, dont do anything
-                        if(currentPage == 0){
-                          return;
-                        }
-                        setState(() {
-                          currentPage-=1;
-                        });
-                      }, child: Text('Back')),
+            ///the loaded data
+            var ((storyComponents, urls)!) = snapshot.data;
+            print("storyShell.dart urls: $urls, current page: $currentPage");
+            return Container(
+              /*
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  ///Current page index starts at zero, but urls go by the supabase page number
+                  ///which starts at 1
+                  image: NetworkImage(urls[currentPage + 1]!),
+                  fit: BoxFit.cover,
+                ),
+              ),*/
+              child: Column(
+                  children: [
+                    storyWidget(storyComponents[currentPage], urls[currentPage + 1]),Row(
+                      children: [
 
-                      ///NEXT Button
-                      ElevatedButton(onPressed: () async {
-                        ///if last page na
-                        /// increase user level for this module and navigate to home screen
-                        if(currentPage == snapshot.data!.length - 1){
+                        ///BACK button
+                        ElevatedButton(onPressed: (){
+                          ///if its the first page, dont do anything
+                          if(currentPage == 0){
+                            return;
+                          }
+                          setState(() {
+                            currentPage-=1;
+                          });
+                        }, child: Text('Back')),
 
-                          updateUserLevel(widget.storyId);
+                        ///NEXT Button
+                        ElevatedButton(onPressed: () async {
+                          ///if last page na
+                          /// increase user level for this module and navigate to home screen
+                          if(currentPage == storyComponents.length - 1){
 
+                            updateUserLevel(widget.storyId);
 
+                            BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
 
-                          //navigate to home
-                          context.go('/home');
-                          return;
+                            //navigate to home
+                            context.go('/student/home');
+                            return;
 
-                        }
-                        setState(() {
-                          currentPage+=1;
-                        });
-                      }, child: Text('Next')),
-
-
-                    ],
-                  )]
-
-                  );
-                  ///Row containing next button and back button
-
-                } else {return CircularProgressIndicator();}
-              }),
+                          }
+                          setState(() {
+                            currentPage+=1;
+                          });
+                        }, child: Text('Next')),
 
 
-        ],
-      ),
-    );
+                      ],
+                    )]
+
+              ),
+            );
+            ///Row containing next button and back button
+
+          } else {return CircularProgressIndicator();}
+        });
   }
 }
