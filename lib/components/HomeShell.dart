@@ -2,7 +2,9 @@ import 'package:basabuddy/components/TopAppBar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bloc/money_bloc.dart';
 import '../colors.dart';
 
 ///A sort of wrapper around the whole app, contains the bottom navigation bar
@@ -36,9 +38,12 @@ class StudentHomeShell  extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = _locationToIndex(context);
+    final user = Supabase.instance.client.auth.currentUser!;
     double screenWidth = MediaQuery.of(context).size.width;
 
-    return Scaffold(
+    return BlocProvider(
+      create: (_) => MoneyBloc()..add(SyncMoney(userId: user.id)),
+      child: Scaffold(
       appBar: TopAppBar(screenWidth),
       body: child,
       bottomNavigationBar: BottomNavigationBar(
@@ -56,6 +61,6 @@ class StudentHomeShell  extends StatelessWidget {
           const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'C'),
         ],
       ),
-    );
+    ),);
   }
 }

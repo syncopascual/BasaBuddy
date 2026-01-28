@@ -3,6 +3,7 @@ import 'package:basabuddy/models/mulcho.dart';
 import 'package:basabuddy/screens/student/home.dart';
 import 'package:basabuddy/screens/teacher/home.dart';
 import 'package:basabuddy/screens/login.dart';
+import 'package:basabuddy/screens/signup.dart';
 import 'package:basabuddy/screens/student/module.dart';
 import 'package:basabuddy/screens/student/storyShell.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,6 +25,10 @@ final router = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => Login(),
+    ),
+    GoRoute(
+      path: '/signup',
+      builder: (context, state) => Signup(),
     ),
     ShellRoute(
       navigatorKey: _shellNavigatorKey,

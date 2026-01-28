@@ -12,7 +12,8 @@ class ChangeMoney extends MoneyEvent {
 
 
 class SyncMoney extends MoneyEvent {
-  SyncMoney();
+  final String userId;
+  SyncMoney({required this.userId});
 }
 
 class MoneyState {
@@ -47,11 +48,16 @@ class MoneyBloc extends Bloc<MoneyEvent, MoneyState> {
     });
     on<SyncMoney>((event, emit) async {
       print('SYNCMONEY EVENT CALLED');
+      final userId = event.userId;
       final moneyJson = await Supabase.instance.client
           .from('user_money')
-          .select();
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
 
-      emit(MoneyState(moneyJson[0]["money"]));
+      final money = moneyJson != null ? (moneyJson['money'] as int) : 0;
+
+      emit(MoneyState(money));
     });
   }
 }
