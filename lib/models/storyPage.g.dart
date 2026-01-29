@@ -11,6 +11,7 @@ Storypage _$StorypageFromJson(Map<String, dynamic> json) => Storypage(
       storyId: json['story_id'] as String,
       pageNum: (json['page_num'] as num).toInt(),
       text: json['text'] as String,
+      tagalogText: json['tagalog_text'] as String,
     );
 
 Map<String, dynamic> _$StorypageToJson(Storypage instance) => <String, dynamic>{
@@ -18,4 +19,5 @@ Map<String, dynamic> _$StorypageToJson(Storypage instance) => <String, dynamic>{
       'story_id': instance.storyId,
       'page_num': instance.pageNum,
       'text': instance.text,
+      'tagalog_text': instance.tagalogText,
     };

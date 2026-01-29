@@ -17,12 +17,17 @@ class Storypage {
 
   final String text;
 
+  @JsonKey(name: 'tagalog_text')
+  final String tagalogText;
+
 
   Storypage({
     required this.id,
     required this.storyId,
     required this.pageNum,
-    required this.text
+    required this.text,
+    required this.tagalogText
+
   });
 
   factory Storypage.fromJson(Map<String, dynamic> json) =>
