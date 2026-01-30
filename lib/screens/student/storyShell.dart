@@ -177,41 +177,47 @@ class _StoryShellState extends State<StoryShell> {
                     storyWidget(storyComponents?[currentPage], imageURLs[currentPage + 1]),Row(
                       children: [
 
-                        ///BACK button
-                        ElevatedButton(onPressed: (){
-                          ///if its the first page, dont do anything
-                          if(currentPage == 0){
-                            return;
-                          }
-                          setState(() {
-                            currentPage-=1;
-                          });
-                        }, child: Text('Back')),
+                        Row(
+                          children: [
+                            ///BACK button
+                            ElevatedButton(onPressed: (){
+                              ///if its the first page, dont do anything
+                              if(currentPage == 0){
+                                return;
+                              }
+                              setState(() {
+                                currentPage-=1;
+                              });
+                            }, child: Text('Back')),
 
-                        ///NEXT Button
-                        ElevatedButton(onPressed: () async {
-                          ///if last page na
-                          /// increase user level for this module and navigate to home screen
-                          if(currentPage == storyComponents!.length - 1){
+                            ///NEXT Button
+                            ElevatedButton(onPressed: () async {
+                              ///if last page na
+                              /// increase user level for this module and navigate to home screen
+                              if(currentPage == storyComponents!.length - 1){
 
-                            updateUserLevel(widget.storyId);
+                                updateUserLevel(widget.storyId);
 
-                            BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
+                                BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
 
-                            //navigate to home
-                            context.go('/student/home');
-                            return;
+                                //navigate to home
+                                context.go('/student/home');
+                                return;
 
-                          }
-                          setState(() {
-                            currentPage+=1;
-                          });
+                              }
+                              setState(() {
+                                currentPage+=1;
+                              });
 
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (!mounted) return;
-                            _precacheUpcoming(storyComponents.length);
-                          });
-                        }, child: Text('Next')),
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (!mounted) return;
+                                _precacheUpcoming(storyComponents.length);
+                              });
+                            }, child: Text('Next')),
+                          ],
+                        ),
+
+
 
 
                       ],

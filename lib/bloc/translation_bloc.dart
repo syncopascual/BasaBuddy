@@ -5,9 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 abstract class TranslationEvent {}
 
 class ToggleTranslation extends TranslationEvent {
-  final isEnglish;//amount to be added/ subtracted
 
-  ToggleTranslation(this.isEnglish);
+  ToggleTranslation();
 }
 
 
