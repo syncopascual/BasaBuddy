@@ -40,7 +40,7 @@ class MoneyBloc extends Bloc<MoneyEvent, MoneyState> {
 
       await Supabase.instance.client
           .from('user_money')
-          .update(moneyJson[0]).e;
+          .update(moneyJson[0]);
 
       emit(MoneyState(moneyJson[0]["money"]));
 

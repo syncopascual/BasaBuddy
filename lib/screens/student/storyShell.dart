@@ -34,7 +34,7 @@ void updateUserLevel(storyId) async{
       .select()
       .eq('story_id', storyId);
 
-  print("storyInfo fetched");
+
 
   //query user's current level
   var rawUserLevel = await Supabase.instance.client
@@ -44,18 +44,30 @@ void updateUserLevel(storyId) async{
 
   var userLevel = rawUserLevel[0];
 
+  //check if the user has already answered the story(ie user level > story level). if yes, pass
+  //if not, update user level
   //update user level based on what module the story is part of
   String moduleType = storyInfo[0]["module"];
    switch (moduleType) {
      case 'vocab':
-       userLevel['vocab_lvl'] +=1;
+       if(userLevel['vocab_lvl'] <= storyInfo[0]["level"] ){
+         userLevel['vocab_lvl'] +=1;
+         print("level increased");
+       }
+
      case 'information':
-       userLevel['information_lvl'] +=1;
+       if(userLevel['information_lvl'] <= storyInfo[0]["level"] ){
+         userLevel['information_lvl'] +=1;
+         print("level increased");
+       }
+
      case 'narrative':
-      userLevel['narrative_lvl'] +=1;
+       if(userLevel['narrative_lvl'] <= storyInfo[0]["level"] ){
+         userLevel['narrative_lvl'] +=1;
+         print("level increased");
+       }
      default:
    }
-  print("updating user level...");
 
 
    try{
@@ -228,11 +240,11 @@ class _StoryShellState extends State<StoryShell> {
     }
   }
 
-  String? determineBg(currentComponent){
+  ImageProvider<Object> determineBg(currentComponent){
     if(currentComponent.runtimeType == PageItem){
-      return imageURLs[currentComponent.data.pageNum];
+      return NetworkImage(imageURLs[currentComponent.data.pageNum]!);
     } else {
-      return "grassy";
+      return AssetImage("assets/bg_images/grassy.png");
     }
 
   }
@@ -256,10 +268,14 @@ class _StoryShellState extends State<StoryShell> {
             //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
 
             return Container(
-
+                decoration: BoxDecoration(
+                image: DecorationImage(
+                image:  determineBg(orderedStoryItems[currentPage]),
+          fit: BoxFit.cover,
+          ),),
               child: Column(
                   children: [
-                    storyWidget(orderedStoryItems[currentPage].data, determineBg(orderedStoryItems[currentPage])),
+                    storyWidget(orderedStoryItems[currentPage].data, ""),
                     Row(
                       children: [
                         ///BACK button
