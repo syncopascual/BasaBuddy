@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:basabuddy/components/MulchoExercise.dart';
+import 'package:basabuddy/wrappers/StoryItem.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +25,7 @@ class StoryShell extends StatefulWidget {
 }
 
 void updateUserLevel(storyId) async{
+  print("updateUserLevel called");
   //not the best way to do it lol
 
   //query story list to see which module this story's a part of
@@ -32,10 +34,13 @@ void updateUserLevel(storyId) async{
       .select()
       .eq('story_id', storyId);
 
+  print("storyInfo fetched");
+
   //query user's current level
   var rawUserLevel = await Supabase.instance.client
       .from('user_level_info')
       .select();
+
 
   var userLevel = rawUserLevel[0];
 
@@ -50,20 +55,31 @@ void updateUserLevel(storyId) async{
       userLevel['narrative_lvl'] +=1;
      default:
    }
+  print("updating user level...");
 
-   //send update to supabase.
-  //RLS makes sure that only the user's row(that corresponds to their user_id) is updated
-  await Supabase.instance.client
-      .from('user_level_info')
-      .update(userLevel) .eq('id', userLevel['id']);
+
+   try{
+     //send update to supabase.
+     //RLS makes sure that only the user's row(that corresponds to their user_id) is updated
+     await Supabase.instance.client
+         .from('user_level_info')
+         .update(userLevel)
+         .eq('id', userLevel['id']);
+     print("done updating user level!");
+   } catch (e){
+     print("error updating: $e");
+   }
+
 }
 
 
 class _StoryShellState extends State<StoryShell> {
 
 
-  late Future<List> storyComponents; ///pages and the different exercises
+
+  late Map<String, int> skillScores = {}; ///scoring for each skill, will be uploaded to stage_data
   Map<int, String> imageURLs = {};
+  late int numPages = 0; ///needed for precaching
   int currentPage = 0;
 
 
@@ -84,11 +100,8 @@ class _StoryShellState extends State<StoryShell> {
 
 
 
-
-
-  ///Fetch the story's pages and exercises from supabase
-
-  Future<List> _fetchPagesNexercises() async {
+  ///Fetch the story's pages and exercises from supabase, and orders them
+  Future<List<StoryItem>> _fetchPagesNexercises() async {
     print("STORYSHELL.dart: _fetchPagesNexercises() called, storyId: ${widget.storyId}");
 
     /// Fetch the story's pages
@@ -100,6 +113,12 @@ class _StoryShellState extends State<StoryShell> {
     final List<Storypage> pages = (rawPages as List)
         .map((json) => Storypage.fromJson(json))
         .toList();
+
+    final List<PageItem> wrappedPages = pages
+        .map((page) => PageItem(page))
+        .toList();
+
+    numPages = pages.length;
 
 
     for(int i = 0; i< pages.length;i++){
@@ -118,28 +137,82 @@ class _StoryShellState extends State<StoryShell> {
 
     ///initial precache
     _precacheUpcoming(pages.length);
+    late List<Mulcho> mulcho;
+    late List<StoryItem> wrappedMulcho;
 
 
+    try {
+      ///Fetch the story's multiple choice type exercises
+      final rawMulcho = await Supabase.instance.client
+          .from('mulcho_exercise')
+          .select()
+          .eq('story_id', widget.storyId);
+      print("STORYSHELL.dart: mulcho fetched");
 
-    /*
-    ///Fetch the story's multiple choice type exercises
-    final rawMulcho = await Supabase.instance.client
-        .from('mulcho_exercise')
-        .select()
-        .eq('story_id', widget.storyId);
-    print("STORYSHELL.dart: mulcho fetched");
+      mulcho = (rawMulcho as List)
+          .map((json) => Mulcho.fromJson(json))
+          .toList();
 
-    final List mulcho = (rawMulcho as List)
-        .map((json) => Mulcho.fromJson(json))
+      wrappedMulcho = mulcho
+        .map((mul) => MulchoItem(mul))
         .toList();
 
-     */
+      ///create a map that has all the skills of the story
+      for(int i = 0; i< mulcho.length;i++){
+        ///If the skill isn't in the dictionary yet, add and set to zero
+        ///the value of each skill is the amount of mistakes a student makes
+        if(!skillScores.containsKey(mulcho[i].skill)){
+          skillScores[mulcho[i].skill] = 0;
+        }
+      }
+      print("skillScores: $skillScores");
+    }
+    catch(e){
+      print(e);
+    }
 
-    ///TODO:: order this correctly
-    final pagesAndExercises = pages; //A mixed list
 
-    return pagesAndExercises;
+
+    try {
+      ///order this correctly
+      final orderedItems = orderItems(wrappedPages, wrappedMulcho);
+      print("fetched pages and exercises!");
+      return orderedItems;
+    } catch(e){
+      print(e);
+    }
+
+    return [];
+
   }
+
+
+  ///called inside _fetchPagesNexercises(), orders the items
+  List<StoryItem> orderItems(List<PageItem> pages, List<StoryItem?> exercises){
+    List<StoryItem> ordered = [];
+    for(int i = 1; i <= pages.length; i++){
+
+      ///page 1 to ...
+      final page = pages.firstWhere(
+            (m) => m.data.pageNum == i ,
+      );
+
+      ordered.add(page);
+
+
+      ///iterate over questions, check if it comes after page i
+      for(int j = 0; j < exercises.length; j++){
+        if(exercises[j]?.data.afterPage == i){
+          ordered.add(exercises[j]!);
+        }
+      }
+
+
+
+    }
+    return ordered;
+  }
+
 
   Widget storyWidget(component, url){
     print(component.runtimeType);
@@ -155,6 +228,15 @@ class _StoryShellState extends State<StoryShell> {
     }
   }
 
+  String? determineBg(currentComponent){
+    if(currentComponent.runtimeType == PageItem){
+      return imageURLs[currentComponent.data.pageNum];
+    } else {
+      return "grassy";
+    }
+
+  }
+
 
 
 
@@ -168,60 +250,56 @@ class _StoryShellState extends State<StoryShell> {
           if(snapshot.hasData){
 
             ///the loaded data
-            var storyComponents = snapshot.data;
-            print("storyShell.dart urls: $imageURLs, current page: $currentPage");
+            var orderedStoryItems = snapshot.data!;
+            print("ORDERED STORY ITEMS");
+            print(orderedStoryItems);
+            //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
+
             return Container(
 
               child: Column(
                   children: [
-                    storyWidget(storyComponents?[currentPage], imageURLs[currentPage + 1]),Row(
+                    storyWidget(orderedStoryItems[currentPage].data, determineBg(orderedStoryItems[currentPage])),
+                    Row(
                       children: [
+                        ///BACK button
+                        ElevatedButton(onPressed: (){
+                          ///if its the first page, dont do anything
+                          if(currentPage == 0){
+                            return;
+                          }
+                          setState(() {
+                            currentPage-=1;
+                          });
+                        }, child: Text('Back')),
 
-                        Row(
-                          children: [
-                            ///BACK button
-                            ElevatedButton(onPressed: (){
-                              ///if its the first page, dont do anything
-                              if(currentPage == 0){
-                                return;
-                              }
-                              setState(() {
-                                currentPage-=1;
-                              });
-                            }, child: Text('Back')),
+                        ///NEXT Button
+                        ElevatedButton(onPressed: () async {
+                          ///if last page na
+                          /// increase user level for this module and navigate to home screen
+                          if(currentPage == orderedStoryItems.length - 1){
 
-                            ///NEXT Button
-                            ElevatedButton(onPressed: () async {
-                              ///if last page na
-                              /// increase user level for this module and navigate to home screen
-                              if(currentPage == storyComponents!.length - 1){
+                            updateUserLevel(widget.storyId);
 
-                                updateUserLevel(widget.storyId);
+                            BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
 
-                                BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
+                            //navigate to home
+                            context.go('/student/home');
+                            return;
 
-                                //navigate to home
-                                context.go('/student/home');
-                                return;
+                          }
+                          setState(() {
+                            currentPage+=1;
+                          });
 
-                              }
-                              setState(() {
-                                currentPage+=1;
-                              });
-
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (!mounted) return;
-                                _precacheUpcoming(storyComponents.length);
-                              });
-                            }, child: Text('Next')),
-                          ],
-                        ),
-
-
-
-
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (!mounted) return;
+                            _precacheUpcoming(numPages);
+                          });
+                        }, child: Text('Next')),
                       ],
-                    )]
+                    ),
+                  ]
 
               ),
             );

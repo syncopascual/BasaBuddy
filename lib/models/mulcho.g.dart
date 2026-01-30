@@ -13,6 +13,7 @@ Mulcho _$MulchoFromJson(Map<String, dynamic> json) => Mulcho(
       question: json['question'] as String,
       choices: Map<String, String>.from(json['choices'] as Map),
       answer: json['answer'] as String,
+      skill: json['skill'] as String,
     );
 
 Map<String, dynamic> _$MulchoToJson(Mulcho instance) => <String, dynamic>{
@@ -22,4 +23,5 @@ Map<String, dynamic> _$MulchoToJson(Mulcho instance) => <String, dynamic>{
       'choices': instance.choices,
       'answer': instance.answer,
       'after_page': instance.afterPage,
+      'skill': instance.skill,
     };

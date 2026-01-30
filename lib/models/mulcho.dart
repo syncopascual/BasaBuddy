@@ -22,6 +22,7 @@ class Mulcho {
   @JsonKey(name: 'after_page')
   final int afterPage;
 
+  final String skill;
 
 
   Mulcho({
@@ -30,7 +31,8 @@ class Mulcho {
     required this.afterPage,
     required this.question,
     required this.choices,
-    required this.answer
+    required this.answer,
+    required this.skill
   });
 
   factory Mulcho.fromJson(Map<String, dynamic> json) =>

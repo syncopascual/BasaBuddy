@@ -60,7 +60,7 @@ class _MulchoExerciseState extends State<MulchoExercise> {
               color: Colors.white,
               borderRadius: BorderRadius.all(Radius.circular(45)),
             ),
-            height: 500,
+            height: 450,
             child: Column(
               children: [
                 Text(widget.mulcho.question, style: TextStyle(color: Colors.black, fontSize: 20),),
@@ -71,7 +71,9 @@ class _MulchoExerciseState extends State<MulchoExercise> {
               ],
             ),
           ),
+          ElevatedButton(onPressed: (){
 
+          }, child: Text("Submit"))
         ],
       ),
     );

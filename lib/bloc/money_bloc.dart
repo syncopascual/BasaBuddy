@@ -25,7 +25,7 @@ class MoneyBloc extends Bloc<MoneyEvent, MoneyState> {
 
 
   MoneyBloc() : super(MoneyState([])) {
-    print('SETTING UP GemBloc');
+    print('SETTING UP MoneyBloc');
     //subscription.resume();
 
     //TODO: improve type safety
@@ -40,7 +40,7 @@ class MoneyBloc extends Bloc<MoneyEvent, MoneyState> {
 
       await Supabase.instance.client
           .from('user_money')
-          .update(moneyJson[0]);
+          .update(moneyJson[0]).e;
 
       emit(MoneyState(moneyJson[0]["money"]));
 
