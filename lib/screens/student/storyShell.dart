@@ -58,6 +58,8 @@ void updateUserLevel(storyId) async{
      case 'information':
        if(userLevel['information_lvl'] <= storyInfo[0]["level"] ){
          userLevel['information_lvl'] +=1;
+
+
          print("level increased");
        }
 
@@ -88,13 +90,15 @@ void updateUserLevel(storyId) async{
 class _StoryShellState extends State<StoryShell> {
 
 
-
+  late Future<List<StoryItem>> _storyFuture;
   late Map<String, int> skillScores = {}; ///scoring for each skill, will be uploaded to stage_data
   Map<int, String> imageURLs = {};
   late int numPages = 0; ///needed for precaching
   int currentPage = 0;
 
 
+  //todo: fix this, as currentPage accounts for exercises as well. this should be based on pageNum
+  //todo: fix possible Invalid argument(s): No host specified in URI file:/// issues
   void _precacheUpcoming(length) {
     final nextIndexes = [
       currentPage + 1,
@@ -105,8 +109,11 @@ class _StoryShellState extends State<StoryShell> {
       if (i >= length) continue;
 
       final url = imageURLs[i];
-      precacheImage(NetworkImage(url!), context);
-      print("_precacheUpcoming: precached file");
+      if(url != null && url != ""){
+        precacheImage(NetworkImage(url!), context);
+      }
+
+
     }
   }
 
@@ -146,6 +153,8 @@ class _StoryShellState extends State<StoryShell> {
     print('Error listing files: $e');
     }
     }
+
+    print("imageURLs to precache: $imageURLs");
 
     ///initial precache
     _precacheUpcoming(pages.length);
@@ -242,6 +251,7 @@ class _StoryShellState extends State<StoryShell> {
 
   ImageProvider<Object> determineBg(currentComponent){
     if(currentComponent.runtimeType == PageItem){
+      //print("setting network image to ${imageURLs[currentComponent.data.pageNum]!}");
       return NetworkImage(imageURLs[currentComponent.data.pageNum]!);
     } else {
       return AssetImage("assets/bg_images/grassy.png");
@@ -250,6 +260,11 @@ class _StoryShellState extends State<StoryShell> {
   }
 
 
+  @override
+  void initState() {
+    super.initState();
+    _storyFuture = _fetchPagesNexercises();
+  }
 
 
 
@@ -257,14 +272,12 @@ class _StoryShellState extends State<StoryShell> {
   Widget build(BuildContext context) {
     print("story.dart");
     return  FutureBuilder(
-        future: _fetchPagesNexercises(),
+        future: _storyFuture,
         builder: (context, snapshot){
           if(snapshot.hasData){
 
             ///the loaded data
             var orderedStoryItems = snapshot.data!;
-            print("ORDERED STORY ITEMS");
-            print(orderedStoryItems);
             //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
 
             return Container(

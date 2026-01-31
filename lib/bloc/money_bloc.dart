@@ -32,6 +32,9 @@ class MoneyBloc extends Bloc<MoneyEvent, MoneyState> {
     on<ChangeMoney>((event, emit) async {
       print('CHANGEMONEY EVENT CALLED');
 
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) throw Exception('Not logged in');
+
       final moneyJson = await Supabase.instance.client
           .from('user_money')
           .select();
@@ -40,7 +43,8 @@ class MoneyBloc extends Bloc<MoneyEvent, MoneyState> {
 
       await Supabase.instance.client
           .from('user_money')
-          .update(moneyJson[0]);
+          .update(moneyJson[0])
+      .eq("user_id", user.id);
 
       emit(MoneyState(moneyJson[0]["money"]));
 

@@ -27,12 +27,7 @@ class _PageContainerState extends State<PageContainer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: NetworkImage(widget.imageURL),
-          fit: BoxFit.cover,
-        ),
-      ),
+
       child: Column(
         children: [
           Container(height:350),
