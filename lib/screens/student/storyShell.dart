@@ -235,14 +235,14 @@ class _StoryShellState extends State<StoryShell> {
   }
 
 
-  Widget storyWidget(component, url){
+  Widget storyWidget(component, url, orderedStoryItems){
     print(component.runtimeType);
     switch(component){
       case Storypage page:
         final page = PageContainer(storyPage: component, imageURL: url,);
         return page;
       case Mulcho mulcho:
-        final page = MulchoExercise(mulcho: component, bgImage: 'grassy',);
+        final page = MulchoExercise(mulcho: component, bgImage: 'grassy', onCorrectAnswer: () => nextPage(orderedStoryItems),);
         return page;
       default:
         return Text("story object doesnt match");
@@ -288,7 +288,10 @@ class _StoryShellState extends State<StoryShell> {
           ),),
               child: Column(
                   children: [
-                    storyWidget(orderedStoryItems[currentPage].data, ""),
+                    storyWidget(orderedStoryItems[currentPage].data, "", orderedStoryItems),
+
+                    ///Don't display back and next button for question items
+                    orderedStoryItems[currentPage].runtimeType == PageItem?
                     Row(
                       children: [
                         ///BACK button
@@ -306,28 +309,10 @@ class _StoryShellState extends State<StoryShell> {
                         ElevatedButton(onPressed: () async {
                           ///if last page na
                           /// increase user level for this module and navigate to home screen
-                          if(currentPage == orderedStoryItems.length - 1){
-
-                            updateUserLevel(widget.storyId);
-
-                            BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
-
-                            //navigate to home
-                            context.go('/student/home');
-                            return;
-
-                          }
-                          setState(() {
-                            currentPage+=1;
-                          });
-
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (!mounted) return;
-                            _precacheUpcoming(numPages);
-                          });
+                          nextPage(orderedStoryItems);
                         }, child: Text('Next')),
                       ],
-                    ),
+                    ): Text(""),
                   ]
 
               ),
@@ -336,5 +321,27 @@ class _StoryShellState extends State<StoryShell> {
 
           } else {return CircularProgressIndicator();}
         });
+  }
+
+  void nextPage(orderedStoryItems) {
+    if(currentPage == orderedStoryItems.length - 1){
+
+      updateUserLevel(widget.storyId);
+
+      BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
+
+      //navigate to home
+      context.go('/student/home');
+      return;
+
+    }
+    setState(() {
+      currentPage+=1;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _precacheUpcoming(numPages);
+    });
   }
 }

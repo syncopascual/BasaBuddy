@@ -11,10 +11,12 @@ class MulchoExercise extends StatefulWidget {
 
   final String bgImage;
   final Mulcho mulcho;
+  final VoidCallback onCorrectAnswer;
   const MulchoExercise({
     super.key,
     required this.bgImage,
-    required this.mulcho
+    required this.mulcho,
+    required this.onCorrectAnswer
   });
 
   @override
@@ -71,7 +73,19 @@ class _MulchoExerciseState extends State<MulchoExercise> {
               ],
             ),
           ),
+
+
+
+          ///Submit button
           ElevatedButton(onPressed: (){
+            ///if the user has selected something
+            if(choiceIndex.value != -1){
+              print("choiceIndex.value ${choiceIndex.value +1}, answer ${widget.mulcho.answer}");
+              if((choiceIndex.value+1).toString() == widget.mulcho.answer){
+                widget.onCorrectAnswer();
+              } else{print("wrong ans");}
+
+            }
 
           }, child: Text("Submit"))
         ],
