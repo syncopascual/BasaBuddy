@@ -41,7 +41,7 @@ class _TeacherHomeState extends State<TeacherHome> {
     // Fetch assigned_classes array from teacher_classes table
     final res = await Supabase.instance.client
         .from('classes')
-        .select('name, year, id')
+        .select('name, year, id, class_code')
         .eq('teacher_id', user.id);
     print(res);
     // Map array to your UI structure
@@ -52,6 +52,7 @@ class _TeacherHomeState extends State<TeacherHome> {
         return {
           'name': c['name'].toString(),
           'year': 'AY ${c['year']}',
+          'class_code': c['class_code'].toString(),
           'color': colorOptions[index % colorOptions.length],
         };
       });
@@ -139,6 +140,7 @@ class _TeacherHomeState extends State<TeacherHome> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ClassPage(
+                        classCode: c['class_code']!,
                         className: c['name']!,
                         year: c['year']!,
                         students: ['Sam Teng', 'Nina Valdez', 'Juan De La Cruz', 'Juan Cruz', 'Lorem Ipsum'],
