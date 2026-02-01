@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../colors.dart';
 import '../../components/Page.dart';
 import '../../models/mulcho.dart';
 import '../../models/storyPage.dart';
@@ -289,28 +290,45 @@ class _StoryShellState extends State<StoryShell> {
               child: Column(
                   children: [
                     storyWidget(orderedStoryItems[currentPage].data, "", orderedStoryItems),
-
+                    SizedBox(height: 20),
                     ///Don't display back and next button for question items
                     orderedStoryItems[currentPage].runtimeType == PageItem?
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         ///BACK button
-                        ElevatedButton(onPressed: (){
-                          ///if its the first page, dont do anything
-                          if(currentPage == 0){
-                            return;
-                          }
-                          setState(() {
-                            currentPage-=1;
-                          });
-                        }, child: Text('Back')),
+                        SizedBox(
+                          height: 30,
+                          child:ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: selected, // warm yellow
+
+                              ),
+                              onPressed: (){
+                                ///if its the first page, dont do anything
+                                if(currentPage == 0){
+                                  return;
+                                }
+                                setState(() {
+                                  currentPage-=1;
+                                });
+                              }, child: Text('Back', style: TextStyle(color: textColor))),
+                        ),
 
                         ///NEXT Button
-                        ElevatedButton(onPressed: () async {
-                          ///if last page na
-                          /// increase user level for this module and navigate to home screen
-                          nextPage(orderedStoryItems);
-                        }, child: Text('Next')),
+                        SizedBox(
+                          height: 30,
+                          child:ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: selected, // warm yellow
+
+                              ),
+                              onPressed: () async {
+                            ///if last page na
+                            /// increase user level for this module and navigate to home screen
+                            nextPage(orderedStoryItems);
+                          }, child: Text('Next', style: TextStyle(color: textColor))),
+                        )
                       ],
                     ): Text(""),
                   ]

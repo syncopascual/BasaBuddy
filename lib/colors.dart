@@ -5,6 +5,15 @@ import 'package:flutter/material.dart';
 
 Color selected =  const Color(0xFFFFD351);
 Color mulchoChoice = const Color(0xFFFFEEBB);
+Color darkerAccent = const Color(0xFFFEA940);
+Color superDarkAccent = const Color(0xFFB76500);
+Color superLightAccent = const Color(0xFFFFEFAF);
+Color textColor = const Color(0xFF723B0F);
+
+///Home screen different modules button
+Color vocabButton = const Color(0xFF99FF4B);
+Color informationButton = const Color(0xFFFFFFFF);
+Color narrativeButton = const Color(0xFFFFD351);
 
 Color loginButton = const Color(0xFF804589);
 Color x2Coins =  const Color(0xFFFFE79D);

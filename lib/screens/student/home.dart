@@ -29,24 +29,27 @@ class _StudentHomeState extends State<StudentHome > {
             Container(height:200),
             ///Vocab Island Button
             ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: vocabButton),
                 onPressed: (){
                   context.push('/student/home/module/vocab');
                 },
-                child: Text("Vocab Island")),
+                child: Text("Vocab Island", style: TextStyle(color: textColor))),
 
             ///Information Island Button
             ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: informationButton),
                 onPressed: (){
                   context.push('/student/home/module/information');
                 },
-                child: Text("Information Island")),
+                child: Text("Information Island", style: TextStyle(color: textColor))),
 
             ///Narrative Island Button
             ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: narrativeButton),
                 onPressed: (){
                   context.push('/student/home/module/narrative');
                 },
-                child: Text("Narrative Island")),
+                child: Text("Narrative Island", style: TextStyle(color: textColor))),
           ],
         ),
       ),

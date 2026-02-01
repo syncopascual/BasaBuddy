@@ -29,11 +29,15 @@ class _PageContainerState extends State<PageContainer> {
     return Container(
 
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Container(height:350),
           //Image.asset('assets/story/papaya.png', height: 200),
           ///TRANSLATION BUTTON
-          TranslationButton(context: context),
+          Container(
+            margin: EdgeInsets.only(right: 10),
+              child: TranslationButton(context: context)),
+          SizedBox(height: 10),
 
           ///PAGE TEXT
           Container(height: 200,
