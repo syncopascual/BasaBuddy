@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class ClassPage extends StatelessWidget {
   final String className;
   final String year;
+  final String classCode;
 
   // Sample data; you could pass real data instead
   final List<String> students;
@@ -12,6 +13,7 @@ class ClassPage extends StatelessWidget {
 
   const ClassPage({
     super.key,
+    required this.classCode,
     required this.className,
     required this.year,
     required this.students,
@@ -43,6 +45,10 @@ class ClassPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      'Class Code: $classCode',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Text('Stories read this month: $storiesRead',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
