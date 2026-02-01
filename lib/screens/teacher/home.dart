@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'add_class_bottom_sheet.dart';
 
 import 'class_page.dart';
 import '../../colors.dart';
@@ -39,20 +40,18 @@ class _TeacherHomeState extends State<TeacherHome> {
 
     // Fetch assigned_classes array from teacher_classes table
     final res = await Supabase.instance.client
-        .from('teacher_classes')
-        .select('classes')
-        .eq('id', user.id)
-        .maybeSingle();
-
-    final assigned = res?['classes'] as List<dynamic>? ?? [];
-
+        .from('classes')
+        .select('name, year, id')
+        .eq('teacher_id', user.id);
+    print(res);
     // Map array to your UI structure
     final colorOptions = ['pink', 'green', 'blue'];
     setState(() {
-      classes = List<Map<String, String>>.generate(assigned.length, (index) {
+      classes = List<Map<String, String>>.generate(res.length, (index) {
+        final c = res[index] as Map<String, dynamic>;
         return {
-          'name': assigned[index].toString(),
-          'year': 'AY 2024-2025', // default; can make dynamic later
+          'name': c['name'].toString(),
+          'year': 'AY ${c['year']}',
           'color': colorOptions[index % colorOptions.length],
         };
       });
@@ -87,6 +86,50 @@ class _TeacherHomeState extends State<TeacherHome> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
+            Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () async {
+                  final added = await showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    builder: (context) => AddClassBottomSheet(),
+                  );
+                  if (added == true){
+                    setState(() => loading = true);
+                  await fetchClasses();
+                  }
+                  
+                },
+                
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.shade400,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        'Add New Class',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              )
+            ),
             // Class List
             ...classes.map((c) {
               return GestureDetector(
