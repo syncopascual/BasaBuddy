@@ -31,6 +31,7 @@ String determineBackground(moduleType){
 
 class _ModuleState extends State<Module> {
   late Future<List> storiesAndLevel;
+  late Map<String, String> storyThumbnails = {};
 
   ///Fetch Stories from supabase and get user level
   Future<List> _fetchStoriesAndUserLevel() async {
@@ -57,12 +58,32 @@ class _ModuleState extends State<Module> {
         .select();
 
     int moduleLevel = rawUserLevel[0]["${widget.moduleType}_lvl"];
+
+
+    ///get story thumbnails
+    for(int i = 0; i< stories.length;i++){
+
+      try{
+        String url = Supabase.instance.client
+            .storage
+            .from('story-thumbnails')
+            .getPublicUrl('${widget.moduleType}/${stories[i].storyId}.png');
+        storyThumbnails[stories[i].storyId] = url;
+      }
+      catch (e) {
+        print('Error listing files: $e');
+      }
+    }
+
+    print("story thumbnails: $storyThumbnails");
+
+
     return [stories, moduleLevel];
+
 
   }
 
-  //Todo: improve type safety
-  ///Returns the user's level for this particular module
+
 
 
   @override
@@ -98,7 +119,7 @@ class _ModuleState extends State<Module> {
                             StoryButton(
                                 userLevel: snapshot.data?[1],
                                 storyLevel: snapshot.data?[0][i].level,
-                                imageAsset: 'assets/story/papaya.png',
+                                imageAsset: storyThumbnails[snapshot.data?[0][i].storyId]!,
                                 onPressed: () {
                                   context.go('/story/${snapshot.data?[0][i].storyId}');
                                 }),
