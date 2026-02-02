@@ -33,7 +33,7 @@ class StudentHomeShell  extends StatelessWidget {
         context.go('/b');
         break;
       case 2:
-        context.go('/c');
+        context.go('/student/profileScreen');
         break;
     }
   }

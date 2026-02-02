@@ -6,6 +6,7 @@ import 'package:basabuddy/screens/login.dart';
 import 'package:basabuddy/screens/signup.dart';
 import 'package:basabuddy/screens/student/module.dart';
 import 'package:basabuddy/screens/student/storyShell.dart';
+import 'package:basabuddy/screens/student/profileScreen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
@@ -65,8 +66,11 @@ final router = GoRouter(
           pageBuilder: (context, state) => NoTransitionPage(child: StudentHome()),
         ),
         GoRoute(
-          path: '/c',
-          pageBuilder: (context, state) => NoTransitionPage(child: StudentHome()),
+          path: '/student/profileScreen',
+          pageBuilder: (context, state) => NoTransitionPage(
+            key: state.pageKey, 
+            child: ProfileScreen(), 
+          ),
         ),
       ],
     ),
