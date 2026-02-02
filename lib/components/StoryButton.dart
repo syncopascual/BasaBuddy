@@ -45,6 +45,7 @@ class StoryButton extends StatelessWidget {
     return GestureDetector(
       onTap: isLocked ? null : onPressed,
       child: Container(
+        margin: EdgeInsets.symmetric(vertical:12),
         width: size,
         height: size,
         decoration: BoxDecoration(
@@ -66,7 +67,7 @@ class StoryButton extends StatelessWidget {
               Colors.transparent,
               BlendMode.dst,
             ),
-            child: Image.asset(
+            child: Image.network(
               imageAsset,
               fit: BoxFit.contain,
             ),

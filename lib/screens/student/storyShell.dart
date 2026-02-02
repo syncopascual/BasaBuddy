@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../colors.dart';
 import '../../components/Page.dart';
 import '../../models/mulcho.dart';
 import '../../models/storyPage.dart';
@@ -58,6 +59,8 @@ void updateUserLevel(storyId) async{
      case 'information':
        if(userLevel['information_lvl'] <= storyInfo[0]["level"] ){
          userLevel['information_lvl'] +=1;
+
+
          print("level increased");
        }
 
@@ -88,13 +91,15 @@ void updateUserLevel(storyId) async{
 class _StoryShellState extends State<StoryShell> {
 
 
-
+  late Future<List<StoryItem>> _storyFuture;
   late Map<String, int> skillScores = {}; ///scoring for each skill, will be uploaded to stage_data
   Map<int, String> imageURLs = {};
   late int numPages = 0; ///needed for precaching
   int currentPage = 0;
 
 
+  //todo: fix this, as currentPage accounts for exercises as well. this should be based on pageNum
+  //todo: fix possible Invalid argument(s): No host specified in URI file:/// issues
   void _precacheUpcoming(length) {
     final nextIndexes = [
       currentPage + 1,
@@ -105,8 +110,11 @@ class _StoryShellState extends State<StoryShell> {
       if (i >= length) continue;
 
       final url = imageURLs[i];
-      precacheImage(NetworkImage(url!), context);
-      print("_precacheUpcoming: precached file");
+      if(url != null && url != ""){
+        precacheImage(NetworkImage(url!), context);
+      }
+
+
     }
   }
 
@@ -146,6 +154,8 @@ class _StoryShellState extends State<StoryShell> {
     print('Error listing files: $e');
     }
     }
+
+    print("imageURLs to precache: $imageURLs");
 
     ///initial precache
     _precacheUpcoming(pages.length);
@@ -226,14 +236,14 @@ class _StoryShellState extends State<StoryShell> {
   }
 
 
-  Widget storyWidget(component, url){
+  Widget storyWidget(component, url, orderedStoryItems){
     print(component.runtimeType);
     switch(component){
       case Storypage page:
         final page = PageContainer(storyPage: component, imageURL: url,);
         return page;
       case Mulcho mulcho:
-        final page = MulchoExercise(mulcho: component, bgImage: 'grassy',);
+        final page = MulchoExercise(mulcho: component, bgImage: 'grassy', onCorrectAnswer: () => nextPage(orderedStoryItems),);
         return page;
       default:
         return Text("story object doesnt match");
@@ -242,6 +252,7 @@ class _StoryShellState extends State<StoryShell> {
 
   ImageProvider<Object> determineBg(currentComponent){
     if(currentComponent.runtimeType == PageItem){
+      //print("setting network image to ${imageURLs[currentComponent.data.pageNum]!}");
       return NetworkImage(imageURLs[currentComponent.data.pageNum]!);
     } else {
       return AssetImage("assets/bg_images/grassy.png");
@@ -250,6 +261,11 @@ class _StoryShellState extends State<StoryShell> {
   }
 
 
+  @override
+  void initState() {
+    super.initState();
+    _storyFuture = _fetchPagesNexercises();
+  }
 
 
 
@@ -257,14 +273,12 @@ class _StoryShellState extends State<StoryShell> {
   Widget build(BuildContext context) {
     print("story.dart");
     return  FutureBuilder(
-        future: _fetchPagesNexercises(),
+        future: _storyFuture,
         builder: (context, snapshot){
           if(snapshot.hasData){
 
             ///the loaded data
             var orderedStoryItems = snapshot.data!;
-            print("ORDERED STORY ITEMS");
-            print(orderedStoryItems);
             //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
 
             return Container(
@@ -275,46 +289,48 @@ class _StoryShellState extends State<StoryShell> {
           ),),
               child: Column(
                   children: [
-                    storyWidget(orderedStoryItems[currentPage].data, ""),
+                    storyWidget(orderedStoryItems[currentPage].data, "", orderedStoryItems),
+                    SizedBox(height: 20),
+                    ///Don't display back and next button for question items
+                    orderedStoryItems[currentPage].runtimeType == PageItem?
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         ///BACK button
-                        ElevatedButton(onPressed: (){
-                          ///if its the first page, dont do anything
-                          if(currentPage == 0){
-                            return;
-                          }
-                          setState(() {
-                            currentPage-=1;
-                          });
-                        }, child: Text('Back')),
+                        SizedBox(
+                          height: 30,
+                          child:ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: selected, // warm yellow
+
+                              ),
+                              onPressed: (){
+                                ///if its the first page, dont do anything
+                                if(currentPage == 0){
+                                  return;
+                                }
+                                setState(() {
+                                  currentPage-=1;
+                                });
+                              }, child: Text('Back', style: TextStyle(color: textColor))),
+                        ),
 
                         ///NEXT Button
-                        ElevatedButton(onPressed: () async {
-                          ///if last page na
-                          /// increase user level for this module and navigate to home screen
-                          if(currentPage == orderedStoryItems.length - 1){
+                        SizedBox(
+                          height: 30,
+                          child:ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: selected, // warm yellow
 
-                            updateUserLevel(widget.storyId);
-
-                            BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
-
-                            //navigate to home
-                            context.go('/student/home');
-                            return;
-
-                          }
-                          setState(() {
-                            currentPage+=1;
-                          });
-
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (!mounted) return;
-                            _precacheUpcoming(numPages);
-                          });
-                        }, child: Text('Next')),
+                              ),
+                              onPressed: () async {
+                            ///if last page na
+                            /// increase user level for this module and navigate to home screen
+                            nextPage(orderedStoryItems);
+                          }, child: Text('Next', style: TextStyle(color: textColor))),
+                        )
                       ],
-                    ),
+                    ): Text(""),
                   ]
 
               ),
@@ -323,5 +339,27 @@ class _StoryShellState extends State<StoryShell> {
 
           } else {return CircularProgressIndicator();}
         });
+  }
+
+  void nextPage(orderedStoryItems) {
+    if(currentPage == orderedStoryItems.length - 1){
+
+      updateUserLevel(widget.storyId);
+
+      BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
+
+      //navigate to home
+      context.go('/student/home');
+      return;
+
+    }
+    setState(() {
+      currentPage+=1;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _precacheUpcoming(numPages);
+    });
   }
 }

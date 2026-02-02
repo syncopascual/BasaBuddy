@@ -80,37 +80,67 @@ class _LoginState extends State<Login> {
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
-              child: Column(
-                children: [
-                  SizedBox(height: 40),
-                  ///Email text field
-                  ///Password text field
-                  _input(_emailController, "Email", validator: (value) {
-                    if (value == null || value.isEmpty) return "Email cannot be empty";
-                    if (!value.contains('@')) return "Enter a valid email";
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 24),
+                padding: EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3), // Shadow color with transparency
+                      blurRadius: 0, // How soft the edges are
+                      spreadRadius: 3, // How much the shadow expands
+                      offset: const Offset(2, 2), // Shifts the shadow (right, down)
+                    ),
+                  ],
+                  color: darkerAccent,
+                  borderRadius: BorderRadius.all(Radius.circular(45)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 40),
+                    ///Email text field
+                    ///Password text field
+                    _input(_emailController, "Email", validator: (value) {
+                      if (value == null || value.isEmpty) return "Email cannot be empty";
+                      if (!value.contains('@')) return "Enter a valid email";
+                      return null;
+                    }),
+                    _input(_passwordController, "Password", obscure: true, validator: (value) {
+                    if (value == null || value.isEmpty) return "Password cannot be empty";
+                    if (value.length < 6) return "Password must be at least 6 characters";
                     return null;
                   }),
-                  _input(_passwordController, "Password", obscure: true, validator: (value) {
-                  if (value == null || value.isEmpty) return "Password cannot be empty";
-                  if (value.length < 6) return "Password must be at least 6 characters";
-                  return null;
-                }),
 
-                  SizedBox(height: 20),
+                    SizedBox(height: 20),
 
-                  if (_loading) CircularProgressIndicator(),
-                  if (!_loading) ...[
-                    ElevatedButton(
-                      onPressed: _tryLogin, 
-                      child: Text("Login")),
-                    SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: (){
-                        context.go('/signup');
-                      },
-                      child: Text("Sign Up")),
-                  ]
-                ],
+                    if (_loading) CircularProgressIndicator(),
+                    if (!_loading) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ///SIGN UP BUTTON
+                          ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: superDarkAccent),
+                              onPressed: (){
+                                context.go('/signup');
+                              },
+                              child: Text("Sign Up", style: TextStyle(color: superLightAccent),)),
+                          SizedBox(height: 10),
+                          ///LOGIN BUTTON
+                          ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: selected),
+                              onPressed: _tryLogin,
+                              child: Text("Login", style: TextStyle(color: textColor),) ),
+                      ],
+                      ),
+
+
+
+
+                    ]
+                  ],
+                ),
               ),
             ),
           ),
@@ -121,7 +151,7 @@ class _LoginState extends State<Login> {
 
   Widget _input(TextEditingController controller, String hint, {bool obscure = false, String? Function(String?)? validator}) {
     return Padding(
-      padding: const EdgeInsets.all(12.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 32.0),
       child: TextFormField(
         controller: controller,
         obscureText: obscure,

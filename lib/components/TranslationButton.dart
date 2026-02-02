@@ -22,9 +22,20 @@ class _TranslationButtonState extends State<TranslationButton> {
 
     return BlocBuilder<TranslationBloc, TranslationState>(builder: (_, state){
       String text = state.isEnglish? "Fil" : "Eng";
-      return ElevatedButton(onPressed: (){
-        BlocProvider.of<TranslationBloc>(widget.context).add(ToggleTranslation());
-      }, child: Text(text));
+      return SizedBox(
+        height: 30,
+
+        child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: selected,
+
+              // warm yellow
+
+            ),
+            onPressed: (){
+          BlocProvider.of<TranslationBloc>(widget.context).add(ToggleTranslation());
+        }, child: Text(text)),
+      );
     });
   }
 }

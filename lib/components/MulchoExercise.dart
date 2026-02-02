@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../colors.dart';
+import 'PopUp.dart';
 
 
 ///multiple choice exercise
@@ -11,10 +12,12 @@ class MulchoExercise extends StatefulWidget {
 
   final String bgImage;
   final Mulcho mulcho;
+  final VoidCallback onCorrectAnswer;
   const MulchoExercise({
     super.key,
     required this.bgImage,
-    required this.mulcho
+    required this.mulcho,
+    required this.onCorrectAnswer
   });
 
   @override
@@ -23,6 +26,45 @@ class MulchoExercise extends StatefulWidget {
 
 class _MulchoExerciseState extends State<MulchoExercise> {
   final ValueNotifier<int> choiceIndex = ValueNotifier<int>(-1);
+
+  void correctPopup(context){
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Popup(
+          title: "Correct!",
+          description:
+          "",
+          onPressed: () {
+            // your callback logic here
+            widget.onCorrectAnswer();
+          }, theme: 'correct',
+        );
+      },
+    );
+  }
+
+  void wrongPopup(context){
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Popup(
+          title: "Almost!",
+          description:
+          "Try again",
+          onPressed: () {
+            // your callback logic here
+            //widget.onCorrectAnswer();
+          }, theme: 'wrong',
+        );
+      },
+    );
+
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -60,7 +102,7 @@ class _MulchoExerciseState extends State<MulchoExercise> {
               color: Colors.white,
               borderRadius: BorderRadius.all(Radius.circular(45)),
             ),
-            height: 450,
+            height: 420,
             child: Column(
               children: [
                 Text(widget.mulcho.question, style: TextStyle(color: Colors.black, fontSize: 20),),
@@ -71,9 +113,34 @@ class _MulchoExerciseState extends State<MulchoExercise> {
               ],
             ),
           ),
-          ElevatedButton(onPressed: (){
 
-          }, child: Text("Submit"))
+
+
+          ///Submit button
+          Align(
+            alignment: Alignment.bottomRight,
+            child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: selected, // warm yellow
+                ),
+                onPressed: (){
+              ///if the user has selected something
+              if(choiceIndex.value != -1){
+
+
+                //print("choiceIndex.value ${choiceIndex.value +1}, answer ${widget.mulcho.answer}");
+                ///if correct answer
+                if((choiceIndex.value+1).toString() == widget.mulcho.answer){
+                  correctPopup(context);
+                } else{
+                  wrongPopup(context);
+                  print("wrong ans");}
+            
+              }
+            
+            }, child: Text("Submit", style: TextStyle(color: textColor))),
+          ),
+
         ],
       ),
     );

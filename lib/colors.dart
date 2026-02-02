@@ -5,6 +5,30 @@ import 'package:flutter/material.dart';
 
 Color selected =  const Color(0xFFFFD351);
 Color mulchoChoice = const Color(0xFFFFEEBB);
+Color darkerAccent = const Color(0xFFFEA940);
+Color superDarkAccent = const Color(0xFFB76500);
+Color superLightAccent = const Color(0xFFFFEFAF);
+Color textColor = const Color(0xFF723B0F);
+
+Map<String, Map<String, Color>> popupTheme = {
+  'correct':{
+    'bgColor': const Color(0xFFD4FF8A),
+    'textColor':const Color(0xFF375933),
+    'buttonColor': const Color(0xFF53A250),
+
+  },
+  'wrong':{
+    'bgColor': const Color(0xFFF6C6C6),
+    'textColor':const Color(0xFF6E352F),
+    'buttonColor': const Color(0xFFA24F3A),
+  }
+};
+
+
+///Home screen different modules button
+Color vocabButton = const Color(0xFF99FF4B);
+Color informationButton = const Color(0xFFFFFFFF);
+Color narrativeButton = const Color(0xFFFFD351);
 
 Color loginButton = const Color(0xFF804589);
 Color x2Coins =  const Color(0xFFFFE79D);
