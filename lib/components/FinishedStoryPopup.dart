@@ -21,7 +21,7 @@ class FinishedStoryPopup extends StatelessWidget {
             // Apply the gradient here
             gradient:  LinearGradient(
               colors: [finishPopupBg1,
-                Colors.orange],
+                finishPopupBg2],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ), // Rounded corners for the pop-up
@@ -59,6 +59,10 @@ class FinishedStoryPopup extends StatelessWidget {
                 Container(
                   height: 300,
                   padding: EdgeInsets.symmetric(vertical: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30)
+                  ),
                   child: Column(
                     children: [
                       const Text(

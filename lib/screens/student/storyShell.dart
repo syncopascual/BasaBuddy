@@ -12,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../colors.dart';
 import '../../components/Page.dart';
+import '../../components/ProgressBar.dart';
 import '../../models/mulcho.dart';
 import '../../models/storyPage.dart';
 
@@ -290,8 +291,17 @@ class _StoryShellState extends State<StoryShell> {
           ),),
               child: Column(
                   children: [
-                    storyWidget(orderedStoryItems[currentPage].data, "", orderedStoryItems),
                     SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: GradientLinearProgressBar(
+                        value: currentPage/orderedStoryItems.length,
+                        leftColor: Color(0xFF22C03A),
+                        rightColor: Color(0xFFB2FF3E), unfilledColor: Colors.grey,
+                      ),
+                    ),
+                    storyWidget(orderedStoryItems[currentPage].data, "", orderedStoryItems),
+                    SizedBox(height: 12),
                     ///Don't display back and next button for question items
                     orderedStoryItems[currentPage].runtimeType == PageItem?
                     Row(

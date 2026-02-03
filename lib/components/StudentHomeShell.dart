@@ -57,7 +57,7 @@ class StudentHomeShell  extends StatelessWidget {
         appBar: TopAppBar(screenWidth),
         body: child,
         bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: clockIcon,
+          backgroundColor: selected,
           currentIndex: currentIndex,
           onTap: (index) => _onTap(context, index),
           items: [

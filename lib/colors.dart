@@ -25,7 +25,7 @@ Map<String, Map<String, Color>> popupTheme = {
 };
 
 Color finishPopupBg1 = const Color(0xFFF9FFA6);
-Color finishPopupBg2 = const Color(0xFFFFC400);
+Color finishPopupBg2 = const Color(0xFFFFD650);
 
 
 
