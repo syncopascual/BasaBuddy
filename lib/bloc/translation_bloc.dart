@@ -30,7 +30,7 @@ class TranslationBloc extends Bloc<TranslationEvent, TranslationState> {
     //TODO: improve type safety
     on<ToggleTranslation>((event, emit) async {
       print('ToggleTranslation EVENT CALLED');
-
+      print("emitting isEnglish ${!state.isEnglish}");
 
       emit(TranslationState(!state.isEnglish));
 

@@ -14,9 +14,14 @@ class Mulcho {
 
   final String question;
 
-
-
   final Map<String, String> choices;
+
+  @JsonKey(name: 'tagalog_question')
+  final String tagalogQuestion;
+
+  @JsonKey(name: 'tagalog_choices')
+  final Map<String, String> tagalogChoices;
+
   final String answer;
 
   @JsonKey(name: 'after_page')
@@ -32,6 +37,8 @@ class Mulcho {
     required this.question,
     required this.choices,
     required this.answer,
+    required this.tagalogQuestion,
+    required this.tagalogChoices,
     required this.skill
   });
 

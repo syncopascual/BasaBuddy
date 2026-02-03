@@ -1,8 +1,11 @@
 import 'package:basabuddy/components/MulchoChoices.dart';
+import 'package:basabuddy/components/TranslationButton.dart';
 import 'package:basabuddy/models/mulcho.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../bloc/translation_bloc.dart';
 import '../colors.dart';
 import 'PopUp.dart';
 
@@ -103,16 +106,32 @@ class _MulchoExerciseState extends State<MulchoExercise> {
               borderRadius: BorderRadius.all(Radius.circular(45)),
             ),
             height: 420,
-            child: Column(
-              children: [
-                Text(widget.mulcho.question, style: TextStyle(color: Colors.black, fontSize: 20),),
-                Container(
-                  height: 300,
-                  child: MulchoChoices(selectedContainerIndex: choiceIndex, choices: widget.mulcho.choices.values.toList()),
-                )
-              ],
+            child: BlocBuilder<TranslationBloc, TranslationState>(
+              builder: (context, state) {
+                late String question = "";
+                late Map<String, String> choices = {};
+                if(!state.isEnglish){
+                  question = widget.mulcho.tagalogQuestion;
+                  choices = widget.mulcho.tagalogChoices;
+                } else {
+                  question = widget.mulcho.question;
+                  choices = widget.mulcho.choices;
+                }
+                return Column(
+                  children: [
+                    Text(question, style: TextStyle(color: Colors.black, fontSize: 20),),
+                    Container(
+                      height: 300,
+                      child: MulchoChoices(selectedContainerIndex: choiceIndex, choices: choices.values.toList()),
+                    )
+                  ],
+                );
+              }
             ),
           ),
+
+          ///Translate button
+          TranslationButton(context: context),
 
 
 

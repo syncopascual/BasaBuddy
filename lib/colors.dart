@@ -24,6 +24,10 @@ Map<String, Map<String, Color>> popupTheme = {
   }
 };
 
+Color finishPopupBg1 = const Color(0xFFF9FFA6);
+Color finishPopupBg2 = const Color(0xFFFFC400);
+
+
 
 ///Home screen different modules button
 Color vocabButton = const Color(0xFF99FF4B);

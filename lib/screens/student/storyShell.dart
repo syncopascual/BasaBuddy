@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:basabuddy/bloc/money_bloc.dart';
+import 'package:basabuddy/components/FinishedStoryPopup.dart';
 import 'package:basabuddy/components/MulchoExercise.dart';
 import 'package:basabuddy/wrappers/StoryItem.dart';
 import 'package:flutter/cupertino.dart';
@@ -342,14 +343,27 @@ class _StoryShellState extends State<StoryShell> {
   }
 
   void nextPage(orderedStoryItems) {
+
+    ///if its the last page
     if(currentPage == orderedStoryItems.length - 1){
 
       updateUserLevel(widget.storyId);
 
       BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
 
-      //navigate to home
-      context.go('/student/home');
+      ///Display onfinished popup
+      showDialog(
+        context: context,
+        barrierDismissible: false, // user must act
+        builder: (_) => FinishedStoryPopup(
+          onContinue: (){
+            //navigate to home
+            context.go('/student/home');
+          },
+        ),
+      );
+
+
       return;
 
     }
