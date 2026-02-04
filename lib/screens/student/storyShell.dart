@@ -2,7 +2,10 @@ import 'dart:ffi';
 
 import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:basabuddy/components/FinishedStoryPopup.dart';
+import 'package:basabuddy/components/MatchingExercise.dart';
 import 'package:basabuddy/components/MulchoExercise.dart';
+import 'package:basabuddy/components/OrderingExercise.dart';
+import 'package:basabuddy/models/orderData.dart';
 import 'package:basabuddy/wrappers/StoryItem.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +14,11 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../colors.dart';
+import '../../components/FillBlankExercise.dart';
 import '../../components/Page.dart';
 import '../../components/ProgressBar.dart';
+import '../../models/fillBlankData.dart';
+import '../../models/matchingData.dart';
 import '../../models/mulcho.dart';
 import '../../models/storyPage.dart';
 
@@ -165,8 +171,8 @@ class _StoryShellState extends State<StoryShell> {
     late List<StoryItem> wrappedMulcho;
 
 
+    ///FETCH MULTIPLE CHOICE EXERCISES
     try {
-      ///Fetch the story's multiple choice type exercises
       final rawMulcho = await Supabase.instance.client
           .from('mulcho_exercise')
           .select()
@@ -177,8 +183,9 @@ class _StoryShellState extends State<StoryShell> {
           .map((json) => Mulcho.fromJson(json))
           .toList();
 
+      ///for type safety
       wrappedMulcho = mulcho
-        .map((mul) => MulchoItem(mul))
+        .map<StoryItem>((mul) => MulchoItem(mul))
         .toList();
 
       ///create a map that has all the skills of the story
@@ -197,13 +204,121 @@ class _StoryShellState extends State<StoryShell> {
 
 
 
+
+    ///FETCH ORDERING EXERCISES
+    late List<OrderData> orderData;
+    late List<StoryItem> wrappedOrderData;
+  try{
+    final rawOrderingData = await Supabase.instance.client
+        .from('ordering_exercise')
+        .select()
+        .eq('story_id', widget.storyId);
+    print("STORYSHELL.dart: ordering exercise fetched");
+
+    orderData = (rawOrderingData as List)
+        .map((json) => OrderData.fromJson(json))
+        .toList();
+
+    ///for type safety
+    wrappedOrderData = orderData
+        .map<StoryItem>((data) => OrderItem(data))
+        .toList();
+
+    ///create a map that has all the skills of the story
+    for(int i = 0; i< orderData.length;i++){
+      ///If the skill isn't in the dictionary yet, add and set to zero
+      ///the value of each skill is the amount of mistakes a student makes
+      if(!skillScores.containsKey(orderData[i].skill)){
+        skillScores[orderData[i].skill] = 0;
+      }
+    }
+  }
+  catch(e){
+  print(e);
+  }
+
+    ///FETCH MATCHING EXERCISES
+    late List<MatchingData> matchData;
+    late List<StoryItem> wrappedMatchData;
+    try{
+      final rawMatchData = await Supabase.instance.client
+          .from('matching_exercise')
+          .select()
+          .eq('story_id', widget.storyId);
+      print("STORYSHELL.dart: matching exercise fetched");
+
+      matchData = (rawMatchData as List)
+          .map((json) => MatchingData.fromJson(json))
+          .toList();
+
+      ///for type safety
+      wrappedMatchData = matchData
+          .map<StoryItem>((data) => MatchItem(data))
+          .toList();
+
+      ///create a map that has all the skills of the story
+      for(int i = 0; i< matchData.length;i++){
+        ///If the skill isn't in the dictionary yet, add and set to zero
+        ///the value of each skill is the amount of mistakes a student makes
+        if(!skillScores.containsKey(matchData[i].skill)){
+          skillScores[matchData[i].skill] = 0;
+        }
+      }
+    }
+    catch(e){
+      print(e);
+    }
+
+    ///FETCH FILL IN THE BLANK EXERCISES
+    late List<FillBlankData> fillBlankData;
+    late List<StoryItem> wrappedFillBlankData;
+    try{
+      final rawFillBlankData = await Supabase.instance.client
+          .from('fill_in_blank')
+          .select()
+          .eq('story_id', widget.storyId);
+      print("STORYSHELL.dart: fill in blank exercise fetched");
+
+      try{
+        fillBlankData = (rawFillBlankData as List)
+            .map((json) => FillBlankData.fromJson(json))
+            .toList();
+        print("converted to object");
+      } catch(e){
+        print("ERROR $e");
+      }
+
+
+      ///for type safety
+      wrappedFillBlankData = fillBlankData
+          .map<StoryItem>((data) => FillBlankItem(data))
+          .toList();
+
+      print("converted to StoryItem");
+
+      ///create a map that has all the skills of the story
+      for(int i = 0; i< fillBlankData.length;i++){
+        ///If the skill isn't in the dictionary yet, add and set to zero
+        ///the value of each skill is the amount of mistakes a student makes
+        if(!skillScores.containsKey(fillBlankData[i].skill)){
+          skillScores[fillBlankData[i].skill] = 0;
+        }
+      }
+    }
+    catch(e){
+      print(e);
+    }
+
+
+
     try {
+      List<StoryItem> wrappedExercises = wrappedMulcho + wrappedFillBlankData + wrappedMatchData + wrappedOrderData;
       ///order this correctly
-      final orderedItems = orderItems(wrappedPages, wrappedMulcho);
+      final orderedItems = orderItems(wrappedPages, wrappedExercises);
       print("fetched pages and exercises!");
       return orderedItems;
     } catch(e){
-      print(e);
+      print("ORDERING ERROR $e");
     }
 
     return [];
@@ -222,10 +337,12 @@ class _StoryShellState extends State<StoryShell> {
       );
 
       ordered.add(page);
+      print("orderItems() -> iterating over exercises");
 
 
       ///iterate over questions, check if it comes after page i
       for(int j = 0; j < exercises.length; j++){
+
         if(exercises[j]?.data.afterPage == i){
           ordered.add(exercises[j]!);
         }
@@ -238,8 +355,9 @@ class _StoryShellState extends State<StoryShell> {
   }
 
 
+  ///
   Widget storyWidget(component, url, orderedStoryItems){
-    print(component.runtimeType);
+    print("component runtime type: ${component.runtimeType}");
     switch(component){
       case Storypage page:
         final page = PageContainer(storyPage: component, imageURL: url,);
@@ -247,6 +365,16 @@ class _StoryShellState extends State<StoryShell> {
       case Mulcho mulcho:
         final page = MulchoExercise(mulcho: component, bgImage: 'grassy', onCorrectAnswer: () => nextPage(orderedStoryItems),);
         return page;
+      case OrderData order:
+        final page = OrderingExercise(orderData: component, onCompleted: () => nextPage(orderedStoryItems),);
+        return page;
+      case FillBlankData fillBlank:
+        final page = FillBlankExercise(fillBlankData: component, onCorrectAnswer: () => nextPage(orderedStoryItems), onWrongAnswer: () {  },);
+        return page;
+      case MatchingData match:
+        final page = MatchingExercise(matchingData: component, onCompleted: () => nextPage(orderedStoryItems),);
+        return page;
+
       default:
         return Text("story object doesnt match");
     }

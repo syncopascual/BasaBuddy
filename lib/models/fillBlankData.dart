@@ -1,49 +1,47 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'mulcho.g.dart';
+part 'fillBlankData.g.dart';
 
 ///A multiple choice question object
 ///contains: story_ID, page(?), question, choices, and correct answer
 
 @JsonSerializable()
-class Mulcho {
+class FillBlankData {
   final int id;
 
   @JsonKey(name: 'story_id')
   final String storyId;
 
-  final String question;
 
-  final Map<String, String> choices;
+  @JsonKey(name: 'statement_1')
+  final String statement1;
 
-  @JsonKey(name: 'tagalog_question')
-  final String tagalogQuestion;
+  @JsonKey(name: 'statement_2')
+  final String statement2;
 
-  @JsonKey(name: 'tagalog_choices')
-  final Map<String, String> tagalogChoices;
+  final List<String> choices;
 
   final String answer;
-
   @JsonKey(name: 'after_page')
   final int afterPage;
 
   final String skill;
 
 
-  Mulcho({
+
+  FillBlankData({
     required this.id,
     required this.storyId,
-    required this.question,
+    required this.statement1,
+    required this.statement2,
     required this.choices,
     required this.answer,
-    required this.tagalogQuestion,
-    required this.tagalogChoices,
     required this.skill,
     required this.afterPage
   });
 
-  factory Mulcho.fromJson(Map<String, dynamic> json) =>
-      _$MulchoFromJson(json);
+  factory FillBlankData.fromJson(Map<String, dynamic> json) =>
+      _$FillBlankDataFromJson(json);
 
-  Map<String, dynamic> toJson() => _$MulchoToJson(this);
+  Map<String, dynamic> toJson() => _$FillBlankDataToJson(this);
 }

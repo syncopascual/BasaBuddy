@@ -1,0 +1,36 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'orderData.g.dart';
+
+///A multiple choice question object
+///contains: story_ID, page(?), question, choices, and correct answer
+
+@JsonSerializable()
+class OrderData {
+  final int id;
+
+  @JsonKey(name: 'story_id')
+  final String storyId;
+
+  final Map<String, String> data;
+
+  @JsonKey(name: 'after_page')
+  final int afterPage;
+
+  final String skill;
+
+
+
+  OrderData({
+    required this.id,
+    required this.storyId,
+    required this.data,
+    required this.skill,
+    required this.afterPage
+  });
+
+  factory OrderData.fromJson(Map<String, dynamic> json) =>
+      _$OrderDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OrderDataToJson(this);
+}
