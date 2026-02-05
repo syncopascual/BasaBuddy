@@ -2,9 +2,9 @@ import 'dart:ffi';
 
 import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:basabuddy/components/FinishedStoryPopup.dart';
-import 'package:basabuddy/components/MatchingExercise.dart';
-import 'package:basabuddy/components/MulchoExercise.dart';
-import 'package:basabuddy/components/OrderingExercise.dart';
+import 'package:basabuddy/components/question_components/MatchingExercise.dart';
+import 'package:basabuddy/components/question_components/MulchoExercise.dart';
+import 'package:basabuddy/components/question_components/OrderingExercise.dart';
 import 'package:basabuddy/models/orderData.dart';
 import 'package:basabuddy/wrappers/StoryItem.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,7 +14,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../colors.dart';
-import '../../components/FillBlankExercise.dart';
+import '../../components/question_components/FillBlankExercise.dart';
 import '../../components/Page.dart';
 import '../../components/ProgressBar.dart';
 import '../../models/fillBlankData.dart';

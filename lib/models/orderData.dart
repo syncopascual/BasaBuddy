@@ -14,6 +14,9 @@ class OrderData {
 
   final Map<String, String> data;
 
+  @JsonKey(name: 'tagalog_data')
+  final Map<String, String> tagalogData;
+
   @JsonKey(name: 'after_page')
   final int afterPage;
 
@@ -26,7 +29,8 @@ class OrderData {
     required this.storyId,
     required this.data,
     required this.skill,
-    required this.afterPage
+    required this.afterPage,
+    required this.tagalogData
   });
 
   factory OrderData.fromJson(Map<String, dynamic> json) =>

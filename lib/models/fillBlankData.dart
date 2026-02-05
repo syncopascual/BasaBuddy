@@ -19,6 +19,18 @@ class FillBlankData {
   @JsonKey(name: 'statement_2')
   final String statement2;
 
+  @JsonKey(name: 'tagalog_statement_1')
+  final String tagalogStatement1;
+
+  @JsonKey(name: 'tagalog_statement_2')
+  final String tagalogStatement2;
+
+  @JsonKey(name: 'tagalog_choices')
+  final List<String> tagalogChoices;
+
+  @JsonKey(name: 'tagalog_answer')
+  final String tagalogAnswer;
+
   final List<String> choices;
 
   final String answer;
@@ -26,8 +38,6 @@ class FillBlankData {
   final int afterPage;
 
   final String skill;
-
-
 
   FillBlankData({
     required this.id,
@@ -37,7 +47,12 @@ class FillBlankData {
     required this.choices,
     required this.answer,
     required this.skill,
-    required this.afterPage
+    required this.afterPage,
+    required this.tagalogStatement1,
+    required this.tagalogStatement2,
+    required this.tagalogChoices,
+    required this.tagalogAnswer,
+
   });
 
   factory FillBlankData.fromJson(Map<String, dynamic> json) =>

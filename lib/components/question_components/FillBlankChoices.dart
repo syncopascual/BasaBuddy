@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 class FillBlankChoices extends StatelessWidget {
   final List<String> choices;
-  final Function(String) onChoiceTap;
+  final int? hiddenIndex;
+  final Function(int) onChoiceTap;
 
   const FillBlankChoices({
     super.key,
     required this.choices,
+    required this.hiddenIndex,
     required this.onChoiceTap,
   });
 
@@ -15,9 +17,11 @@ class FillBlankChoices extends StatelessWidget {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: choices.map((word) {
+      children: List.generate(choices.length, (index) {
+        if (index == hiddenIndex) return const SizedBox.shrink();
+
         return GestureDetector(
-          onTap: () => onChoiceTap(word),
+          onTap: () => onChoiceTap(index),
           child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -29,12 +33,12 @@ class FillBlankChoices extends StatelessWidget {
               border: Border.all(color: Colors.grey.shade400),
             ),
             child: Text(
-              word,
+              choices[index],
               style: const TextStyle(fontSize: 16),
             ),
           ),
         );
-      }).toList(),
+      }),
     );
   }
 }

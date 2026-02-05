@@ -1,14 +1,14 @@
-import 'package:basabuddy/components/MulchoChoices.dart';
+import 'package:basabuddy/components/question_components/MulchoChoices.dart';
 import 'package:basabuddy/components/TranslationButton.dart';
 import 'package:basabuddy/models/mulcho.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../bloc/translation_bloc.dart';
-import '../colors.dart';
-import 'PopUp.dart';
-import 'QuestionPopup.dart';
+import '../../bloc/translation_bloc.dart';
+import '../../colors.dart';
+import '../PopUp.dart';
+import '../QuestionPopup.dart';
 
 
 ///multiple choice exercise

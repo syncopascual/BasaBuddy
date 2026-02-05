@@ -1,35 +1,47 @@
 import 'package:flutter/material.dart';
 
 class OrderColumn extends StatelessWidget {
-  final ValueNotifier<List<String>> orderNotifier;
+  final ValueNotifier<List<String>> orderKeysNotifier;
+  final Map<String, String> englishData;
+  final Map<String, String> tagalogData;
+  final bool isEnglish;
 
   const OrderColumn({
     super.key,
-    required this.orderNotifier,
+    required this.orderKeysNotifier,
+    required this.englishData,
+    required this.tagalogData,
+    required this.isEnglish,
   });
+
+  String _getText(String key) {
+    return isEnglish
+        ? englishData[key]!
+        : tagalogData[key]!;
+  }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<List<String>>(
-      valueListenable: orderNotifier,
-      builder: (context, items, _) {
+      valueListenable: orderKeysNotifier,
+      builder: (context, keys, _) {
         return ReorderableListView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           onReorder: (oldIndex, newIndex) {
             if (newIndex > oldIndex) newIndex--;
 
-            final updated = List<String>.from(items);
-            final item = updated.removeAt(oldIndex);
-            updated.insert(newIndex, item);
+            final updated = List<String>.from(keys);
+            final movedKey = updated.removeAt(oldIndex);
+            updated.insert(newIndex, movedKey);
 
-            orderNotifier.value = updated;
+            orderKeysNotifier.value = updated;
           },
           children: [
-            for (final item in items)
+            for (final key in keys)
               _OrderTile(
-                key: ValueKey(item),
-                text: item,
+                key: ValueKey(key),
+                text: _getText(key),
               ),
           ],
         );

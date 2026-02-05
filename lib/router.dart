@@ -1,4 +1,4 @@
-import 'package:basabuddy/components/MulchoExercise.dart';
+import 'package:basabuddy/components/question_components/MulchoExercise.dart';
 import 'package:basabuddy/models/mulcho.dart';
 import 'package:basabuddy/screens/student/home.dart';
 import 'package:basabuddy/screens/teacher/home.dart';

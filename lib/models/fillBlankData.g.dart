@@ -17,6 +17,12 @@ FillBlankData _$FillBlankDataFromJson(Map<String, dynamic> json) =>
       answer: json['answer'] as String,
       skill: json['skill'] as String,
       afterPage: (json['after_page'] as num).toInt(),
+      tagalogStatement1: json['tagalog_statement_1'] as String,
+      tagalogStatement2: json['tagalog_statement_2'] as String,
+      tagalogChoices: (json['tagalog_choices'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      tagalogAnswer: json['tagalog_answer'] as String,
     );
 
 Map<String, dynamic> _$FillBlankDataToJson(FillBlankData instance) =>
@@ -25,6 +31,10 @@ Map<String, dynamic> _$FillBlankDataToJson(FillBlankData instance) =>
       'story_id': instance.storyId,
       'statement_1': instance.statement1,
       'statement_2': instance.statement2,
+      'tagalog_statement_1': instance.tagalogStatement1,
+      'tagalog_statement_2': instance.tagalogStatement2,
+      'tagalog_choices': instance.tagalogChoices,
+      'tagalog_answer': instance.tagalogAnswer,
       'choices': instance.choices,
       'answer': instance.answer,
       'after_page': instance.afterPage,

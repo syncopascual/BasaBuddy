@@ -1,7 +1,7 @@
 import 'package:basabuddy/components/QuestionPopup.dart';
 import 'package:flutter/material.dart';
-import '../colors.dart';
-import '../models/matchingData.dart';
+import '../../colors.dart';
+import '../../models/matchingData.dart';
 import 'MatchColumns.dart';
 
 
