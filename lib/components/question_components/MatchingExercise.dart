@@ -8,11 +8,13 @@ import 'MatchColumns.dart';
 class MatchingExercise extends StatelessWidget {
   final MatchingData matchingData;
   final VoidCallback onCorrect;
+  //final VoidCallback onWrong;
 
   const MatchingExercise({
     super.key,
     required this.matchingData,
     required this.onCorrect,
+    //required this.onWrong
   });
 
   @override

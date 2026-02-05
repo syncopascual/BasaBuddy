@@ -105,6 +105,17 @@ class _StoryShellState extends State<StoryShell> {
   late int numPages = 0; ///needed for precaching
   int currentPage = 0;
 
+  ///stageData data for teacher analytics
+
+  int totalAttempts = 0;
+  int totalItems = 0;
+
+  ///whenever a student gets an item wrong, it will be removed from this list
+  ///when the story finishes, the remaining items count will be the firstAttemptCorrect
+  List<StoryItem> firstAttemptObjects = [];
+  List<StoryItem> allStoryItems = [];
+  int firstAttemptCorrect = 0;
+
 
   //todo: fix this, as currentPage accounts for exercises as well. this should be based on pageNum
   //todo: fix possible Invalid argument(s): No host specified in URI file:/// issues
@@ -128,6 +139,15 @@ class _StoryShellState extends State<StoryShell> {
 
 
 
+  void wrongAnswer(StoryItem currentItem){
+    ///check if item index is in list. if it is, remove it
+    for(StoryItem item in firstAttemptObjects){
+      if(currentItem.eq(item)){
+        firstAttemptObjects.remove(item);
+        print("First wrong answer!");
+      }
+    }
+  }
   ///Fetch the story's pages and exercises from supabase, and orders them
   Future<List<StoryItem>> _fetchPagesNexercises() async {
     print("STORYSHELL.dart: _fetchPagesNexercises() called, storyId: ${widget.storyId}");
@@ -313,8 +333,13 @@ class _StoryShellState extends State<StoryShell> {
 
     try {
       List<StoryItem> wrappedExercises = wrappedMulcho + wrappedFillBlankData + wrappedMatchData + wrappedOrderData;
+
+      ///stage data stuff
+      totalItems = wrappedExercises.length;
+      firstAttemptObjects = wrappedExercises;
       ///order this correctly
       final orderedItems = orderItems(wrappedPages, wrappedExercises);
+      allStoryItems = orderedItems;
       print("fetched pages and exercises!");
       return orderedItems;
     } catch(e){
@@ -363,16 +388,20 @@ class _StoryShellState extends State<StoryShell> {
         final page = PageContainer(storyPage: component, imageURL: url,);
         return page;
       case Mulcho mulcho:
-        final page = MulchoExercise(mulcho: component, bgImage: 'grassy', onCorrectAnswer: () => nextPage(orderedStoryItems),);
+        final page = MulchoExercise(mulcho: component, bgImage: 'grassy',
+          onCorrectAnswer: () {nextPage(orderedStoryItems);}, onWrongAnswer: () { wrongAnswer(allStoryItems[currentPage]); totalAttempts+=1; },);
         return page;
       case OrderData order:
-        final page = OrderingExercise(orderData: component, onCorrect: () => nextPage(orderedStoryItems),);
+        final page = OrderingExercise(orderData: component,
+          onCorrect: () {totalAttempts+=1;nextPage(orderedStoryItems);}, onWrong: () { wrongAnswer(allStoryItems[currentPage]); totalAttempts+=1; },);
         return page;
       case FillBlankData fillBlank:
-        final page = FillBlankExercise(fillBlankData: component, onCorrectAnswer: () => nextPage(orderedStoryItems), onWrongAnswer: () {  },);
+        final page = FillBlankExercise(fillBlankData: component,
+          onCorrectAnswer: (){totalAttempts+=1;nextPage(orderedStoryItems);}, onWrongAnswer: () { wrongAnswer(allStoryItems[currentPage]); totalAttempts+=1; },);
         return page;
       case MatchingData match:
-        final page = MatchingExercise(matchingData: component, onCorrect: () => nextPage(orderedStoryItems),);
+        final page = MatchingExercise(matchingData: component,
+          onCorrect: (){totalAttempts+=1;nextPage(orderedStoryItems);},);
         return page;
 
       default:
@@ -485,6 +514,11 @@ class _StoryShellState extends State<StoryShell> {
     ///if its the last page
     if(currentPage == orderedStoryItems.length - 1){
 
+      ///get stage_data
+      firstAttemptCorrect = firstAttemptObjects.length;
+
+      print("firstAttemptCorrect, totalItems, totalAttempts");
+      print("$firstAttemptCorrect, $totalItems, $totalAttempts");
       updateUserLevel(widget.storyId);
 
       BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));

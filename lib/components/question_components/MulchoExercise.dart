@@ -17,11 +17,14 @@ class MulchoExercise extends StatefulWidget {
   final String bgImage;
   final Mulcho mulcho;
   final VoidCallback onCorrectAnswer;
+  final VoidCallback onWrongAnswer;
   const MulchoExercise({
     super.key,
     required this.bgImage,
     required this.mulcho,
-    required this.onCorrectAnswer
+    required this.onCorrectAnswer,
+    required this.onWrongAnswer,
+
   });
 
   @override
@@ -116,7 +119,7 @@ class _MulchoExerciseState extends State<MulchoExercise> {
                 if((choiceIndex.value+1).toString() == widget.mulcho.answer){
                   correctPopup(context, widget.onCorrectAnswer);
                 } else{
-                  wrongPopup(context, (){});
+                  wrongPopup(context, widget.onWrongAnswer);
                   print("wrong ans");}
             
               }

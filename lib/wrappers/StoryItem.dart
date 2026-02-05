@@ -12,6 +12,10 @@ import '../models/fillBlankData.dart';
 ///
 abstract class StoryItem {
   late final data;
+  bool eq(StoryItem other) {
+    return identical(this, other) ||
+        (runtimeType == other.runtimeType && other.data.id == data.id);
+  }
 }
 
 
