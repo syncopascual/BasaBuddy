@@ -1,4 +1,6 @@
+import 'package:basabuddy/components/QuestionPopup.dart';
 import 'package:flutter/material.dart';
+import '../colors.dart';
 import '../models/orderData.dart';
 import 'OrderColumn.dart';
 
@@ -6,12 +8,12 @@ import 'OrderColumn.dart';
 
 class OrderingExercise extends StatefulWidget {
   final OrderData orderData;
-  final VoidCallback onCompleted;
+  final VoidCallback onCorrect;
 
   const OrderingExercise({
     super.key,
     required this.orderData,
-    required this.onCompleted,
+    required this.onCorrect,
   });
 
   @override
@@ -45,11 +47,9 @@ class _OrderingExerciseState extends State<OrderingExercise> {
     ).every((e) => e);
 
     if (isCorrect) {
-      widget.onCompleted();
+      correctPopup(context, widget.onCorrect);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Try again!")),
-      );
+      wrongPopup(context, (){});
     }
   }
 
@@ -64,23 +64,53 @@ class _OrderingExerciseState extends State<OrderingExercise> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Arrange the sentences in order",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        Container(height: 10,),
+
+        ///Exercise Label
+        Container(
+          margin: EdgeInsets.only(left: 20),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected,
+            borderRadius: BorderRadius.all(Radius.circular(45)),
+          ),
+          //height:60,
+          width: 100,
+          child: Text("Exercise"),
         ),
-        const SizedBox(height: 16),
+        Container(height: 10,),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 36, vertical: 36),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(45)),
+          ),
+          height: 420,
+          child: Column(
 
-        OrderColumn(orderNotifier: currentOrder),
+            children: [
+              const Text(
+                "Arrange the sentences in order",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
 
-        const SizedBox(height: 24),
+              OrderColumn(orderNotifier: currentOrder),
 
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: onSubmit,
-            child: const Text("Submit"),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onSubmit,
+                  style: ElevatedButton.styleFrom(backgroundColor: selected),
+                  child: const Text("Submit"),
+                ),
+              ),
+            ],
           ),
         ),
+
       ],
     );
   }

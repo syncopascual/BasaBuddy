@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/translation_bloc.dart';
 import '../colors.dart';
 import 'PopUp.dart';
+import 'QuestionPopup.dart';
 
 
 ///multiple choice exercise
@@ -30,44 +31,7 @@ class MulchoExercise extends StatefulWidget {
 class _MulchoExerciseState extends State<MulchoExercise> {
   final ValueNotifier<int> choiceIndex = ValueNotifier<int>(-1);
 
-  void correctPopup(context){
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Popup(
-          title: "Correct!",
-          description:
-          "",
-          onPressed: () {
-            // your callback logic here
-            widget.onCorrectAnswer();
-          }, theme: 'correct',
-        );
-      },
-    );
-  }
 
-  void wrongPopup(context){
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Popup(
-          title: "Almost!",
-          description:
-          "Try again",
-          onPressed: () {
-            // your callback logic here
-            //widget.onCorrectAnswer();
-          }, theme: 'wrong',
-        );
-      },
-    );
-
-  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -121,7 +85,7 @@ class _MulchoExerciseState extends State<MulchoExercise> {
                   children: [
                     Text(question, style: TextStyle(color: Colors.black, fontSize: 20),),
                     Container(
-                      height: 300,
+                      height: 290,
                       child: MulchoChoices(selectedContainerIndex: choiceIndex, choices: choices.values.toList()),
                     )
                   ],
@@ -150,9 +114,9 @@ class _MulchoExerciseState extends State<MulchoExercise> {
                 //print("choiceIndex.value ${choiceIndex.value +1}, answer ${widget.mulcho.answer}");
                 ///if correct answer
                 if((choiceIndex.value+1).toString() == widget.mulcho.answer){
-                  correctPopup(context);
+                  correctPopup(context, widget.onCorrectAnswer);
                 } else{
-                  wrongPopup(context);
+                  wrongPopup(context, (){});
                   print("wrong ans");}
             
               }

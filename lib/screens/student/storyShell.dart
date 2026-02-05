@@ -366,13 +366,13 @@ class _StoryShellState extends State<StoryShell> {
         final page = MulchoExercise(mulcho: component, bgImage: 'grassy', onCorrectAnswer: () => nextPage(orderedStoryItems),);
         return page;
       case OrderData order:
-        final page = OrderingExercise(orderData: component, onCompleted: () => nextPage(orderedStoryItems),);
+        final page = OrderingExercise(orderData: component, onCorrect: () => nextPage(orderedStoryItems),);
         return page;
       case FillBlankData fillBlank:
         final page = FillBlankExercise(fillBlankData: component, onCorrectAnswer: () => nextPage(orderedStoryItems), onWrongAnswer: () {  },);
         return page;
       case MatchingData match:
-        final page = MatchingExercise(matchingData: component, onCompleted: () => nextPage(orderedStoryItems),);
+        final page = MatchingExercise(matchingData: component, onCorrect: () => nextPage(orderedStoryItems),);
         return page;
 
       default:
