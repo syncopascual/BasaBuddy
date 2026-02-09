@@ -7,10 +7,9 @@ part 'stageData.g.dart';
 
 @JsonSerializable()
 class StageData {
-  final int id;
 
-  @JsonKey(name: 'student_id')
-  final String studentId;
+  @JsonKey(name: 'user_id')
+  final String userId;
 
   @JsonKey(name: 'story_id')
   final String storyId;
@@ -30,9 +29,8 @@ class StageData {
 
 
   StageData({
-    required this.id,
     required this.storyId,
-    required this.studentId,
+    required this.userId,
     required this.totalItems,
     required this.totalAttempts,
     required this.firstAttemptCorrect,

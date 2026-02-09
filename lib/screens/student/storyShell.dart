@@ -1,11 +1,13 @@
 import 'dart:ffi';
 
+import 'package:basabuddy/Miscellaneous.dart';
 import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:basabuddy/components/FinishedStoryPopup.dart';
 import 'package:basabuddy/components/question_components/MatchingExercise.dart';
 import 'package:basabuddy/components/question_components/MulchoExercise.dart';
 import 'package:basabuddy/components/question_components/OrderingExercise.dart';
 import 'package:basabuddy/models/orderData.dart';
+import 'package:basabuddy/models/stageData.dart';
 import 'package:basabuddy/wrappers/StoryItem.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +35,7 @@ class StoryShell extends StatefulWidget {
   State<StoryShell> createState() => _StoryShellState();
 }
 
-void updateUserLevel(storyId) async{
+void updateUserLevel(storyId) async {
   print("updateUserLevel called");
   //not the best way to do it lol
 
@@ -43,13 +45,9 @@ void updateUserLevel(storyId) async{
       .select()
       .eq('story_id', storyId);
 
-
-
   //query user's current level
-  var rawUserLevel = await Supabase.instance.client
-      .from('user_level_info')
-      .select();
-
+  var rawUserLevel =
+      await Supabase.instance.client.from('user_level_info').select();
 
   var userLevel = rawUserLevel[0];
 
@@ -57,65 +55,90 @@ void updateUserLevel(storyId) async{
   //if not, update user level
   //update user level based on what module the story is part of
   String moduleType = storyInfo[0]["module"];
-   switch (moduleType) {
-     case 'vocab':
-       if(userLevel['vocab_lvl'] <= storyInfo[0]["level"] ){
-         userLevel['vocab_lvl'] +=1;
-         print("level increased");
-       }
+  switch (moduleType) {
+    case 'vocab':
+      if (userLevel['vocab_lvl'] <= storyInfo[0]["level"]) {
+        userLevel['vocab_lvl'] += 1;
+        print("level increased");
+      }
 
-     case 'information':
-       if(userLevel['information_lvl'] <= storyInfo[0]["level"] ){
-         userLevel['information_lvl'] +=1;
+    case 'information':
+      if (userLevel['information_lvl'] <= storyInfo[0]["level"]) {
+        userLevel['information_lvl'] += 1;
 
+        print("level increased");
+      }
 
-         print("level increased");
-       }
+    case 'narrative':
+      if (userLevel['narrative_lvl'] <= storyInfo[0]["level"]) {
+        userLevel['narrative_lvl'] += 1;
+        print("level increased");
+      }
+    default:
+  }
 
-     case 'narrative':
-       if(userLevel['narrative_lvl'] <= storyInfo[0]["level"] ){
-         userLevel['narrative_lvl'] +=1;
-         print("level increased");
-       }
-     default:
-   }
-
-
-   try{
-     //send update to supabase.
-     //RLS makes sure that only the user's row(that corresponds to their user_id) is updated
-     await Supabase.instance.client
-         .from('user_level_info')
-         .update(userLevel)
-         .eq('id', userLevel['id']);
-     print("done updating user level!");
-   } catch (e){
-     print("error updating: $e");
-   }
-
+  try {
+    //send update to supabase.
+    //RLS makes sure that only the user's row(that corresponds to their user_id) is updated
+    await Supabase.instance.client
+        .from('user_level_info')
+        .update(userLevel)
+        .eq('id', userLevel['id']);
+    print("done updating user level!");
+  } catch (e) {
+    print("error updating: $e");
+  }
 }
 
+void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalItems, Map<String, int> totalAttempts,
+    Map<String, int> firstAttemptCorrect) async {
+  print("addStageData called");
+  //get user id from user_level_info table
+  var rawUserLevel =
+      await Supabase.instance.client.from('user_level_info').select();
+  String userId = rawUserLevel[0]['user_id'];
+  String safeDate = DateTime.now().toIsoDate();
+
+  skillScores.forEach((key, value) async {
+    if(totalItems.containsKey(key) && totalAttempts.containsKey(key) && firstAttemptCorrect.containsKey(key)){
+      //for each skill, add a row to stage_data
+      await Supabase.instance.client
+          .from('stage_level')
+          .insert(StageData(
+          storyId: storyId,
+          userId: userId,
+          totalItems: totalItems[key]!,
+          totalAttempts: totalAttempts[key]!,
+          firstAttemptCorrect: firstAttemptCorrect[key]!,
+          date: safeDate,
+          skill: key)
+          .toJson());
+    }
+
+  });
+}
 
 class _StoryShellState extends State<StoryShell> {
-
-
   late Future<List<StoryItem>> _storyFuture;
-  late Map<String, int> skillScores = {}; ///scoring for each skill, will be uploaded to stage_data
+  late Map<String, int> skillScores = {};
+
+  ///scoring for each skill, will be uploaded to stage_data
   Map<int, String> imageURLs = {};
-  late int numPages = 0; ///needed for precaching
+  late int numPages = 0;
+
+  ///needed for precaching
   int currentPage = 0;
 
   ///stageData data for teacher analytics
 
-  int totalAttempts = 0;
-  int totalItems = 0;
+  Map<String, int> totalAttempts = {};
+  Map<String, int> totalItems = {};
 
   ///whenever a student gets an item wrong, it will be removed from this list
   ///when the story finishes, the remaining items count will be the firstAttemptCorrect
   List<StoryItem> firstAttemptObjects = [];
   List<StoryItem> allStoryItems = [];
-  int firstAttemptCorrect = 0;
-
+  Map<String, int> firstAttemptCorrect = {};
 
   //todo: fix this, as currentPage accounts for exercises as well. this should be based on pageNum
   //todo: fix possible Invalid argument(s): No host specified in URI file:/// issues
@@ -129,28 +152,26 @@ class _StoryShellState extends State<StoryShell> {
       if (i >= length) continue;
 
       final url = imageURLs[i];
-      if(url != null && url != ""){
+      if (url != null && url != "") {
         precacheImage(NetworkImage(url!), context);
       }
-
-
     }
   }
 
-
-
-  void wrongAnswer(StoryItem currentItem){
+  void wrongAnswer(StoryItem currentItem) {
     ///check if item index is in list. if it is, remove it
-    for(StoryItem item in firstAttemptObjects){
-      if(currentItem.eq(item)){
+    for (StoryItem item in firstAttemptObjects) {
+      if (currentItem.eq(item)) {
         firstAttemptObjects.remove(item);
         print("First wrong answer!");
       }
     }
   }
+
   ///Fetch the story's pages and exercises from supabase, and orders them
   Future<List<StoryItem>> _fetchPagesNexercises() async {
-    print("STORYSHELL.dart: _fetchPagesNexercises() called, storyId: ${widget.storyId}");
+    print(
+        "STORYSHELL.dart: _fetchPagesNexercises() called, storyId: ${widget.storyId}");
 
     /// Fetch the story's pages
     final rawPages = await Supabase.instance.client
@@ -158,38 +179,31 @@ class _StoryShellState extends State<StoryShell> {
         .select()
         .eq('story_id', widget.storyId);
 
-    final List<Storypage> pages = (rawPages as List)
-        .map((json) => Storypage.fromJson(json))
-        .toList();
+    final List<Storypage> pages =
+        (rawPages as List).map((json) => Storypage.fromJson(json)).toList();
 
-    final List<PageItem> wrappedPages = pages
-        .map((page) => PageItem(page))
-        .toList();
+    final List<PageItem> wrappedPages =
+        pages.map((page) => PageItem(page)).toList();
 
     numPages = pages.length;
 
-
-    for(int i = 0; i< pages.length;i++){
-
-      try{
-        String url = Supabase.instance.client
-            .storage
+    for (int i = 0; i < pages.length; i++) {
+      try {
+        String url = Supabase.instance.client.storage
             .from('story-pages')
             .getPublicUrl('${pages[i].storyId}/${pages[i].pageNum}.png');
         imageURLs[pages[i].pageNum] = url;
+      } catch (e) {
+        print('Error listing files: $e');
       }
-    catch (e) {
-    print('Error listing files: $e');
-    }
     }
 
-    print("imageURLs to precache: $imageURLs");
+    //print("imageURLs to precache: $imageURLs");
 
     ///initial precache
     _precacheUpcoming(pages.length);
     late List<Mulcho> mulcho;
     late List<StoryItem> wrappedMulcho;
-
 
     ///FETCH MULTIPLE CHOICE EXERCISES
     try {
@@ -199,68 +213,63 @@ class _StoryShellState extends State<StoryShell> {
           .eq('story_id', widget.storyId);
       print("STORYSHELL.dart: mulcho fetched");
 
-      mulcho = (rawMulcho as List)
-          .map((json) => Mulcho.fromJson(json))
-          .toList();
+      mulcho =
+          (rawMulcho as List).map((json) => Mulcho.fromJson(json)).toList();
 
       ///for type safety
-      wrappedMulcho = mulcho
-        .map<StoryItem>((mul) => MulchoItem(mul))
-        .toList();
+      wrappedMulcho = mulcho.map<StoryItem>((mul) => MulchoItem(mul)).toList();
 
       ///create a map that has all the skills of the story
-      for(int i = 0; i< mulcho.length;i++){
+      for (int i = 0; i < mulcho.length; i++) {
         ///If the skill isn't in the dictionary yet, add and set to zero
         ///the value of each skill is the amount of mistakes a student makes
-        if(!skillScores.containsKey(mulcho[i].skill)){
+        if (!skillScores.containsKey(mulcho[i].skill)) {
           skillScores[mulcho[i].skill] = 0;
+
         }
+        totalItems[mulcho[i].skill] = (totalItems[mulcho[i].skill] ?? 0) + 1;
+
       }
       print("skillScores: $skillScores");
-    }
-    catch(e){
+    } catch (e) {
       print(e);
     }
-
-
-
 
     ///FETCH ORDERING EXERCISES
     late List<OrderData> orderData;
     late List<StoryItem> wrappedOrderData;
-  try{
-    final rawOrderingData = await Supabase.instance.client
-        .from('ordering_exercise')
-        .select()
-        .eq('story_id', widget.storyId);
-    print("STORYSHELL.dart: ordering exercise fetched");
+    try {
+      final rawOrderingData = await Supabase.instance.client
+          .from('ordering_exercise')
+          .select()
+          .eq('story_id', widget.storyId);
+      print("STORYSHELL.dart: ordering exercise fetched");
 
-    orderData = (rawOrderingData as List)
-        .map((json) => OrderData.fromJson(json))
-        .toList();
+      orderData = (rawOrderingData as List)
+          .map((json) => OrderData.fromJson(json))
+          .toList();
 
-    ///for type safety
-    wrappedOrderData = orderData
-        .map<StoryItem>((data) => OrderItem(data))
-        .toList();
+      ///for type safety
+      wrappedOrderData =
+          orderData.map<StoryItem>((data) => OrderItem(data)).toList();
 
-    ///create a map that has all the skills of the story
-    for(int i = 0; i< orderData.length;i++){
-      ///If the skill isn't in the dictionary yet, add and set to zero
-      ///the value of each skill is the amount of mistakes a student makes
-      if(!skillScores.containsKey(orderData[i].skill)){
-        skillScores[orderData[i].skill] = 0;
+      ///create a map that has all the skills of the story
+      for (int i = 0; i < orderData.length; i++) {
+        ///If the skill isn't in the dictionary yet, add and set to zero
+        ///the value of each skill is the amount of mistakes a student makes
+        if (!skillScores.containsKey(orderData[i].skill)) {
+          skillScores[orderData[i].skill] = 0;
+        }
+        totalItems[orderData[i].skill] = (totalItems[orderData[i].skill] ?? 0) + 1;
       }
+    } catch (e) {
+      print(e);
     }
-  }
-  catch(e){
-  print(e);
-  }
 
     ///FETCH MATCHING EXERCISES
     late List<MatchingData> matchData;
     late List<StoryItem> wrappedMatchData;
-    try{
+    try {
       final rawMatchData = await Supabase.instance.client
           .from('matching_exercise')
           .select()
@@ -272,136 +281,174 @@ class _StoryShellState extends State<StoryShell> {
           .toList();
 
       ///for type safety
-      wrappedMatchData = matchData
-          .map<StoryItem>((data) => MatchItem(data))
-          .toList();
+      wrappedMatchData =
+          matchData.map<StoryItem>((data) => MatchItem(data)).toList();
 
       ///create a map that has all the skills of the story
-      for(int i = 0; i< matchData.length;i++){
+      for (int i = 0; i < matchData.length; i++) {
         ///If the skill isn't in the dictionary yet, add and set to zero
         ///the value of each skill is the amount of mistakes a student makes
-        if(!skillScores.containsKey(matchData[i].skill)){
+        if (!skillScores.containsKey(matchData[i].skill)) {
           skillScores[matchData[i].skill] = 0;
         }
+        totalItems[matchData[i].skill] = (totalItems[matchData[i].skill] ?? 0) + 1;
       }
-    }
-    catch(e){
+    } catch (e) {
       print(e);
     }
 
     ///FETCH FILL IN THE BLANK EXERCISES
     late List<FillBlankData> fillBlankData;
     late List<StoryItem> wrappedFillBlankData;
-    try{
+    try {
       final rawFillBlankData = await Supabase.instance.client
           .from('fill_in_blank')
           .select()
           .eq('story_id', widget.storyId);
       print("STORYSHELL.dart: fill in blank exercise fetched");
 
-      try{
+      try {
         fillBlankData = (rawFillBlankData as List)
             .map((json) => FillBlankData.fromJson(json))
             .toList();
         print("converted to object");
-      } catch(e){
+      } catch (e) {
         print("ERROR $e");
       }
 
-
       ///for type safety
-      wrappedFillBlankData = fillBlankData
-          .map<StoryItem>((data) => FillBlankItem(data))
-          .toList();
+      wrappedFillBlankData =
+          fillBlankData.map<StoryItem>((data) => FillBlankItem(data)).toList();
 
       print("converted to StoryItem");
 
       ///create a map that has all the skills of the story
-      for(int i = 0; i< fillBlankData.length;i++){
+      for (int i = 0; i < fillBlankData.length; i++) {
         ///If the skill isn't in the dictionary yet, add and set to zero
         ///the value of each skill is the amount of mistakes a student makes
-        if(!skillScores.containsKey(fillBlankData[i].skill)){
+        if (!skillScores.containsKey(fillBlankData[i].skill)) {
           skillScores[fillBlankData[i].skill] = 0;
         }
+        totalItems[fillBlankData[i].skill] = (totalItems[fillBlankData[i].skill] ?? 0) + 1;
       }
-    }
-    catch(e){
+
+      print("skillScores: $skillScores");
+    } catch (e) {
       print(e);
     }
 
-
-
     try {
-      List<StoryItem> wrappedExercises = wrappedMulcho + wrappedFillBlankData + wrappedMatchData + wrappedOrderData;
+      List<StoryItem> wrappedExercises = wrappedMulcho +
+          wrappedFillBlankData +
+          wrappedMatchData +
+          wrappedOrderData;
+      print("story components skills:");
+      for (StoryItem item in wrappedExercises) {
+        print(item.data.skill);
+      }
 
-      ///stage data stuff
-      totalItems = wrappedExercises.length;
+      ///stage data stuff: create map for totalAttempts
+      for(String skill in skillScores.keys){
+        totalAttempts[skill] = 0;
+      }
       firstAttemptObjects = wrappedExercises;
+
       ///order this correctly
       final orderedItems = orderItems(wrappedPages, wrappedExercises);
       allStoryItems = orderedItems;
       print("fetched pages and exercises!");
       return orderedItems;
-    } catch(e){
+    } catch (e) {
       print("ORDERING ERROR $e");
     }
 
     return [];
-
   }
 
-
   ///called inside _fetchPagesNexercises(), orders the items
-  List<StoryItem> orderItems(List<PageItem> pages, List<StoryItem?> exercises){
+  List<StoryItem> orderItems(List<PageItem> pages, List<StoryItem?> exercises) {
     List<StoryItem> ordered = [];
-    for(int i = 1; i <= pages.length; i++){
-
+    for (int i = 1; i <= pages.length; i++) {
       ///page 1 to ...
       final page = pages.firstWhere(
-            (m) => m.data.pageNum == i ,
+        (m) => m.data.pageNum == i,
       );
 
       ordered.add(page);
-      print("orderItems() -> iterating over exercises");
-
+      //print("orderItems() -> iterating over exercises");
 
       ///iterate over questions, check if it comes after page i
-      for(int j = 0; j < exercises.length; j++){
-
-        if(exercises[j]?.data.afterPage == i){
+      for (int j = 0; j < exercises.length; j++) {
+        if (exercises[j]?.data.afterPage == i) {
           ordered.add(exercises[j]!);
         }
       }
-
-
-
     }
     return ordered;
   }
 
-
   ///
-  Widget storyWidget(component, url, orderedStoryItems){
-    print("component runtime type: ${component.runtimeType}");
-    switch(component){
+  Widget storyWidget(component, url, orderedStoryItems) {
+    //print("component runtime type: ${component.runtimeType}");
+    switch (component) {
       case Storypage page:
-        final page = PageContainer(storyPage: component, imageURL: url,);
+        final page = PageContainer(
+          storyPage: component,
+          imageURL: url,
+        );
         return page;
       case Mulcho mulcho:
-        final page = MulchoExercise(mulcho: component, bgImage: 'grassy',
-          onCorrectAnswer: () {nextPage(orderedStoryItems);}, onWrongAnswer: () { wrongAnswer(allStoryItems[currentPage]); totalAttempts+=1; },);
+        final page = MulchoExercise(
+          mulcho: component,
+          bgImage: 'grassy',
+          onCorrectAnswer: () {
+            ///initialize if doesnt exist yet, else add one
+            totalAttempts[component.skill] =
+                (totalAttempts[component.skill] ?? 1) + 1;
+            nextPage(orderedStoryItems);
+          },
+          onWrongAnswer: () {
+            wrongAnswer(allStoryItems[currentPage]);
+            totalAttempts[component.skill] =
+                (totalAttempts[component.skill] ?? 1) + 1;
+          },
+        );
         return page;
       case OrderData order:
-        final page = OrderingExercise(orderData: component,
-          onCorrect: () {totalAttempts+=1;nextPage(orderedStoryItems);}, onWrong: () { wrongAnswer(allStoryItems[currentPage]); totalAttempts+=1; },);
+        final page = OrderingExercise(
+          orderData: component,
+          onCorrect: () {
+            totalAttempts[component.skill] =
+                (totalAttempts[component.skill] ?? 1) + 1;
+            nextPage(orderedStoryItems);
+          },
+          onWrong: () {
+            wrongAnswer(allStoryItems[currentPage]);
+            totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+          },
+        );
         return page;
       case FillBlankData fillBlank:
-        final page = FillBlankExercise(fillBlankData: component,
-          onCorrectAnswer: (){totalAttempts+=1;nextPage(orderedStoryItems);}, onWrongAnswer: () { wrongAnswer(allStoryItems[currentPage]); totalAttempts+=1; },);
+        final page = FillBlankExercise(
+          fillBlankData: component,
+          onCorrectAnswer: () {
+            totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+            nextPage(orderedStoryItems);
+          },
+          onWrongAnswer: () {
+            wrongAnswer(allStoryItems[currentPage]);
+            totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+          },
+        );
         return page;
       case MatchingData match:
-        final page = MatchingExercise(matchingData: component,
-          onCorrect: (){totalAttempts+=1;nextPage(orderedStoryItems);},);
+        final page = MatchingExercise(
+          matchingData: component,
+          onCorrect: () {
+            totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+            nextPage(orderedStoryItems);
+          },
+        );
         return page;
 
       default:
@@ -409,16 +456,14 @@ class _StoryShellState extends State<StoryShell> {
     }
   }
 
-  ImageProvider<Object> determineBg(currentComponent){
-    if(currentComponent.runtimeType == PageItem){
+  ImageProvider<Object> determineBg(currentComponent) {
+    if (currentComponent.runtimeType == PageItem) {
       //print("setting network image to ${imageURLs[currentComponent.data.pageNum]!}");
       return NetworkImage(imageURLs[currentComponent.data.pageNum]!);
     } else {
       return AssetImage("assets/bg_images/grassy.png");
     }
-
   }
-
 
   @override
   void initState() {
@@ -426,100 +471,115 @@ class _StoryShellState extends State<StoryShell> {
     _storyFuture = _fetchPagesNexercises();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     print("story.dart");
-    return  FutureBuilder(
+    return FutureBuilder(
         future: _storyFuture,
-        builder: (context, snapshot){
-          if(snapshot.hasData){
-
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
             ///the loaded data
             var orderedStoryItems = snapshot.data!;
             //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
 
             return Container(
-                decoration: BoxDecoration(
+              decoration: BoxDecoration(
                 image: DecorationImage(
-                image:  determineBg(orderedStoryItems[currentPage]),
-          fit: BoxFit.cover,
-          ),),
-              child: Column(
-                  children: [
-                    SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: GradientLinearProgressBar(
-                        value: currentPage/orderedStoryItems.length,
-                        leftColor: Color(0xFF22C03A),
-                        rightColor: Color(0xFFB2FF3E), unfilledColor: Colors.grey,
-                      ),
-                    ),
-                    storyWidget(orderedStoryItems[currentPage].data, "", orderedStoryItems),
-                    SizedBox(height: 12),
-                    ///Don't display back and next button for question items
-                    orderedStoryItems[currentPage].runtimeType == PageItem?
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ///BACK button
-                        SizedBox(
-                          height: 30,
-                          child:ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: selected, // warm yellow
-
-                              ),
-                              onPressed: (){
-                                ///if its the first page, dont do anything
-                                if(currentPage == 0){
-                                  return;
-                                }
-                                setState(() {
-                                  currentPage-=1;
-                                });
-                              }, child: Text('Back', style: TextStyle(color: textColor))),
-                        ),
-
-                        ///NEXT Button
-                        SizedBox(
-                          height: 30,
-                          child:ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: selected, // warm yellow
-
-                              ),
-                              onPressed: () async {
-                            ///if last page na
-                            /// increase user level for this module and navigate to home screen
-                            nextPage(orderedStoryItems);
-                          }, child: Text('Next', style: TextStyle(color: textColor))),
-                        )
-                      ],
-                    ): Text(""),
-                  ]
-
+                  image: determineBg(orderedStoryItems[currentPage]),
+                  fit: BoxFit.cover,
+                ),
               ),
-            );
-            ///Row containing next button and back button
+              child: Column(children: [
+                SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: GradientLinearProgressBar(
+                    value: currentPage / orderedStoryItems.length,
+                    leftColor: Color(0xFF22C03A),
+                    rightColor: Color(0xFFB2FF3E),
+                    unfilledColor: Colors.grey,
+                  ),
+                ),
+                storyWidget(
+                    orderedStoryItems[currentPage].data, "", orderedStoryItems),
+                SizedBox(height: 12),
 
-          } else {return CircularProgressIndicator();}
+                ///Don't display back and next button for question items
+                orderedStoryItems[currentPage].runtimeType == PageItem
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ///BACK button
+                          SizedBox(
+                            height: 30,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: selected, // warm yellow
+                                ),
+                                onPressed: () {
+                                  ///if its the first page, dont do anything
+                                  if (currentPage == 0) {
+                                    return;
+                                  }
+                                  setState(() {
+                                    currentPage -= 1;
+                                  });
+                                },
+                                child: Text('Back',
+                                    style: TextStyle(color: textColor))),
+                          ),
+
+                          ///NEXT Button
+                          SizedBox(
+                            height: 30,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: selected, // warm yellow
+                                ),
+                                onPressed: () async {
+                                  ///if last page na
+                                  /// increase user level for this module and navigate to home screen
+                                  nextPage(orderedStoryItems);
+                                },
+                                child: Text('Next',
+                                    style: TextStyle(color: textColor))),
+                          )
+                        ],
+                      )
+                    : Text(""),
+              ]),
+            );
+
+            ///Row containing next button and back button
+          } else {
+            return  Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/bg_images/grassy.png"),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: const Center(child: CircularProgressIndicator())
+            );
+          }
         });
   }
 
   void nextPage(orderedStoryItems) {
-
     ///if its the last page
-    if(currentPage == orderedStoryItems.length - 1){
-
+    if (currentPage == orderedStoryItems.length - 1) {
       ///get stage_data
-      firstAttemptCorrect = firstAttemptObjects.length;
+
+      for(StoryItem storyItem in firstAttemptObjects){
+        ///tally items gotten correct in the first attempt per skill
+        firstAttemptCorrect[storyItem.data.skill] = (firstAttemptCorrect[storyItem.data.skill] ?? 0) + 1;
+      }
+
 
       print("firstAttemptCorrect, totalItems, totalAttempts");
       print("$firstAttemptCorrect, $totalItems, $totalAttempts");
       updateUserLevel(widget.storyId);
+      addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
 
       BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
 
@@ -528,19 +588,17 @@ class _StoryShellState extends State<StoryShell> {
         context: context,
         barrierDismissible: false, // user must act
         builder: (_) => FinishedStoryPopup(
-          onContinue: (){
+          onContinue: () {
             //navigate to home
             context.go('/student/home');
           },
         ),
       );
 
-
       return;
-
     }
     setState(() {
-      currentPage+=1;
+      currentPage += 1;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

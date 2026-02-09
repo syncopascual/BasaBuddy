@@ -76,7 +76,8 @@ class _ModuleState extends State<Module> {
     }
 
     print("story thumbnails: $storyThumbnails");
-
+    ///sort stories according to level
+    stories.sort((a, b) => a.level.compareTo(b.level));
 
     return [stories, moduleLevel];
 
