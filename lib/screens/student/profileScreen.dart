@@ -241,7 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ElevatedButton.icon(
                   onPressed: () => _showJoinClassSheet(context), 
                   icon: const Icon(Icons.add),
-                  label: const Text("Join a New Class"),
+                  label: const Text("Join a New Class", style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF35ADD3),
                     shape: RoundedRectangleBorder(

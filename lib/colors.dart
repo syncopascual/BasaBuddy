@@ -30,7 +30,7 @@ Color finishPopupBg2 = const Color(0xFFFFD650);
 
 
 ///Home screen different modules button
-Color vocabButton = const Color(0xFF99FF4B);
+Color vocabButton = const Color(0xFF71ad49);
 Color informationButton = const Color(0xFFFFFFFF);
 Color narrativeButton = const Color(0xFFFFD351);
 

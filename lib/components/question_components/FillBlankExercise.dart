@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/translation_bloc.dart';
 import '../../colors.dart';
 import '../../models/fillBlankData.dart';
+import '../QuestionPopup.dart';
 import '../TranslationButton.dart';
 import 'FillBlankChoices.dart';// adjust import
 
@@ -50,9 +51,10 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
     final selectedWord = choices[selectedIndex!];
 
     if (selectedWord == answer) {
-      widget.onCorrectAnswer();
+      correctPopup(context, widget.onCorrectAnswer);
     } else {
-      widget.onWrongAnswer();
+      wrongPopup(context,
+          widget.onWrongAnswer);
     }
   }
 
@@ -82,6 +84,7 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ///Exercise Label
+            Container(height: 10,),
             Container(
               margin: EdgeInsets.only(left: 20),
               alignment: Alignment.center,
@@ -159,6 +162,9 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: selected,
+                ),
                 onPressed: selectedIndex == null
                     ? null
                     : () => onSubmit(
