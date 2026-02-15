@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen  extends StatefulWidget {
   @override
@@ -164,6 +165,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       'email': email,
     };
   }
+  Future<void> _logout(BuildContext context) async {
+    await Supabase.instance.client.auth.signOut();
+    context.go('/login');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final classes = profileData!['classes'] as List;
     final email = profileData!['email'] as String;
     return Scaffold(
-      backgroundColor: const Color(0xFFDFF7E2),
+      backgroundColor: const Color(0xFF66E1DD),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -187,7 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(children: [
               CircleAvatar(
                 radius: 36,
-                backgroundColor: Colors.green[200],
+                backgroundColor: const Color(0xFF3FC3D4),
                 child: const Icon(Icons.person, size:40, color: Colors.white),
               ),
               const SizedBox(width: 16),
@@ -206,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green[50],
+              color: const Color(0xFFD8F7F3),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -238,7 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: const Icon(Icons.add),
                   label: const Text("Join a New Class"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
+                    backgroundColor: const Color(0xFF35ADD3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -251,7 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green[50],
+              color: const Color(0xFFD8F7F3),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -271,6 +276,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+                  onPressed: () {
+                    _logout(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    iconColor: Color(0xFFF28B82), // soft red
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    minimumSize: Size(double.infinity, 48), // full width like "Join a New Class"
+                  ),
+                  child: const Text("Logout"),
           ),
         ],
       ),
