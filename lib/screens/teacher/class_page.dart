@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ClassPage extends StatelessWidget {
   final String className;
@@ -71,6 +72,12 @@ class ClassPage extends StatelessWidget {
                               ))
                           .toList(),
                     ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
+                      onPressed: (){
+                        context.push('/teacher/add_story_page');
+                      },
+                      child: Text("Add a New Story", style: TextStyle(color: Colors.black))),
                   ],
                 ),
               ),
