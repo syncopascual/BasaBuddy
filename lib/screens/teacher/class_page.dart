@@ -2,6 +2,7 @@ import 'package:basabuddy/wrappers/ClassData.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../components/StudentDataDialogBox.dart';
 import '../../models/student.dart';
 import '../../wrappers/StudentData.dart';
 
@@ -40,7 +41,9 @@ Future<ClassData> fetchClassInfo(String classId) async {
 
   var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(classId, 'class');
 
-
+  print("fetchClassInfo: worst and best skills");
+  print(worstSkills);
+  print(topSkills);
   ClassData classData = ClassData(
       students,
       className,
@@ -331,18 +334,37 @@ class ClassPage extends StatelessWidget {
 
 
                           const SizedBox(height: 8),
-
+                          Text('Needs focus:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              )),
                           Wrap(
                             children: snapshot.data!.worstSkills.map((skillMap) {
                               final entry = skillMap.entries.first;
                               return Chip(
-                                label: Text('${entry.key} (${entry.value}%)'),
+                                label: Text('${entry.key}'),
                                 backgroundColor: entry.key == 'Verbs'
                                     ? Colors.pink.shade100
                                     : Colors.green.shade100,
                               );
                             }).toList(),
-                          )
+                          ),
+                          const SizedBox(height: 8),
+                          Text('Excelling areas:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              )),
+                          Wrap(
+                            children: snapshot.data!.topSkills.map((skillMap) {
+                              final entry = skillMap.entries.first;
+                              return Chip(
+                                label: Text('${entry.key}'),
+                                backgroundColor: entry.key == 'Verbs'
+                                    ? Colors.pink.shade100
+                                    : Colors.green.shade100,
+                              );
+                            }).toList(),
+                          ),
 
                         ],
                       ),
@@ -368,6 +390,29 @@ class ClassPage extends StatelessWidget {
                           ),
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           child: ListTile(
+                            onTap: ()async {
+                              ///Fetch student data
+                              StudentData studentData = await fetchStudentInfo(snapshot.data!.students[index].studentId);
+                              ///Display student data
+                              showDialog(
+                                context: context,
+                                builder: (_) => StudentDataDialogBox(
+                                  name: studentData.studentName,
+                                  storiesRead: studentData.storiesRead.toString(),
+                                  accuracyRate: studentData.firstAttemptCorrect.toString(),
+                                  averageRetryRate: studentData.averageRetries.toString(),
+                                  strengths: [
+                                    {'Synonym-antonym': 92},
+                                    {'Ordering events': 88},
+                                    {'Story Elements': 85},
+                                  ],
+                                  needsReview: [
+                                    {'Possessive Pronouns': 60},
+                                    {'Verbs': 55},
+                                  ],
+                                ),
+                              );
+                            },
                             leading: const CircleAvatar(
                               child: Icon(Icons.person),
                             ),

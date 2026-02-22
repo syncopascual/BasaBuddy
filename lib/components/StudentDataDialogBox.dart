@@ -4,6 +4,7 @@ class StudentDataDialogBox extends StatelessWidget {
   final String name;
   final String storiesRead;
   final String accuracyRate;
+  final String averageRetryRate;
   final List<Map<String, double>> strengths;
   final List<Map<String, double>> needsReview;
 
@@ -12,6 +13,7 @@ class StudentDataDialogBox extends StatelessWidget {
     required this.name,
     required this.storiesRead,
     required this.accuracyRate,
+    required this.averageRetryRate,
     required this.strengths,
     required this.needsReview,
   });
@@ -43,12 +45,19 @@ class StudentDataDialogBox extends StatelessWidget {
             _statRow(
               label: 'Stories read this month:',
               value: storiesRead,
-              valueColor: Colors.green,
+              valueColor: Colors.black,
             ),
             const SizedBox(height: 6),
             _statRow(
-              label: 'Success Rate(%):',
+              label: 'Accuracy Rate(%):',
               value: accuracyRate,
+              valueColor: Colors.green,
+            ),
+
+            const SizedBox(height: 6),
+            _statRow(
+              label: 'Average Retry Rate(%):',
+              value: averageRetryRate,
               valueColor: Colors.red,
             ),
 
