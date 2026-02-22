@@ -41,7 +41,15 @@ class StudentHomeShell  extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = _locationToIndex(context);
-    final user = Supabase.instance.client.auth.currentUser!;
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      if (user == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.go('/login');
+        });
+        return const SizedBox.shrink();
+      }
+    };
     double screenWidth = MediaQuery.of(context).size.width;
 
     return MultiBlocProvider(

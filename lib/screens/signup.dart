@@ -70,6 +70,28 @@ class _SignupState extends State<Signup> {
               key: _formKey,
               child: Column(
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: InkWell(
+                          onTap: () {
+                            context.go('/login');
+                          },
+                          borderRadius: BorderRadius.circular(50),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.shade200,
+                            ),
+                            child: const Icon(Icons.arrow_back),
+                          )
+                        ),
+                      ),
+                    ],
+                  ),
                   SizedBox(height: 40),
                   ///Email text field
                   _input(_nameController, "Full Name"),

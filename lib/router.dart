@@ -7,6 +7,7 @@ import 'package:basabuddy/screens/signup.dart';
 import 'package:basabuddy/screens/student/module.dart';
 import 'package:basabuddy/screens/student/storyShell.dart';
 import 'package:basabuddy/screens/student/profileScreen.dart';
+import 'package:basabuddy/screens/teacher/add_story_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
@@ -84,6 +85,12 @@ final router = GoRouter(
         GoRoute(
           path: '/teacher/home',
           pageBuilder: (context, state) => NoTransitionPage(child: TeacherHome()),
+          routes: [
+          ],
+        ),
+        GoRoute(
+          path: '/teacher/add_story_page',
+          pageBuilder: (context, state) => NoTransitionPage(child: AddStoryPage()),
           routes: [
           ],
         ),
