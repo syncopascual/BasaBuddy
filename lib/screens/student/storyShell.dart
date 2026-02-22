@@ -509,7 +509,6 @@ class _StoryShellState extends State<StoryShell> {
             //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
 
             return Container(
-              width: double.infinity,
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: determineBg(orderedStoryItems[currentPage]),
@@ -527,20 +526,8 @@ class _StoryShellState extends State<StoryShell> {
                     unfilledColor: Colors.grey,
                   ),
                 ),
-             
-
-                Center(
-  child: Container(
-    width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
-    child: storyWidget(
-      orderedStoryItems[currentPage].data,
-      "",
-      orderedStoryItems,
-    ),
-  ),
-),
-                  
-              
+                storyWidget(
+                    orderedStoryItems[currentPage].data, "", orderedStoryItems),
                 SizedBox(height: 12),
 
                 ///Don't display back and next button for question items
