@@ -5,6 +5,7 @@ class ClassPage extends StatelessWidget {
   final String className;
   final String year;
   final String classCode;
+  final String classId;
 
   // Sample data; you could pass real data instead
   final List<String> students;
@@ -14,6 +15,7 @@ class ClassPage extends StatelessWidget {
 
   const ClassPage({
     super.key,
+    required this.classId,
     required this.classCode,
     required this.className,
     required this.year,
@@ -75,7 +77,7 @@ class ClassPage extends StatelessWidget {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
                       onPressed: (){
-                        context.push('/teacher/add_story_page');
+                        context.push('/teacher/add_story_page', extra: classId);
                       },
                       child: Text("Add a New Story", style: TextStyle(color: Colors.black))),
                   ],

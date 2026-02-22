@@ -50,6 +50,14 @@ class _StudentHomeState extends State<StudentHome > {
                   context.push('/student/home/module/narrative');
                 },
                 child: Text("Narrative Island", style: TextStyle(color: textColor))),
+            /// Teachers' Pick Island Button
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: teachersPickButton),
+              onPressed: () {
+                context.push('/student/home/module/teachers_pick');
+              },
+              child: Text("Teachers' Pick Island", style: TextStyle(color: textColor)),
+            ),
           ],
         ),
       ),

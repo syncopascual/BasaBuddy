@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
 
 import '../../colors.dart';
 import '../../components/question_components/FillBlankExercise.dart';
@@ -167,7 +168,14 @@ class _StoryShellState extends State<StoryShell> {
       }
     }
   }
-
+  Future<bool> fileExists(String url) async {
+    try {
+      final response = await http.head(Uri.parse(url));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
   ///Fetch the story's pages and exercises from supabase, and orders them
   Future<List<StoryItem>> _fetchPagesNexercises() async {
     print(
@@ -178,7 +186,6 @@ class _StoryShellState extends State<StoryShell> {
         .from('story_page')
         .select()
         .eq('story_id', widget.storyId);
-
     final List<Storypage> pages =
         (rawPages as List).map((json) => Storypage.fromJson(json)).toList();
 
@@ -189,12 +196,23 @@ class _StoryShellState extends State<StoryShell> {
 
     for (int i = 0; i < pages.length; i++) {
       try {
+        
+        
         String url = Supabase.instance.client.storage
             .from('story-pages')
             .getPublicUrl('${pages[i].storyId}/${pages[i].pageNum}.png');
-        imageURLs[pages[i].pageNum] = url;
+        bool exists = await fileExists(url);
+        print("DO I EXIST? ${exists}");
+
+
+        if (exists){
+          imageURLs[pages[i].pageNum] = url;
+        } else {
+          imageURLs[pages[i].pageNum] = "";
+        }
+        
       } catch (e) {
-        print('Error listing files: $e');
+        imageURLs[pages[i].pageNum] = ""; // fallback
       }
     }
 
@@ -306,11 +324,13 @@ class _StoryShellState extends State<StoryShell> {
           .select()
           .eq('story_id', widget.storyId);
       print("STORYSHELL.dart: fill in blank exercise fetched");
-
+      print("RAW FILL BLANKS: ${rawFillBlankData}");
       try {
         fillBlankData = (rawFillBlankData as List)
             .map((json) => FillBlankData.fromJson(json))
             .toList();
+        
+        print("procesed: ${fillBlankData}");
         print("converted to object");
       } catch (e) {
         print("ERROR $e");
@@ -457,12 +477,18 @@ class _StoryShellState extends State<StoryShell> {
   }
 
   ImageProvider<Object> determineBg(currentComponent) {
-    if (currentComponent.runtimeType == PageItem) {
-      //print("setting network image to ${imageURLs[currentComponent.data.pageNum]!}");
-      return NetworkImage(imageURLs[currentComponent.data.pageNum]!);
-    } else {
-      return AssetImage("assets/bg_images/grassy.png");
+    int? pageNum;
+    if (currentComponent is PageItem) pageNum = currentComponent.data.pageNum;
+    else if (currentComponent is Storypage) pageNum = currentComponent.pageNum;
+
+    if (pageNum != null) {
+      final url = imageURLs[pageNum];
+      if (url != null && url.isNotEmpty) {
+        return NetworkImage(url); // will attempt to load
+      }
     }
+
+    return AssetImage("assets/bg_images/grassy.png");
   }
 
   @override
@@ -483,6 +509,7 @@ class _StoryShellState extends State<StoryShell> {
             //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
 
             return Container(
+              width: double.infinity,
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: determineBg(orderedStoryItems[currentPage]),
@@ -500,8 +527,20 @@ class _StoryShellState extends State<StoryShell> {
                     unfilledColor: Colors.grey,
                   ),
                 ),
-                storyWidget(
-                    orderedStoryItems[currentPage].data, "", orderedStoryItems),
+             
+
+                Center(
+  child: Container(
+    width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
+    child: storyWidget(
+      orderedStoryItems[currentPage].data,
+      "",
+      orderedStoryItems,
+    ),
+  ),
+),
+                  
+              
                 SizedBox(height: 12),
 
                 ///Don't display back and next button for question items

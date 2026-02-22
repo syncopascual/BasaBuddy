@@ -33,6 +33,7 @@ Color finishPopupBg2 = const Color(0xFFFFD650);
 Color vocabButton = const Color(0xFF71ad49);
 Color informationButton = const Color(0xFFFFFFFF);
 Color narrativeButton = const Color(0xFFFFD351);
+Color teachersPickButton = const Color(0xFF71ad49);
 
 Color loginButton = const Color(0xFF804589);
 Color x2Coins =  const Color(0xFFFFE79D);

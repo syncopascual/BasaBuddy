@@ -50,6 +50,7 @@ class _TeacherHomeState extends State<TeacherHome> {
       classes = List<Map<String, String>>.generate(res.length, (index) {
         final c = res[index] as Map<String, dynamic>;
         return {
+          'id': c['id'].toString(),
           'name': c['name'].toString(),
           'year': 'AY ${c['year']}',
           'class_code': c['class_code'].toString(),
@@ -142,6 +143,7 @@ class _TeacherHomeState extends State<TeacherHome> {
                       builder: (context) => ClassPage(
                         classCode: c['class_code']!,
                         className: c['name']!,
+                        classId: c['id']!,
                         year: c['year']!,
                         students: ['Sam Teng', 'Nina Valdez', 'Juan De La Cruz', 'Juan Cruz', 'Lorem Ipsum'],
                         storiesRead: 90,

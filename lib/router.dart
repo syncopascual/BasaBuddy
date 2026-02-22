@@ -90,9 +90,10 @@ final router = GoRouter(
         ),
         GoRoute(
           path: '/teacher/add_story_page',
-          pageBuilder: (context, state) => NoTransitionPage(child: AddStoryPage()),
-          routes: [
-          ],
+          pageBuilder: (context, state) {
+            final classId = state.extra as String;
+            return NoTransitionPage(child: AddStoryPage(classId: classId));
+          }
         ),
 
   

@@ -32,54 +32,97 @@ String determineBackground(moduleType){
 class _ModuleState extends State<Module> {
   late Future<List> storiesAndLevel;
   late Map<String, String> storyThumbnails = {};
-
+  
   ///Fetch Stories from supabase and get user level
   Future<List> _fetchStoriesAndUserLevel() async {
+    final supabase = Supabase.instance.client;
+    List stories;
+    if (widget.moduleType == 'teachers_pick'){
+      final userId = supabase.auth.currentUser!.id;
+      final classIds = await supabase
+        .from('class_students')
+        .select('class_id')
+        .eq('student_id', userId);
+      print("classIdsResponse: $classIds");
+      final classIdList = (classIds as List).map((c) => c['class_id']).toList();
+      print("classIdList: $classIdList");
 
-    ///Fetch stories
-    print("MODULE.dart :: _fetchStories() called");
-    //print(Supabase.instance.client.auth.currentUser);
-    final response = await Supabase.instance.client
+      final teacherStoryFirst = await supabase
         .from('list_stories')
         .select()
-        .eq('module', widget.moduleType);
-    print("After Supabase query");
-    print(response);
+        .eq('class_id', classIdList[0]);
+      print("teacherStoriesResponseOne: $teacherStoryFirst");
+      final teacherStories = await supabase
+        .from('list_stories')
+        .select()
+        .inFilter('class_id', classIdList);
+      print("teacherStoriesResponse: $teacherStories");
+      stories = (teacherStories as List).map((json) => Story.fromJson(json)).toList();
 
-    final stories = (response as List)
-        .map((json) => Story.fromJson(json))
-        .toList();
-    print("Stories");
-    print(stories);
+      String folder = widget.moduleType == 'teachers_pick' ? 'default' : widget.moduleType;
+      for(int i = 0; i< stories.length;i++){
 
-    ///Get user level
-    final rawUserLevel = await Supabase.instance.client
-        .from('user_level_info')
-        .select();
-
-    int moduleLevel = rawUserLevel[0]["${widget.moduleType}_lvl"];
-
-
-    ///get story thumbnails
-    for(int i = 0; i< stories.length;i++){
-
-      try{
-        String url = Supabase.instance.client
+        try{
+          String url = Supabase.instance.client
             .storage
             .from('story-thumbnails')
-            .getPublicUrl('${widget.moduleType}/${stories[i].storyId}.png');
-        storyThumbnails[stories[i].storyId] = url;
+            .getPublicUrl('$folder/default.png');
+          storyThumbnails[stories[i].storyId] = url;
+        }
+        catch (e) {
+          print('Error listing files: $e');
+        }
       }
-      catch (e) {
-        print('Error listing files: $e');
+      
+      
+      return [stories, 1];
+    }else {
+      ///Fetch stories
+      print("MODULE.dart :: _fetchStories() called");
+      //print(Supabase.instance.client.auth.currentUser);
+      final response = await Supabase.instance.client
+          .from('list_stories')
+          .select()
+          .eq('module', widget.moduleType);
+      print("After Supabase query");
+      print(response);
+
+      final stories = (response as List)
+          .map((json) => Story.fromJson(json))
+          .toList();
+      print("Stories");
+      print(stories);
+
+      ///Get user level
+      final rawUserLevel = await Supabase.instance.client
+          .from('user_level_info')
+          .select();
+
+      int moduleLevel = rawUserLevel[0]["${widget.moduleType}_lvl"];
+
+
+      ///get story thumbnails
+      for(int i = 0; i< stories.length;i++){
+
+        try{
+          String url = Supabase.instance.client
+              .storage
+              .from('story-thumbnails')
+              .getPublicUrl('${widget.moduleType}/${stories[i].storyId}.png');
+          storyThumbnails[stories[i].storyId] = url;
+        }
+        catch (e) {
+          print('Error listing files: $e');
+        }
       }
+
+      print("story thumbnails: $storyThumbnails");
+      ///sort stories according to level
+      stories.sort((a, b) => a.level.compareTo(b.level));
+
+      return [stories, moduleLevel];
     }
-
-    print("story thumbnails: $storyThumbnails");
-    ///sort stories according to level
-    stories.sort((a, b) => a.level.compareTo(b.level));
-
-    return [stories, moduleLevel];
+    
 
 
   }

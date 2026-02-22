@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddStoryPage extends StatefulWidget {
-  const AddStoryPage({super.key});
+  final String classId;
+  const AddStoryPage({super.key, required this.classId});
 
   @override
   State<AddStoryPage> createState() => _AddStoryPageState();
@@ -84,6 +85,7 @@ class _AddStoryPageState extends State<AddStoryPage> {
           'description': descriptionController.text,
           'module': selectedModule,
           'level': level,
+          'class_id': widget.classId,
         })
         .select()
         .single();
@@ -122,6 +124,27 @@ class _AddStoryPageState extends State<AddStoryPage> {
             'after_page': pageNumber,
             'skill': item.skill,
             'data': extra['data'], 
+          });
+          }
+          if (item.type == 'matching') {
+            final extra = item.extraData();
+            await supabase.from('matching_exercise').insert({
+            'story_id': storyId,
+            'after_page': pageNumber,
+            'skill': item.skill,
+            'pairs': extra['pairs'], 
+          });
+          }
+          if (item.type == 'fill_in_blanks') {
+            final extra = item.extraData();
+            await supabase.from('fill_in_blank').insert({
+            'story_id': storyId,
+            'after_page': pageNumber,
+            'skill': item.skill,
+            'statement_1': extra['statement_1'], 
+            'statement_2': extra['statement_2'], 
+            'choices': extra['choices'],
+            'answer': extra['answer'],
           });
           }
         }
@@ -218,7 +241,9 @@ class _AddStoryPageState extends State<AddStoryPage> {
 
               const SizedBox(height: 20),
 
-              Row(
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
                 children: [
                   ElevatedButton(
                     onPressed: () => addExercise('mulcho'),
@@ -228,6 +253,14 @@ class _AddStoryPageState extends State<AddStoryPage> {
                   ElevatedButton(
                     onPressed: () => addExercise('ordering'),
                     child: const Text("+ Ordering"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => addExercise('matching'),
+                    child: const Text("+ Matching"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => addExercise('fill_in_blanks'),
+                    child: const Text("+ Fill in the Blanks"),
                   ),
                 ],
               ),
@@ -310,6 +343,14 @@ class StoryPageInput extends StoryContentItem {
 // =======================================================
 // EXERCISE INPUT MODEL
 // =======================================================
+class MatchingPair {
+  TextEditingController left;
+  TextEditingController right;
+
+  MatchingPair()
+      : left = TextEditingController(),
+        right = TextEditingController();
+}
 
 class ExerciseInput extends StoryContentItem {
   final String type;
@@ -317,18 +358,35 @@ class ExerciseInput extends StoryContentItem {
   String skill = '';
 
   String? correctMulchoKey;
+  String? correctFillBlanksKey;
   String selectedSkill = 'synonyms and antonyms';
   final List<String> skills = ['synonyms and antonyms', 'story details'];
 
   final TextEditingController questionController = TextEditingController();
+  final TextEditingController statement1Controller = TextEditingController();
+  final TextEditingController statement2Controller = TextEditingController();
 
   Map<String, TextEditingController> choices = {};
+  List<TextEditingController> fillChoices = [];
+  List<MatchingPair> pairs = [];
 
   ExerciseInput({required this.type}) {
     if (type == 'mulcho' || type =='ordering'){
       choices['1'] = TextEditingController();
       choices['2'] = TextEditingController();
       choices['3'] = TextEditingController();
+    }
+    if (type == 'fill_in_blanks') {
+      fillChoices = [
+        TextEditingController(),
+        TextEditingController(),
+        TextEditingController(),
+      ];
+    }
+    if (type == 'matching'){
+      for (int i = 0; i < 3; i++) {
+        pairs.add(MatchingPair());
+      }
     }
   }
 
@@ -350,17 +408,35 @@ class ExerciseInput extends StoryContentItem {
       });
       data['data'] = jsonChoices;
     }
+    if(type == 'matching'){
+      final Map<String, String> jsonPairs = {};
+      for (var pair in pairs) {
+        final leftText = pair.left.text.trim();
+        final rightText = pair.right.text.trim();
+
+        if (leftText.isNotEmpty && rightText.isNotEmpty ) {
+          jsonPairs[leftText] = rightText;
+        }
+      }
+      data['pairs'] = jsonPairs;
+    }
+    if(type == 'fill_in_blanks'){
+      data['statement_1'] = statement1Controller.text;
+      data['statement_2'] = statement2Controller.text;
+      data['choices'] = fillChoices.map((c) => c.text).toList();;
+      data['answer'] = correctFillBlanksKey;
+    }
     return data;
   }
 
-  void renumberChoices() {
+  void renumberChoices(correctKey) {
     final oldControllers = choices.values.toList();
     choices.clear();
     for (int i = 0; i < oldControllers.length; i++) {
       choices[(i + 1).toString()] = oldControllers[i];
     }
-    if (correctMulchoKey != null && !choices.containsKey(correctMulchoKey)) {
-      correctMulchoKey = null;
+    if (correctKey != null && !choices.containsKey(correctKey)) {
+      correctKey = null;
     }
   }
 
@@ -426,7 +502,7 @@ class ExerciseInput extends StoryContentItem {
                       icon: const Icon(Icons.delete),
                       onPressed: () {
                         choices.remove(key);
-                        renumberChoices();
+                        renumberChoices(correctMulchoKey);
                         onUpdate();
                       },
                     ),
@@ -499,13 +575,139 @@ class ExerciseInput extends StoryContentItem {
                     icon: const Icon(Icons.delete),
                     onPressed: () {
                       choices.remove(key);
-                      renumberChoices();
+                      renumberChoices(null);
                       onUpdate();
                     },
                   ),
                   ],
                 );
               })]),
+              TextButton(
+                onPressed: () {
+                  choices[(choices.length + 1).toString()] = TextEditingController();
+                  onUpdate();
+                },
+                child: const Text('+ Add Choice'),
+              ),
+            ],
+            if(type == 'matching')...[
+              Column(
+                children: [...pairs.asMap().entries.map((entry) {
+                final index = entry.key;
+                final pair = entry.value;
+                return Row(
+                  children: [
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: pair.left,
+                      decoration: InputDecoration(labelText: 'Left ${index+1}'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: pair.right,
+                      decoration: InputDecoration(labelText: 'Right ${index+1}'),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      final removed = pairs.removeAt(index);
+                      removed.left.dispose();
+                      removed.right.dispose();
+                      onUpdate();
+                    },
+                  ),
+                  ],
+                );
+              })]),
+              TextButton(
+                onPressed: () {
+                  pairs.add(MatchingPair());
+                  onUpdate();
+                },
+                child: const Text('+ Add Pair'),
+              ),
+            ],
+            if(type == 'fill_in_blanks')...[
+
+              TextFormField(
+                controller: statement1Controller,
+                decoration: const InputDecoration(
+                  labelText: "Sentence (before blank)",
+                ),
+              ),
+              
+
+              const SizedBox(height: 8),
+
+              TextFormField(
+                controller: statement2Controller,
+                decoration: const InputDecoration(
+                  labelText: "Sentence (after blank)",
+                ),
+              ),
+              
+
+              FormField(
+                initialValue: correctFillBlanksKey,
+                validator: (val) {
+                  return correctFillBlanksKey == null ? 'Please select the correct answer' : null;
+                },
+                builder: (state) {
+                  return Column(children: [...List.generate(fillChoices.length, (i) {
+                  final choiceText = fillChoices[i].text;
+                  return Row(
+                   children: [
+                    Radio<String>(
+                      value: choiceText,
+                      groupValue: correctFillBlanksKey,
+                      onChanged: (val) {
+                        correctFillBlanksKey = val;
+                        onUpdate();
+                      },
+                    ),
+                    Expanded(
+                      child: TextFormField(
+                        controller: fillChoices[i],
+                        decoration: InputDecoration(labelText: 'Choice ${i+1}'),
+                        onChanged: (val) {
+                        if (correctFillBlanksKey == choiceText) {
+                          correctFillBlanksKey = val;
+                        }
+                        onUpdate();
+                      },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () {
+                        if (correctFillBlanksKey == choiceText) {
+                          correctFillBlanksKey = null;
+                        }
+                        fillChoices.removeAt(i);
+                        onUpdate();
+                      },
+                    ),
+                    ],
+                  );
+                }),
+                if (state.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      state.errorText!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  ],
+                );
+          
+                },
+              ),
+              
               TextButton(
                 onPressed: () {
                   choices[(choices.length + 1).toString()] = TextEditingController();
