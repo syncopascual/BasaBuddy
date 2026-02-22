@@ -342,10 +342,11 @@ class ClassPage extends StatelessWidget {
                             children: snapshot.data!.worstSkills.map((skillMap) {
                               final entry = skillMap.entries.first;
                               return Chip(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                                 label: Text('${entry.key}'),
-                                backgroundColor: entry.key == 'Verbs'
-                                    ? Colors.pink.shade100
-                                    : Colors.green.shade100,
+                                backgroundColor: Colors.pink.shade100
                               );
                             }).toList(),
                           ),
@@ -358,10 +359,11 @@ class ClassPage extends StatelessWidget {
                             children: snapshot.data!.topSkills.map((skillMap) {
                               final entry = skillMap.entries.first;
                               return Chip(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                                 label: Text('${entry.key}'),
-                                backgroundColor: entry.key == 'Verbs'
-                                    ? Colors.pink.shade100
-                                    : Colors.green.shade100,
+                                backgroundColor: Colors.green.shade100,
                               );
                             }).toList(),
                           ),

@@ -159,13 +159,10 @@ class _StoryShellState extends State<StoryShell> {
   }
 
   void wrongAnswer(StoryItem currentItem) {
-    ///check if item index is in list. if it is, remove it
-    for (StoryItem item in firstAttemptObjects) {
-      if (currentItem.eq(item)) {
-        firstAttemptObjects.remove(item);
-        print("First wrong answer!");
-      }
-    }
+    firstAttemptObjects.removeWhere(
+          (item) => currentItem.eq(item),
+    );
+    print("First wrong answer!");
   }
 
   ///Fetch the story's pages and exercises from supabase, and orders them
