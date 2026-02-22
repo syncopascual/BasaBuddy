@@ -515,7 +515,7 @@ class ExerciseInput extends StoryContentItem {
               ),
             ],
             DropdownButtonFormField(
-              initialValue: skill.isEmpty? null : skill,
+              value: skill.isEmpty? null : skill,
               items: skills.map((skill) {
                 return DropdownMenuItem(
                   value: skill,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../models/student.dart';
+import '../../wrappers/StudentData.dart';
 
 Future<ClassData> fetchClassInfo(String classId) async {
   ///Fetch list of students
@@ -37,7 +38,7 @@ Future<ClassData> fetchClassInfo(String classId) async {
   String className = classNameCode[0]["name"];
   String classCode =  classNameCode[0]["class_code"];
 
-  var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(classId);
+  var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(classId, 'class');
 
 
   ClassData classData = ClassData(
@@ -50,16 +51,67 @@ Future<ClassData> fetchClassInfo(String classId) async {
       topSkills,
       worstSkills
   );
-  print("00007");
   return classData;
 }
 
-///returns firstAttemptCorrectRate, averageRetriesRate, storiesRead, top performing skills, and worst performing skills
-Future<(double, double, int, List<Map<String, double>>, List<Map<String, double>>)> calculateSummary(classId) async{
-  ///Get all rows of students of the class joined with all stage_level columns
+Future<StudentData> fetchStudentInfo(String studentId) async {
+
+  ///Fetch student name
   final response = await Supabase.instance.client
-      .from('stage_level')
+      .from('class_students')
       .select('''
+          student_id,
+          profiles:student_id (
+            id,
+            name
+          )
+        ''')
+      .eq('student_id', studentId);
+
+  final studentName = (response as List)
+      .map((e) => Student.fromSupabase(e))
+      .toList()[0].name;
+
+  var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(studentId, 'student');
+
+  StudentData studentData = StudentData(
+      studentName,
+      firstAttemptCorrect,
+      averageRetries,
+      storiesRead,
+      topSkills,
+      worstSkills
+  );
+
+  return studentData;
+}
+
+
+///returns firstAttemptCorrectRate, averageRetriesRate, storiesRead, top performing skills, and worst performing skills
+/// param type is to determine whether the data to be fetched is for the whole class or for a single student
+Future<(double, double, int, List<Map<String, double>>, List<Map<String, double>>)> calculateSummary(givenId, type) async{
+
+  List<Map<String, dynamic>> response = [];
+
+  ///fetch data depending on type
+  if(type == 'student') {
+    ///Get all rows of a student with all stage_level columns
+    response = await Supabase.instance.client
+        .from('stage_level')
+        .select('''
+      *,
+      profiles!inner (
+        *
+      )
+    ''')
+        .eq('profiles.id', givenId);
+  }
+  else ///else if class id is given
+    {
+      ///Get all rows of students of the class joined with all stage_level columns
+      response = await Supabase.instance.client
+          .from('stage_level')
+          .select('''
       *,
       profiles!inner (
         class_students!inner (
@@ -67,7 +119,10 @@ Future<(double, double, int, List<Map<String, double>>, List<Map<String, double>
         )
       )
     ''')
-      .eq('profiles.class_students.class_id', classId);
+          .eq('profiles.class_students.class_id', givenId);
+    }
+
+
   List<Map<String, dynamic>> classPerformance =  (response as List).cast<Map<String, dynamic>>();
 
 
@@ -276,7 +331,19 @@ class ClassPage extends StatelessWidget {
 
 
                           const SizedBox(height: 8),
-                          ///ADD WRAP
+
+                          Wrap(
+                            children: snapshot.data!.worstSkills.map((skillMap) {
+                              final entry = skillMap.entries.first;
+                              return Chip(
+                                label: Text('${entry.key} (${entry.value}%)'),
+                                backgroundColor: entry.key == 'Verbs'
+                                    ? Colors.pink.shade100
+                                    : Colors.green.shade100,
+                              );
+                            }).toList(),
+                          )
+
                         ],
                       ),
                     ),
@@ -316,7 +383,7 @@ class ClassPage extends StatelessWidget {
           );
         } else
         {
-          return CircularProgressIndicator();
+          return const Center(child:CircularProgressIndicator());
         }
       }
     );
