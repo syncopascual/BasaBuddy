@@ -160,13 +160,10 @@ class _StoryShellState extends State<StoryShell> {
   }
 
   void wrongAnswer(StoryItem currentItem) {
-    ///check if item index is in list. if it is, remove it
-    for (StoryItem item in firstAttemptObjects) {
-      if (currentItem.eq(item)) {
-        firstAttemptObjects.remove(item);
-        print("First wrong answer!");
-      }
-    }
+    firstAttemptObjects.removeWhere(
+          (item) => currentItem.eq(item),
+    );
+    print("First wrong answer!");
   }
   Future<bool> fileExists(String url) async {
     try {

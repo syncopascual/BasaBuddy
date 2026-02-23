@@ -2,7 +2,10 @@ import 'package:basabuddy/wrappers/ClassData.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../components/StudentDataDialogBox.dart';
 import '../../models/student.dart';
+import '../../wrappers/StudentData.dart';
 
 Future<ClassData> fetchClassInfo(String classId) async {
   ///Fetch list of students
@@ -37,9 +40,11 @@ Future<ClassData> fetchClassInfo(String classId) async {
   String className = classNameCode[0]["name"];
   String classCode =  classNameCode[0]["class_code"];
 
-  var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(classId);
+  var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(classId, 'class');
 
-
+  print("fetchClassInfo: worst and best skills");
+  print(worstSkills);
+  print(topSkills);
   ClassData classData = ClassData(
       students,
       className,
@@ -50,16 +55,67 @@ Future<ClassData> fetchClassInfo(String classId) async {
       topSkills,
       worstSkills
   );
-  print("00007");
   return classData;
 }
 
-///returns firstAttemptCorrectRate, averageRetriesRate, storiesRead, top performing skills, and worst performing skills
-Future<(double, double, int, List<Map<String, double>>, List<Map<String, double>>)> calculateSummary(classId) async{
-  ///Get all rows of students of the class joined with all stage_level columns
+Future<StudentData> fetchStudentInfo(String studentId) async {
+
+  ///Fetch student name
   final response = await Supabase.instance.client
-      .from('stage_level')
+      .from('class_students')
       .select('''
+          student_id,
+          profiles:student_id (
+            id,
+            name
+          )
+        ''')
+      .eq('student_id', studentId);
+
+  final studentName = (response as List)
+      .map((e) => Student.fromSupabase(e))
+      .toList()[0].name;
+
+  var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(studentId, 'student');
+
+  StudentData studentData = StudentData(
+      studentName,
+      firstAttemptCorrect,
+      averageRetries,
+      storiesRead,
+      topSkills,
+      worstSkills
+  );
+
+  return studentData;
+}
+
+
+///returns firstAttemptCorrectRate, averageRetriesRate, storiesRead, top performing skills, and worst performing skills
+/// param type is to determine whether the data to be fetched is for the whole class or for a single student
+Future<(double, double, int, List<Map<String, double>>, List<Map<String, double>>)> calculateSummary(givenId, type) async{
+
+  List<Map<String, dynamic>> response = [];
+
+  ///fetch data depending on type
+  if(type == 'student') {
+    ///Get all rows of a student with all stage_level columns
+    response = await Supabase.instance.client
+        .from('stage_level')
+        .select('''
+      *,
+      profiles!inner (
+        *
+      )
+    ''')
+        .eq('profiles.id', givenId);
+  }
+  else ///else if class id is given
+    {
+      ///Get all rows of students of the class joined with all stage_level columns
+      response = await Supabase.instance.client
+          .from('stage_level')
+          .select('''
       *,
       profiles!inner (
         class_students!inner (
@@ -67,7 +123,10 @@ Future<(double, double, int, List<Map<String, double>>, List<Map<String, double>
         )
       )
     ''')
-      .eq('profiles.class_students.class_id', classId);
+          .eq('profiles.class_students.class_id', givenId);
+    }
+
+
   List<Map<String, dynamic>> classPerformance =  (response as List).cast<Map<String, dynamic>>();
 
 
@@ -276,16 +335,49 @@ class ClassPage extends StatelessWidget {
 
 
                           const SizedBox(height: 8),
-                          ///ADD WRAP
+                          Text('Needs focus:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              )),
+                          Wrap(
+                            children: snapshot.data!.worstSkills.map((skillMap) {
+                              final entry = skillMap.entries.first;
+                              return Chip(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                label: Text('${entry.key}'),
+                                backgroundColor: Colors.pink.shade100
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 8),
+                          Text('Excelling areas:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              )),
+                          Wrap(
+                            children: snapshot.data!.topSkills.map((skillMap) {
+                              final entry = skillMap.entries.first;
+                              return Chip(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                label: Text('${entry.key}'),
+                                backgroundColor: Colors.green.shade100,
+                              );
+                            }).toList(),
+                          ),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
                             onPressed: (){
                               context.push('/teacher/add_story_page', extra: classId);
                             },
                             child: Text("Add a New Story", style: TextStyle(color: Colors.black))),
-                              ],
-                            ),
-                          ),
+
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   // Student list
@@ -307,6 +399,29 @@ class ClassPage extends StatelessWidget {
                           ),
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           child: ListTile(
+                            onTap: ()async {
+                              ///Fetch student data
+                              StudentData studentData = await fetchStudentInfo(snapshot.data!.students[index].studentId);
+                              ///Display student data
+                              showDialog(
+                                context: context,
+                                builder: (_) => StudentDataDialogBox(
+                                  name: studentData.studentName,
+                                  storiesRead: studentData.storiesRead.toString(),
+                                  accuracyRate: studentData.firstAttemptCorrect.toString(),
+                                  averageRetryRate: studentData.averageRetries.toString(),
+                                  strengths: [
+                                    {'Synonym-antonym': 92},
+                                    {'Ordering events': 88},
+                                    {'Story Elements': 85},
+                                  ],
+                                  needsReview: [
+                                    {'Possessive Pronouns': 60},
+                                    {'Verbs': 55},
+                                  ],
+                                ),
+                              );
+                            },
                             leading: const CircleAvatar(
                               child: Icon(Icons.person),
                             ),
@@ -322,7 +437,7 @@ class ClassPage extends StatelessWidget {
           );
         } else
         {
-          return CircularProgressIndicator();
+          return const Center(child:CircularProgressIndicator());
         }
       }
     );
