@@ -9,6 +9,7 @@ import 'package:basabuddy/components/question_components/OrderingExercise.dart';
 import 'package:basabuddy/models/orderData.dart';
 import 'package:basabuddy/models/stageData.dart';
 import 'package:basabuddy/wrappers/StoryItem.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,7 +49,7 @@ void updateUserLevel(storyId) async {
 
   //query user's current level
   var rawUserLevel =
-      await Supabase.instance.client.from('user_level_info').select();
+  await Supabase.instance.client.from('user_level_info').select();
 
   var userLevel = rawUserLevel[0];
 
@@ -96,7 +97,7 @@ void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalI
   print("addStageData called");
   //get user id from user_level_info table
   var rawUserLevel =
-      await Supabase.instance.client.from('user_level_info').select();
+  await Supabase.instance.client.from('user_level_info').select();
   String userId = rawUserLevel[0]['user_id'];
   String safeDate = DateTime.now().toIsoDate();
 
@@ -143,18 +144,16 @@ class _StoryShellState extends State<StoryShell> {
 
   //todo: fix this, as currentPage accounts for exercises as well. this should be based on pageNum
   //todo: fix possible Invalid argument(s): No host specified in URI file:/// issues
-  void _precacheUpcoming(length) {
-    final nextIndexes = [
-      currentPage + 1,
-      currentPage + 2,
-    ];
 
-    for (final i in nextIndexes) {
-      if (i >= length) continue;
-
-      final url = imageURLs[i];
-      if (url != null && url != "") {
-        precacheImage(NetworkImage(url!), context);
+  void _precacheUpcoming(List<StoryItem> items) {
+    // Precache all remaining page images from currentPage onward
+    for (int i = currentPage; i < items.length && i < currentPage + 5; i++) {
+      final item = items[i];
+      if (item is PageItem) {
+        final url = imageURLs[item.data.pageNum];
+        if (url != null && url.isNotEmpty) {
+          CachedNetworkImageProvider(url).resolve(ImageConfiguration.empty);
+        }
       }
     }
   }
@@ -184,17 +183,17 @@ class _StoryShellState extends State<StoryShell> {
         .select()
         .eq('story_id', widget.storyId);
     final List<Storypage> pages =
-        (rawPages as List).map((json) => Storypage.fromJson(json)).toList();
+    (rawPages as List).map((json) => Storypage.fromJson(json)).toList();
 
     final List<PageItem> wrappedPages =
-        pages.map((page) => PageItem(page)).toList();
+    pages.map((page) => PageItem(page)).toList();
 
     numPages = pages.length;
 
     for (int i = 0; i < pages.length; i++) {
       try {
-        
-        
+
+
         String url = Supabase.instance.client.storage
             .from('story-pages')
             .getPublicUrl('${pages[i].storyId}/${pages[i].pageNum}.png');
@@ -207,7 +206,7 @@ class _StoryShellState extends State<StoryShell> {
         } else {
           imageURLs[pages[i].pageNum] = "";
         }
-        
+
       } catch (e) {
         imageURLs[pages[i].pageNum] = ""; // fallback
       }
@@ -215,8 +214,6 @@ class _StoryShellState extends State<StoryShell> {
 
     //print("imageURLs to precache: $imageURLs");
 
-    ///initial precache
-    _precacheUpcoming(pages.length);
     late List<Mulcho> mulcho;
     late List<StoryItem> wrappedMulcho;
 
@@ -326,7 +323,7 @@ class _StoryShellState extends State<StoryShell> {
         fillBlankData = (rawFillBlankData as List)
             .map((json) => FillBlankData.fromJson(json))
             .toList();
-        
+
         print("procesed: ${fillBlankData}");
         print("converted to object");
       } catch (e) {
@@ -374,6 +371,17 @@ class _StoryShellState extends State<StoryShell> {
       final orderedItems = orderItems(wrappedPages, wrappedExercises);
       allStoryItems = orderedItems;
       print("fetched pages and exercises!");
+
+
+      // Eagerly cache ALL images in background
+      for (final item in orderedItems) {
+        if (item is PageItem) {
+          final url = imageURLs[item.data.pageNum];
+          if (url != null && url.isNotEmpty) {
+            CachedNetworkImageProvider(url).resolve(ImageConfiguration.empty);
+          }
+        }
+      }
       return orderedItems;
     } catch (e) {
       print("ORDERING ERROR $e");
@@ -388,7 +396,7 @@ class _StoryShellState extends State<StoryShell> {
     for (int i = 1; i <= pages.length; i++) {
       ///page 1 to ...
       final page = pages.firstWhere(
-        (m) => m.data.pageNum == i,
+            (m) => m.data.pageNum == i,
       );
 
       ordered.add(page);
@@ -481,7 +489,7 @@ class _StoryShellState extends State<StoryShell> {
     if (pageNum != null) {
       final url = imageURLs[pageNum];
       if (url != null && url.isNotEmpty) {
-        return NetworkImage(url); // will attempt to load
+        return CachedNetworkImageProvider(url); // disk-cached!
       }
     }
 
@@ -530,45 +538,45 @@ class _StoryShellState extends State<StoryShell> {
                 ///Don't display back and next button for question items
                 orderedStoryItems[currentPage].runtimeType == PageItem
                     ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ///BACK button
-                          SizedBox(
-                            height: 30,
-                            child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: selected, // warm yellow
-                                ),
-                                onPressed: () {
-                                  ///if its the first page, dont do anything
-                                  if (currentPage == 0) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    currentPage -= 1;
-                                  });
-                                },
-                                child: Text('Back',
-                                    style: TextStyle(color: textColor))),
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ///BACK button
+                    SizedBox(
+                      height: 30,
+                      child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: selected, // warm yellow
                           ),
+                          onPressed: () {
+                            ///if its the first page, dont do anything
+                            if (currentPage == 0) {
+                              return;
+                            }
+                            setState(() {
+                              currentPage -= 1;
+                            });
+                          },
+                          child: Text('Back',
+                              style: TextStyle(color: textColor))),
+                    ),
 
-                          ///NEXT Button
-                          SizedBox(
-                            height: 30,
-                            child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: selected, // warm yellow
-                                ),
-                                onPressed: () async {
-                                  ///if last page na
-                                  /// increase user level for this module and navigate to home screen
-                                  nextPage(orderedStoryItems);
-                                },
-                                child: Text('Next',
-                                    style: TextStyle(color: textColor))),
-                          )
-                        ],
-                      )
+                    ///NEXT Button
+                    SizedBox(
+                      height: 30,
+                      child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: selected, // warm yellow
+                          ),
+                          onPressed: () async {
+                            ///if last page na
+                            /// increase user level for this module and navigate to home screen
+                            nextPage(orderedStoryItems);
+                          },
+                          child: Text('Next',
+                              style: TextStyle(color: textColor))),
+                    )
+                  ],
+                )
                     : Text(""),
               ]),
             );
@@ -626,7 +634,7 @@ class _StoryShellState extends State<StoryShell> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _precacheUpcoming(numPages);
+      _precacheUpcoming(allStoryItems);
     });
   }
 }
