@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/translation_bloc.dart';
-
+import 'package:basabuddy/components/VoiceService.dart';
 ///UI that displays a story page
 class PageContainer extends StatefulWidget {
 
@@ -24,6 +24,7 @@ class PageContainer extends StatefulWidget {
 }
 
 class _PageContainerState extends State<PageContainer> {
+  final VoiceService _voice = VoiceService();
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -53,14 +54,27 @@ class _PageContainerState extends State<PageContainer> {
             ),
             child: BlocBuilder<TranslationBloc, TranslationState>(
                 builder: (_, state){
-                  if(state.isEnglish){
-                    return Text(widget.storyPage.text);
-                  } else {
-                    return Text(widget.storyPage.tagalogText);
-                  }
+                  final text = state.isEnglish
+                    ? widget.storyPage.text
+                    : widget.storyPage.tagalogText;
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Text(text)
+                        )
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.volume_up),
+                        onPressed: () {
+                          _voice.speak(text, state.isEnglish);
+                        },
+                      ),
+                    ],
+                  );
                 })
-          ),
-            
+          ),  
         ],
       ),
     );

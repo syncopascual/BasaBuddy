@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:basabuddy/components/VoiceService.dart';
 
 enum TileState { normal, selected, correct, wrong, disabled }
 
@@ -26,6 +27,7 @@ class _MatchColumnsState extends State<MatchColumns> {
 
   final Map<String, TileState> tileStates = {};
   final Set<String> matchedWords = {};
+  final VoiceService _voice = VoiceService();
 
   @override
   void initState() {
@@ -42,7 +44,8 @@ class _MatchColumnsState extends State<MatchColumns> {
   void onTileTap(String word, bool isLeft) {
     if (tileStates[word] == TileState.disabled ||
         tileStates[word] == TileState.correct) return;
-
+    _voice.stop();
+    _voice.speak(word, true);
     if (firstSelection == null) {
       setState(() {
         firstSelection = word;
@@ -54,7 +57,7 @@ class _MatchColumnsState extends State<MatchColumns> {
 
     // Prevent selecting two from same column
     if (firstIsLeft == isLeft) return;
-
+    
     final firstWord = firstSelection!;
     final isCorrect = widget.pairs[firstWord] == word ||
         widget.pairs[word] == firstWord;

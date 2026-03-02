@@ -1,21 +1,25 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:basabuddy/components/VoiceService.dart';
 
 import '../../colors.dart';
+
 
 
 class MulchoChoices extends StatefulWidget {
   final ValueNotifier<int?> selectedContainerIndex;
   final List<String> choices;
+  final bool isEnglish;
 
-  MulchoChoices({required this.selectedContainerIndex, required this.choices});
+  MulchoChoices({required this.selectedContainerIndex, required this.choices, required this.isEnglish});
 
   @override
   _MulchoChoicesState createState() => _MulchoChoicesState();
 }
 
 class _MulchoChoicesState extends State<MulchoChoices> {
+  final VoiceService _voice = VoiceService();
   @override
   Widget build(BuildContext context) {
 
@@ -26,6 +30,7 @@ class _MulchoChoicesState extends State<MulchoChoices> {
           onTap: () {
             widget.selectedContainerIndex.value = index;
             setState(() {}); // Redraw the UI
+            _voice.speak(widget.choices[index], widget.isEnglish);
           },
           child: ValueListenableBuilder<int?>(
             valueListenable: widget.selectedContainerIndex,

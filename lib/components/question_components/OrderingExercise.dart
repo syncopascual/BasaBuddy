@@ -90,7 +90,6 @@ class _OrderingExerciseState extends State<OrderingExercise> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(45),
               ),
-              height: 420,
               child: Column(
                 children: [
                   const Text(

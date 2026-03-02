@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:basabuddy/components/VoiceService.dart';
 
 class OrderColumn extends StatelessWidget {
   final ValueNotifier<List<String>> orderKeysNotifier;
@@ -42,6 +43,7 @@ class OrderColumn extends StatelessWidget {
               _OrderTile(
                 key: ValueKey(key),
                 text: _getText(key),
+                isEnglish: isEnglish,
               ),
           ],
         );
@@ -52,10 +54,13 @@ class OrderColumn extends StatelessWidget {
 
 class _OrderTile extends StatelessWidget {
   final String text;
+  final VoiceService _voice = VoiceService();
+  final bool isEnglish;
 
-  const _OrderTile({
+   _OrderTile({
     super.key,
     required this.text,
+    required this.isEnglish,
   });
 
   @override
@@ -78,6 +83,12 @@ class _OrderTile extends StatelessWidget {
               text,
               style: const TextStyle(fontSize: 16),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.volume_up),
+            onPressed: () {
+              _voice.speak(text, isEnglish);
+            },
           ),
         ],
       ),

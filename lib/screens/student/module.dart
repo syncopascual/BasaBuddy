@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../models/story.dart';
 
 class Module extends StatefulWidget {
@@ -137,47 +136,67 @@ class _ModuleState extends State<Module> {
 
   }
 
-  @override
-  Widget build(BuildContext context) {
+@override
+Widget build(BuildContext context) {
+  final screenWidth = MediaQuery.of(context).size.width;
 
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage("assets/bg_images/${determineBackground(widget.moduleType)}.png"),
-          fit: BoxFit.cover,
+  return Container(
+    decoration: BoxDecoration(
+      image: DecorationImage(
+        image: AssetImage(
+          "assets/bg_images/${determineBackground(widget.moduleType)}.png",
         ),
+        fit: BoxFit.cover,
       ),
-      child: Container(
-        height: 600,
-        child: FutureBuilder(
-            future: storiesAndLevel,
-            builder: (context, snapshot){
-              if(snapshot.hasData){
-                return ListView.builder(
-                    itemCount: snapshot.data?[0].length,
-                    itemBuilder: (_, i){
-                      return Container(
-                        height: 150,
-                        child: Column(
-                          children: [
-                            StoryButton(
-                                userLevel: snapshot.data?[1],
-                                storyLevel: snapshot.data?[0][i].level,
-                                imageAsset: storyThumbnails[snapshot.data?[0][i].storyId]!,
-                                onPressed: () {
-                                  context.go('/story/${snapshot.data?[0][i].storyId}');
-                                }),
+    ),
+    child: FutureBuilder(
+      future: storiesAndLevel,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-                          ],
-                        ),
-                      );
-                    });
-              } else {
-                return const Center(child: CircularProgressIndicator());
+        final stories = snapshot.data?[0];
+        final userLevel = snapshot.data?[1];
 
-              }
-            }),
-      ),
-    );
-  }
+        // S curve horizontal swing
+        final minSpacing = 150.0;  // minimum vertical distance between stories
+        final topPadding = 50.0;
+        final bottomPadding = 50.0;
+
+        // calculate vertical spacing dynamically
+        final verticalSpacing = stories.length > 1
+            ? minSpacing
+            : 0.0;
+
+        final totalHeight = topPadding + bottomPadding +
+            (stories.length - 1) * verticalSpacing + 150; // extra buffer for last button
+        final offsets = [0, 50, 100, 50, 0, -50, -100, -50];
+
+        return SingleChildScrollView(
+          child: SizedBox(
+            height: totalHeight,
+            width: screenWidth,
+            child: Stack(
+              children: [
+                for (int i = 0; i < stories.length; i++)
+                  Positioned(
+                    top: topPadding + i * verticalSpacing,
+                    left: screenWidth/2 - 32 + offsets[i % offsets.length],
+                    child: StoryButton(
+                      userLevel: userLevel,
+                      storyLevel: stories[i].level,
+                      imageAsset: storyThumbnails[stories[i].storyId]!,
+                      onPressed: () =>
+                          context.go('/story/${stories[i].storyId}'),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
 }
