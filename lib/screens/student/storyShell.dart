@@ -15,6 +15,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:basabuddy/components/StreakServices.dart';
+import 'package:basabuddy/components/StreakNotifier.dart';
 
 import '../../colors.dart';
 import '../../components/question_components/FillBlankExercise.dart';
@@ -36,7 +38,7 @@ class StoryShell extends StatefulWidget {
   State<StoryShell> createState() => _StoryShellState();
 }
 
-void updateUserLevel(storyId) async {
+Future<void> updateUserLevel(storyId) async {
   print("updateUserLevel called");
   //not the best way to do it lol
 
@@ -91,7 +93,7 @@ void updateUserLevel(storyId) async {
   }
 }
 
-void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalItems, Map<String, int> totalAttempts,
+Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalItems, Map<String, int> totalAttempts,
     Map<String, int> firstAttemptCorrect) async {
   print("addStageData called");
   //get user id from user_level_info table
@@ -154,6 +156,7 @@ class _StoryShellState extends State<StoryShell> {
 
       final url = imageURLs[i];
       if (url != null && url != "") {
+        if (!mounted) return;
         precacheImage(NetworkImage(url!), context);
       }
     }
@@ -562,7 +565,7 @@ class _StoryShellState extends State<StoryShell> {
                                 onPressed: () async {
                                   ///if last page na
                                   /// increase user level for this module and navigate to home screen
-                                  nextPage(orderedStoryItems);
+                                  await nextPage(orderedStoryItems);
                                 },
                                 child: Text('Next',
                                     style: TextStyle(color: textColor))),
@@ -587,8 +590,8 @@ class _StoryShellState extends State<StoryShell> {
           }
         });
   }
-
-  void nextPage(orderedStoryItems) {
+  
+  Future<void> nextPage(orderedStoryItems) async {
     ///if its the last page
     if (currentPage == orderedStoryItems.length - 1) {
       ///get stage_data
@@ -598,11 +601,17 @@ class _StoryShellState extends State<StoryShell> {
         firstAttemptCorrect[storyItem.data.skill] = (firstAttemptCorrect[storyItem.data.skill] ?? 0) + 1;
       }
 
-
+      final user = Supabase.instance.client.auth.currentUser;
+      final streakService = StreakService();
+      if (user != null) {
+        await streakService.updateStreak(user.id);
+        if (!mounted) return;
+        streakNotifier.refresh(user.id);
+      }
       print("firstAttemptCorrect, totalItems, totalAttempts");
       print("$firstAttemptCorrect, $totalItems, $totalAttempts");
-      updateUserLevel(widget.storyId);
-      addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
+      await updateUserLevel(widget.storyId);
+      await addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
 
       BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
 
