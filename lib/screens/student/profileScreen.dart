@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
-class ProfileScreen  extends StatefulWidget {
+class ProfileScreen extends StatefulWidget {
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -11,13 +12,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? profileData;
   bool loading = true;
   String? error;
+  bool hasInternet = true;
 
   @override
   void initState() {
     super.initState();
-    loadData();
+    _checkAndLoad();
   }
-  void loadData() async {
+
+  Future<bool> _checkInternet() async {
+    final result = await Connectivity().checkConnectivity();
+    return result != ConnectivityResult.none;
+  }
+
+  Future<void> _checkAndLoad() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+
+    final connected = await _checkInternet();
+    if (!connected) {
+      setState(() {
+        hasInternet = false;
+        loading = false;
+      });
+      return;
+    }
+
+    setState(() => hasInternet = true);
+    await loadData();
+  }
+
+  Future<void> loadData() async {
     try {
       final data = await getProfileData();
       setState(() {
@@ -27,17 +54,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       setState(() {
         error = e.toString();
-        loading=false;
+        loading = false;
       });
     }
-    
   }
 
   void _showJoinClassSheet(BuildContext context) {
     final codeController = TextEditingController();
 
     showModalBottomSheet(
-      context: context, 
+      context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -82,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color (0xFF4CAF50),
+                  backgroundColor: const Color(0xFF4CAF50),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: const Text("Join Class"),
@@ -94,6 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
   }
+
   final supabase = Supabase.instance.client;
 
   Future<void> _joinClass(String code) async {
@@ -102,10 +129,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final userId = supabase.auth.currentUser!.id;
     try {
       final classRes = await supabase
-        .from('classes')
-        .select('id')
-        .eq('class_code', code)
-        .maybeSingle();
+          .from('classes')
+          .select('id')
+          .eq('class_code', code)
+          .maybeSingle();
       if (classRes == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Class code not found')),
@@ -134,54 +161,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Something went wrong. Please try again.')),
+        const SnackBar(content: Text('Something went wrong. Please try again.')),
       );
     }
-    
   }
+
   Future<Map<String, dynamic>> getProfileData() async {
     final user = supabase.auth.currentUser;
     final email = user?.email;
     final userId = user?.id;
-    if(userId == null) {
+    if (userId == null) {
       throw Exception("No user logged in");
     }
 
     final profileRes = await supabase
-      .from('profiles')
-      .select('id, name, role')
-      .eq('id', userId)
-      .single();
-
+        .from('profiles')
+        .select('id, name, role')
+        .eq('id', userId)
+        .single();
 
     final classesRes = await supabase
-      .from('class_students')
-      .select('classes(class_code,year,name,teacher_id, teacher:profiles(name))')
-      .eq('student_id', userId);
-    
+        .from('class_students')
+        .select('classes(class_code,year,name,teacher_id, teacher:profiles(name))')
+        .eq('student_id', userId);
+
     return {
       'profile': profileRes,
       'classes': classesRes,
       'email': email,
     };
   }
+
   Future<void> _logout(BuildContext context) async {
     await Supabase.instance.client.auth.signOut();
     context.go('/login');
   }
 
+  // --- No Internet Screen ---
+  Widget _buildNoInternetScreen() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF66E1DD),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.wifi_off_rounded,
+                size: 80,
+                color: Colors.white70,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                "No Internet Connection",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Please check your connection and try again.",
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.white70,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: _checkAndLoad,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text("Try Again"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF35ADD3),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Scaffold(
+        backgroundColor: Color(0xFF66E1DD),
+        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+      );
     }
-    if (error != null){
+
+    if (!hasInternet) {
+      return _buildNoInternetScreen();
+    }
+
+    if (error != null) {
       return Center(child: Text('Error: $error'));
     }
 
     final profile = profileData!['profile'];
     final classes = profileData!['classes'] as List;
     final email = profileData!['email'] as String;
+
     return Scaffold(
       backgroundColor: const Color(0xFF66E1DD),
       body: SingleChildScrollView(
@@ -189,110 +284,115 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              CircleAvatar(
-                radius: 36,
-                backgroundColor: const Color(0xFF3FC3D4),
-                child: const Icon(Icons.person, size:40, color: Colors.white),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    profile['name'],
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFD8F7F3),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            Row(
               children: [
-                const Text(
-                  "My Classes",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                CircleAvatar(
+                  radius: 36,
+                  backgroundColor: const Color(0xFF3FC3D4),
+                  child: const Icon(Icons.person, size: 40, color: Colors.white),
                 ),
-                const SizedBox(height: 12),
-                ...classes.map((c) {
-                  final classData = c['classes'];
-                  return Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ListTile(
-                    leading: const Icon(Icons.class_),
-                    title: Text(classData['name']),
-                    subtitle: Text(classData['year']),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {},
-                  ),
-                );
-                }),
-                const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: () => _showJoinClassSheet(context), 
-                  icon: const Icon(Icons.add),
-                  label: const Text("Join a New Class", style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF35ADD3),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFD8F7F3),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Account Info",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Email"),
-                    Text(email),
+                    Text(
+                      profile['name'],
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-                  onPressed: () {
-                    _logout(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    iconColor: Color(0xFFF28B82), // soft red
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    minimumSize: Size(double.infinity, 48), // full width like "Join a New Class"
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD8F7F3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    "My Classes",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  child: const Text("Logout"),
-          ),
-        ],
-      ),
+                  const SizedBox(height: 12),
+                  ...classes.map((c) {
+                    final classData = c['classes'];
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(Icons.class_),
+                        title: Text(classData['name']),
+                        subtitle: Text(classData['year']),
+                        trailing:
+                        const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () {},
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: () => _showJoinClassSheet(context),
+                    icon: const Icon(Icons.add),
+                    label: const Text("Join a New Class",
+                        style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF35ADD3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD8F7F3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Account Info",
+                    style:
+                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Email"),
+                      Text(email),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                _logout(context);
+              },
+              style: ElevatedButton.styleFrom(
+                iconColor: const Color(0xFFF28B82),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                minimumSize: const Size(double.infinity, 48),
+              ),
+              child: const Text("Logout"),
+            ),
+          ],
+        ),
       ),
     );
   }

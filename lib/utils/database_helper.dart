@@ -5,7 +5,6 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._instance();
   static Database? _database;
 
-  static const String _tableName = 'gfg_users';
 
   DatabaseHelper._instance();
 
@@ -27,6 +26,8 @@ class DatabaseHelper {
         user_id TEXT,
         money INTEGER
       )
+      
+      
       
     ''');
   }
@@ -57,6 +58,21 @@ class DatabaseHelper {
       ) async {
     final Database database = await db;
     await database.insert(table, toJson());
+  }
+
+  Future<List<T>> queryWhere<T>(
+      String table,
+      T Function(Map<String, dynamic>) fromJson,
+      String where,
+      List<dynamic> whereArgs,
+      ) async {
+    final Database database = await db;
+    final result = await database.query(
+      table,
+      where: where,
+      whereArgs: whereArgs,
+    );
+    return result.map((row) => fromJson(row)).toList();
   }
 
 // Update first matching row

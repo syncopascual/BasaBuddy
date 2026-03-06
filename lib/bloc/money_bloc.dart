@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/userMoney.dart';
 import '../utils/database_helper.dart';
@@ -44,14 +43,7 @@ class MoneyBloc extends Bloc<MoneyEvent, MoneyState> {
 
     });
     on<SyncMoney>((event, emit) async {
-      print('SYNCMONEY EVENT CALLED');
-      final moneyJson = await Supabase.instance.client
-          .from('user_money')
-          .select();
-
-      final money = moneyJson[0]["money"];
-
-      emit(MoneyState(money));
+      print('SYNCMONEY EVENT CALLED - deprecated');
     });
   }
 }

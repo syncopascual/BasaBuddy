@@ -9,7 +9,6 @@ import 'package:basabuddy/components/question_components/OrderingExercise.dart';
 import 'package:basabuddy/models/orderData.dart';
 import 'package:basabuddy/models/stageData.dart';
 import 'package:basabuddy/wrappers/StoryItem.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +23,9 @@ import '../../components/ProgressBar.dart';
 import '../../models/fillBlankData.dart';
 import '../../models/matchingData.dart';
 import '../../models/mulcho.dart';
+import '../../models/story.dart';
 import '../../models/storyPage.dart';
+import '../../utils/database_helper.dart';
 
 ///This class fetches the story, its pages and exercises, from supabase
 /// Then orders them, displays them, and keeps track of the current page
@@ -37,87 +38,38 @@ class StoryShell extends StatefulWidget {
   State<StoryShell> createState() => _StoryShellState();
 }
 
-void updateUserLevel(storyId) async {
-  print("updateUserLevel called");
-  //not the best way to do it lol
-
-  //query story list to see which module this story's a part of
-  var storyInfo = await Supabase.instance.client
-      .from('list_stories')
-      .select()
-      .eq('story_id', storyId);
-
-  //query user's current level
-  var rawUserLevel =
-  await Supabase.instance.client.from('user_level_info').select();
-
-  var userLevel = rawUserLevel[0];
-
-  //check if the user has already answered the story(ie user level > story level). if yes, pass
-  //if not, update user level
-  //update user level based on what module the story is part of
-  String moduleType = storyInfo[0]["module"];
-  switch (moduleType) {
-    case 'vocab':
-      if (userLevel['vocab_lvl'] <= storyInfo[0]["level"]) {
-        userLevel['vocab_lvl'] += 1;
-        print("level increased");
-      }
-
-    case 'information':
-      if (userLevel['information_lvl'] <= storyInfo[0]["level"]) {
-        userLevel['information_lvl'] += 1;
-
-        print("level increased");
-      }
-
-    case 'narrative':
-      if (userLevel['narrative_lvl'] <= storyInfo[0]["level"]) {
-        userLevel['narrative_lvl'] += 1;
-        print("level increased");
-      }
-    default:
-  }
-
-  try {
-    //send update to supabase.
-    //RLS makes sure that only the user's row(that corresponds to their user_id) is updated
-    await Supabase.instance.client
-        .from('user_level_info')
-        .update(userLevel)
-        .eq('id', userLevel['id']);
-    print("done updating user level!");
-  } catch (e) {
-    print("error updating: $e");
-  }
-}
-
 void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalItems, Map<String, int> totalAttempts,
-    Map<String, int> firstAttemptCorrect) async {
-  print("addStageData called");
-  //get user id from user_level_info table
-  var rawUserLevel =
-  await Supabase.instance.client.from('user_level_info').select();
-  String userId = rawUserLevel[0]['user_id'];
-  String safeDate = DateTime.now().toIsoDate();
+    Map<String, int> firstAttemptCorrect) async
+{
+  try{
+    print("addStageData called");
+    //get user id from user_level_info table
+    var rawUserLevel =
+    await Supabase.instance.client.from('user_level_info').select();
+    String userId = rawUserLevel[0]['user_id'];
+    String safeDate = DateTime.now().toIsoDate();
 
-  skillScores.forEach((key, value) async {
-    if(totalItems.containsKey(key) && totalAttempts.containsKey(key) && firstAttemptCorrect.containsKey(key)){
-      //for each skill, add a row to stage_data
-      await Supabase.instance.client
-          .from('stage_level')
-          .insert(StageData(
-          storyId: storyId,
-          userId: userId,
-          totalItems: totalItems[key]!,
-          totalAttempts: totalAttempts[key]!,
-          firstAttemptCorrect: firstAttemptCorrect[key]!,
-          date: safeDate,
-          skill: key)
-          .toJson());
-    }
+    skillScores.forEach((key, value) async {
+      if(totalItems.containsKey(key) && totalAttempts.containsKey(key) && firstAttemptCorrect.containsKey(key)){
+        //for each skill, add a row to stage_data
+        await Supabase.instance.client
+            .from('stage_level')
+            .insert(StageData(
+            storyId: storyId,
+            userId: userId,
+            totalItems: totalItems[key]!,
+            totalAttempts: totalAttempts[key]!,
+            firstAttemptCorrect: firstAttemptCorrect[key]!,
+            date: safeDate,
+            skill: key)
+            .toJson());
+      }
 
-  });
+    });
+  } catch(e) {
+    print("error uploading data");
+  }
+
 }
 
 class _StoryShellState extends State<StoryShell> {
@@ -145,18 +97,7 @@ class _StoryShellState extends State<StoryShell> {
   //todo: fix this, as currentPage accounts for exercises as well. this should be based on pageNum
   //todo: fix possible Invalid argument(s): No host specified in URI file:/// issues
 
-  void _precacheUpcoming(List<StoryItem> items) {
-    // Precache all remaining page images from currentPage onward
-    for (int i = currentPage; i < items.length && i < currentPage + 5; i++) {
-      final item = items[i];
-      if (item is PageItem) {
-        final url = imageURLs[item.data.pageNum];
-        if (url != null && url.isNotEmpty) {
-          CachedNetworkImageProvider(url).resolve(ImageConfiguration.empty);
-        }
-      }
-    }
-  }
+
 
   void wrongAnswer(StoryItem currentItem) {
     firstAttemptObjects.removeWhere(
@@ -164,26 +105,15 @@ class _StoryShellState extends State<StoryShell> {
     );
     print("First wrong answer!");
   }
-  Future<bool> fileExists(String url) async {
-    try {
-      final response = await http.head(Uri.parse(url));
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
+
   ///Fetch the story's pages and exercises from supabase, and orders them
   Future<List<StoryItem>> _fetchPagesNexercises() async {
     print(
         "STORYSHELL.dart: _fetchPagesNexercises() called, storyId: ${widget.storyId}");
 
     /// Fetch the story's pages
-    final rawPages = await Supabase.instance.client
-        .from('story_page')
-        .select()
-        .eq('story_id', widget.storyId);
-    final List<Storypage> pages =
-    (rawPages as List).map((json) => Storypage.fromJson(json)).toList();
+    List<Storypage> pages = await DatabaseHelper.instance.queryWhere('story_page', Storypage.fromJson, 'story_id = ?', [widget.storyId]);
+
 
     final List<PageItem> wrappedPages =
     pages.map((page) => PageItem(page)).toList();
@@ -192,14 +122,9 @@ class _StoryShellState extends State<StoryShell> {
 
     for (int i = 0; i < pages.length; i++) {
       try {
-
-
-        String url = Supabase.instance.client.storage
-            .from('story-pages')
-            .getPublicUrl('${pages[i].storyId}/${pages[i].pageNum}.png');
-        bool exists = await fileExists(url);
-        print("DO I EXIST? ${exists}");
-
+        String url = 'assets/${pages[i].storyId}/${pages[i].pageNum}.png';
+        bool exists = true; //TODO: function that verifies that file exists
+        print("image path $url");
 
         if (exists){
           imageURLs[pages[i].pageNum] = url;
@@ -219,14 +144,9 @@ class _StoryShellState extends State<StoryShell> {
 
     ///FETCH MULTIPLE CHOICE EXERCISES
     try {
-      final rawMulcho = await Supabase.instance.client
-          .from('mulcho_exercise')
-          .select()
-          .eq('story_id', widget.storyId);
-      print("STORYSHELL.dart: mulcho fetched");
 
-      mulcho =
-          (rawMulcho as List).map((json) => Mulcho.fromJson(json)).toList();
+      mulcho = await DatabaseHelper.instance.queryWhere('mulcho_exercise', Mulcho.fromJson, 'story_id = ?', [widget.storyId]);
+      print("STORYSHELL.dart: mulcho fetched");
 
       ///for type safety
       wrappedMulcho = mulcho.map<StoryItem>((mul) => MulchoItem(mul)).toList();
@@ -251,15 +171,13 @@ class _StoryShellState extends State<StoryShell> {
     late List<OrderData> orderData;
     late List<StoryItem> wrappedOrderData;
     try {
-      final rawOrderingData = await Supabase.instance.client
-          .from('ordering_exercise')
-          .select()
-          .eq('story_id', widget.storyId);
+
+
+
+
+      orderData = await DatabaseHelper.instance.queryWhere('ordering_exercise', OrderData.fromJson, 'story_id = ?', [widget.storyId]);
       print("STORYSHELL.dart: ordering exercise fetched");
 
-      orderData = (rawOrderingData as List)
-          .map((json) => OrderData.fromJson(json))
-          .toList();
 
       ///for type safety
       wrappedOrderData =
@@ -282,15 +200,10 @@ class _StoryShellState extends State<StoryShell> {
     late List<MatchingData> matchData;
     late List<StoryItem> wrappedMatchData;
     try {
-      final rawMatchData = await Supabase.instance.client
-          .from('matching_exercise')
-          .select()
-          .eq('story_id', widget.storyId);
+
+      matchData = await DatabaseHelper.instance.queryWhere('matching_exercise', MatchingData.fromJson, 'story_id = ?', [widget.storyId]);
       print("STORYSHELL.dart: matching exercise fetched");
 
-      matchData = (rawMatchData as List)
-          .map((json) => MatchingData.fromJson(json))
-          .toList();
 
       ///for type safety
       wrappedMatchData =
@@ -313,22 +226,11 @@ class _StoryShellState extends State<StoryShell> {
     late List<FillBlankData> fillBlankData;
     late List<StoryItem> wrappedFillBlankData;
     try {
-      final rawFillBlankData = await Supabase.instance.client
-          .from('fill_in_blank')
-          .select()
-          .eq('story_id', widget.storyId);
-      print("STORYSHELL.dart: fill in blank exercise fetched");
-      print("RAW FILL BLANKS: ${rawFillBlankData}");
-      try {
-        fillBlankData = (rawFillBlankData as List)
-            .map((json) => FillBlankData.fromJson(json))
-            .toList();
 
-        print("procesed: ${fillBlankData}");
-        print("converted to object");
-      } catch (e) {
-        print("ERROR $e");
-      }
+      fillBlankData = await DatabaseHelper.instance.queryWhere('fill_in_blank', FillBlankData.fromJson, 'story_id = ?', [widget.storyId]);
+
+      print("STORYSHELL.dart: fill in blank exercise fetched");
+
 
       ///for type safety
       wrappedFillBlankData =
@@ -372,16 +274,6 @@ class _StoryShellState extends State<StoryShell> {
       allStoryItems = orderedItems;
       print("fetched pages and exercises!");
 
-
-      // Eagerly cache ALL images in background
-      for (final item in orderedItems) {
-        if (item is PageItem) {
-          final url = imageURLs[item.data.pageNum];
-          if (url != null && url.isNotEmpty) {
-            CachedNetworkImageProvider(url).resolve(ImageConfiguration.empty);
-          }
-        }
-      }
       return orderedItems;
     } catch (e) {
       print("ORDERING ERROR $e");
@@ -483,13 +375,14 @@ class _StoryShellState extends State<StoryShell> {
 
   ImageProvider<Object> determineBg(currentComponent) {
     int? pageNum;
-    if (currentComponent is PageItem) pageNum = currentComponent.data.pageNum;
-    else if (currentComponent is Storypage) pageNum = currentComponent.pageNum;
+    if (currentComponent is PageItem) {
+      pageNum = currentComponent.data.pageNum;
+    } else if (currentComponent is Storypage) {pageNum = currentComponent.pageNum;}
 
     if (pageNum != null) {
       final url = imageURLs[pageNum];
       if (url != null && url.isNotEmpty) {
-        return CachedNetworkImageProvider(url); // disk-cached!
+        return AssetImage(url);
       }
     }
 
@@ -609,7 +502,6 @@ class _StoryShellState extends State<StoryShell> {
 
       print("firstAttemptCorrect, totalItems, totalAttempts");
       print("$firstAttemptCorrect, $totalItems, $totalAttempts");
-      updateUserLevel(widget.storyId);
       addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
 
       BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
@@ -632,9 +524,6 @@ class _StoryShellState extends State<StoryShell> {
       currentPage += 1;
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _precacheUpcoming(allStoryItems);
-    });
+
   }
 }
