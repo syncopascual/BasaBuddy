@@ -70,8 +70,14 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/bg_images/
+    - assets/fonts/
     - assets/icons/
-    - assets/story/
+    - assets/story_pages/10efe7f8-1a53-4717-9d8b-cdd50d736fbd/
+    - assets/story_thumbnails/default/
+    - assets/story_thumbnails/information/
+    - assets/story_thumbnails/narrative/
+    - assets/story_thumbnails/vocab/
+    - csv_data/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:csv/csv.dart';
+import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 
 Future<void> createTableFromCsv({
@@ -19,9 +20,9 @@ Future<void> createTableFromCsv({
     return;
   }
 
+
   // Read and parse CSV
-  final file = File(csvPath);
-  final csvString = await file.readAsString();
+  final csvString = await rootBundle.loadString(csvPath);
   final List<List<dynamic>> csvTable = const CsvToListConverter().convert(csvString);
 
   if (csvTable.isEmpty) throw Exception("CSV file is empty: $csvPath");

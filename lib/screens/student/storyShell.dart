@@ -27,7 +27,7 @@ import '../../models/story.dart';
 import '../../models/storyPage.dart';
 import '../../utils/database_helper.dart';
 
-///This class fetches the story, its pages and exercises, from supabase
+///This class fetches the story, its pages and exercises, from the database
 /// Then orders them, displays them, and keeps track of the current page
 
 class StoryShell extends StatefulWidget {
@@ -122,7 +122,7 @@ class _StoryShellState extends State<StoryShell> {
 
     for (int i = 0; i < pages.length; i++) {
       try {
-        String url = 'assets/${pages[i].storyId}/${pages[i].pageNum}.png';
+        String url = 'assets/story_pages/${pages[i].storyId}/${pages[i].pageNum}.png';
         bool exists = true; //TODO: function that verifies that file exists
         print("image path $url");
 
@@ -150,6 +150,7 @@ class _StoryShellState extends State<StoryShell> {
 
       ///for type safety
       wrappedMulcho = mulcho.map<StoryItem>((mul) => MulchoItem(mul)).toList();
+      print("wrapped mulcho $wrappedMulcho");
 
       ///create a map that has all the skills of the story
       for (int i = 0; i < mulcho.length; i++) {
@@ -164,6 +165,7 @@ class _StoryShellState extends State<StoryShell> {
       }
       print("skillScores: $skillScores");
     } catch (e) {
+      print("mulcho error");
       print(e);
     }
 
@@ -193,6 +195,7 @@ class _StoryShellState extends State<StoryShell> {
         totalItems[orderData[i].skill] = (totalItems[orderData[i].skill] ?? 0) + 1;
       }
     } catch (e) {
+      print("order error");
       print(e);
     }
 
@@ -219,6 +222,7 @@ class _StoryShellState extends State<StoryShell> {
         totalItems[matchData[i].skill] = (totalItems[matchData[i].skill] ?? 0) + 1;
       }
     } catch (e) {
+      print("match error");
       print(e);
     }
 
@@ -250,6 +254,7 @@ class _StoryShellState extends State<StoryShell> {
 
       print("skillScores: $skillScores");
     } catch (e) {
+      print("fillblank error");
       print(e);
     }
 

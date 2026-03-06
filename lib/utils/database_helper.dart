@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -26,10 +28,12 @@ class DatabaseHelper {
         user_id TEXT,
         money INTEGER
       )
-      
-      
-      
     ''');
+
+    await db.insert('user_money', {
+      'user_id': 'your_user_id',//TODO:: add actual user id from supabase?
+      'money': 0,
+    });
   }
   Future<T?> queryFirst<T>(
       String table,
@@ -72,7 +76,27 @@ class DatabaseHelper {
       where: where,
       whereArgs: whereArgs,
     );
-    return result.map((row) => fromJson(row)).toList();
+    print("query where");
+    return result.map((row) {
+      final decoded = Map<String, dynamic>.from(row);
+      // Decode any JSON string fields back into Maps
+      for (final key in decoded.keys.toList()) {
+        final value = decoded[key];
+        if (value is String) {
+          try {
+            final parsed = jsonDecode(value);
+            if (parsed is Map) {
+              decoded[key] = Map<String, dynamic>.from(parsed);
+            } else if (parsed is List) {          // ← add this
+              decoded[key] = List<dynamic>.from(parsed);
+            }
+          } catch (_) {
+            // Not a JSON string, leave as-is
+          }
+        }
+      }
+      return fromJson(decoded);
+    }).toList();
   }
 
 // Update first matching row

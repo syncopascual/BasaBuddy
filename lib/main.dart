@@ -25,9 +25,7 @@ Future<void> main() async {
     "matching_exercise",
     "mulcho_exercise",
     "ordering_exercise",
-    "story_page",
-    "user_level_info",
-    "user_money"
+    "story_page"
   ];
   List<String> missingTables = await getMissingTables(db, dataTableNames);
 
