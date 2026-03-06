@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:basabuddy/components/StreakServices.dart';
 
 class ProfileScreen  extends StatefulWidget {
   @override
@@ -272,6 +273,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     const Text("Email"),
                     Text(email),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD8F7F3),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Shop",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(children: [
+                      ImageIcon(
+                        const AssetImage("assets/icons/fire.png"),
+                        color: Color(0xFF7FDBFF),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text("Buy a Streak Freeze"),
+                    ],),
+                    
+                    ElevatedButton(
+                      onPressed: () async {
+                        final userId = supabase.auth.currentUser?.id;
+                        if (userId == null) return;
+
+                        try {
+                          // Freeze streak until end of next day
+                          await StreakService().freezeStreak(userId);
+
+                          // Optional: show confirmation
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Streak frozen until tomorrow! ❄️')),
+                          );
+
+                          // Refresh profile data in case you want to show frozen streak in UI
+                          loadData();
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to freeze streak: $e')),
+                          );
+                        }
+                      },
+                      child: Row(children: [
+                        const SizedBox(width: 36),
+                        const Text("Buy"),
+                        const SizedBox(width: 36),
+                      ],),
+            
+                    )
                   ],
                 ),
               ],

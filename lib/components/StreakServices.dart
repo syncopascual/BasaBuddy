@@ -13,6 +13,18 @@ class StreakService {
     return response['currentStreak'] ?? 0;
   }
 
+  Future<void> freezeStreak(String userId) async {
+  final now = DateTime.now();
+
+  // Calculate the end of the next day (local time)
+  final nextDayEnd = DateTime(now.year, now.month, now.day + 1, 23, 59, 59);
+  final nextDayEndUtc = nextDayEnd.toUtc();
+
+  await supabase.from('profiles').update({
+    'streakFrozenUntil': nextDayEndUtc.toIso8601String(),
+  }).eq('id', userId);
+}
+
   // Update streak after completing a story
   Future<void> updateStreak(String userId) async {
     final today = DateTime.now();
@@ -27,7 +39,19 @@ class StreakService {
     final currentStreak = response['currentStreak'] ?? 0;
     final longestStreak = response['longestStreak'] ?? 0;
     final lastActiveDate = response['lastActiveDate'];
-
+    final streakFrozenUntilStr = response['streakFrozenUntil'];
+    
+    // Check if freeze is active
+    if (streakFrozenUntilStr != null) {
+      final frozenUntil = DateTime.parse(streakFrozenUntilStr).toUtc();
+      if (todayUtc.isBefore(frozenUntil)) {
+        // Freeze active, just update lastActiveDate to today
+        await supabase.from('profiles').update({
+          'lastActiveDate': todayUtc.toIso8601String(),
+        }).eq('id', userId);
+        return;
+      }
+    }
     int newStreak;
     int newLongest = longestStreak;
 
