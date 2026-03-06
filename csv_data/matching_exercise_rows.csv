@@ -1,0 +1,8 @@
+id,story_id,pairs,after_page,skill
+1,10efe7f8-1a53-4717-9d8b-cdd50d736fbd,"{""object"":""thing"",""chair"":""seat"",""forest"":""jungle""}",3,synonyms and antonyms
+4,a351097b-2e32-4d98-9d33-5c8f7fe824ab,"{""Crying"":""Studying"",""Happy"":""Eating"",""Angry"":""Inconveniences""}",2,story details
+5,828e7a23-82e5-45d3-9466-e9daf113973b,"{""Eat"":""Devour"",""Sleep"":""Rest"",""Study"":""Learn""}",2,synonyms and antonyms
+6,885c73c2-2312-4ca2-9955-c74877da9a43,"{""Sleep"":""Nap"",""Eat"":""Devour"",""Study"":""Learn""}",2,synonyms and antonyms
+7,c1526a26-08a9-4532-b5c6-da6b1a17ed49,{},1,story details
+8,1515efab-afcb-4779-bb32-08774075b40c,"{""sdfasdf"":""asdf"",""asdf"":""sdf""}",1,story details
+9,e2f8826e-99e2-4fe2-802b-9c22196e8b3c,"{""1"":""one"",""2"":""two"",""3"":""three""}",1,synonyms and antonyms

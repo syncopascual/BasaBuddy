@@ -1,0 +1,14 @@
+id,story_id,question,choices,answer,after_page,skill,tagalog_question,tagalog_choices
+1,10efe7f8-1a53-4717-9d8b-cdd50d736fbd,"What does 
+“mountainous” mean?","{""1"":""Many fruits"",""2"":""Many mountains"",""3"":""Many trees""}",2,2,synonyms and antonyms,"Ano ang ibig sabihin ng ""bulubundukin""?","{""1"":""Maraming Prutas"",""2"":""Maraming Bundok"",""3"":""Maraming Puno""}"
+2,47157988-cb0f-4747-bbc2-36ddf520ff6b,Who was our first president?,"{""1"":""Manuel Roxas"",""2"":""Emilio Aguinaldo""}",2,,,none,{}
+3,10efe7f8-1a53-4717-9d8b-cdd50d736fbd,What fruits are in the forest?,"{""1"":""Only papaya"",""2"":""Only Durian"",""3"":""Banana, Papaya, and Durian""}",3,2,story details,Anong prutas ang nasa gubat?,"{""1"":""Papaya lang"",""2"":""Durian lang"",""3"":""Banana, Papaya, at Durian""}"
+10,a351097b-2e32-4d98-9d33-5c8f7fe824ab,What did the student eat,"{""1"":""Chocolate"",""2"":""Steak"",""3"":""Pancit Canton""}",3,1,story details,Ano yung kinain ng studyante?,"{""1"":""Tsokolate"",""2"":""Steak"",""3"":""Pancit Canton""}"
+11,447f0037-9686-4f96-b0de-95c9bc6f8aa8,Test Question,"{""1"":""C1"",""2"":""C2"",""3"":""C3""}",2,1,story details,none,{}
+12,3c51ab3d-ca40-42dd-810a-4cf2cd622c26,mulcho 1,"{""1"":""c1"",""2"":""c2"",""3"":""c3""}",1,1,story details,none,{}
+13,828e7a23-82e5-45d3-9466-e9daf113973b,Answer is 2,"{""1"":""1"",""2"":""2"",""3"":""3""}",2,1,story details,none,{}
+14,885c73c2-2312-4ca2-9955-c74877da9a43,Multiple Choice - Answer is 2,"{""1"":""C1"",""2"":""C2"",""3"":""C3""}",2,1,story details,none,{}
+15,7bf43c27-caff-4587-a9fb-5eff9ce41719,,"{""1"":"""",""2"":"""",""3"":""""}",,1,story details,none,{}
+17,bbf7d3de-b6eb-444a-a68d-0cbffb3f4615,test,"{""1"":""sdfsdf"",""2"":""asdfasdf"",""3"":""asdfasdf""}",3,1,story details,none,{}
+18,e2f8826e-99e2-4fe2-802b-9c22196e8b3c,test,"{""2"":""e2"",""3"":""e3"",""5"":""e""}",e3,1,story details,none,{}
+19,e7879316-94d2-4764-8211-b0ba70ca41f8,est,"{""1"":""e1"",""2"":""e2"",""3"":""e3""}",e1,1,story details,tagalogtest,"{""1"":""t1"",""2"":""t2"",""3"":""t3""}"

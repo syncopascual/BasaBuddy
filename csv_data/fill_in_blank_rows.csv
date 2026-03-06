@@ -1,0 +1,11 @@
+id,story_id,statement_1,statement_2,choices,answer,after_page,skill,tagalog_statement_1,tagalog_statement_2,tagalog_choices,tagalog_answer
+1,10efe7f8-1a53-4717-9d8b-cdd50d736fbd,Mila sees a,in the forest.,"[""monkey"",""cloud"",""strange object""]",strange object,3,story details,May nakitang,si Mila sa gubat.,"[""unggoy"",""ulap"",""bagay""]",bagay
+4,a351097b-2e32-4d98-9d33-5c8f7fe824ab,"She went to ",to eat lunch,"[""Area 2"",""the roof"",""the toilet""]",Area 2,2,story details,Pumunta siya siya,para kumain.,"[""Area 2"",""bubong"",""banyo""]",Area 2
+5,828e7a23-82e5-45d3-9466-e9daf113973b,The student wants to get a,for her grade in this class.,"[""1.0"",""5.0"",""INC""]",1.0,2,story details,none,none,[],none
+6,885c73c2-2312-4ca2-9955-c74877da9a43,"The study wants to get a ",grade for her exam.,"[""1.0"",""5.0"",""3.0""]",1.0,2,story details,none,none,[],none
+7,4ea07e81-96e4-4864-b398-bd4a157bc2f5,asdfasdf,,"[""sadfasdf"",""asdfasdf"",""fsdalkfjlkasdf""]",sadfasdf,1,story details,none,none,[],none
+8,fad71856-2621-440b-95bc-c27a9acf8c75,fill the,for me.,"[""sentence"",""chocolate"",""roof""]",sentence,1,story details,none,none,[],none
+9,410a3cc7-a7ca-4872-9429-fc3590b580ee,test1,test2,"[""cs"",""sdf"",""asdf""]",cs,1,story details,none,none,[],none
+10,7fec4378-0880-43f2-8dc4-3c1db16a1975,test,test2,"[""c1"",""c2"",""c3""]",c1,1,story details,Tagalog page 1,Tagalog page 2,"[""tg1"",""tg2"",""tg3""]",tg1
+11,6cc37058-790f-4d26-83d4-f16e256a442a,test1,test2,"[""c1"",""c2"",""c3""]",c1,1,story details,experimento1,experimento2,"[""tg1"",""tg2"",""tg3""]",tg1
+12,e2f8826e-99e2-4fe2-802b-9c22196e8b3c,test1,test2,"[""e1"",""e2"",""e3""]",e1,1,story details,testing1,testing2,"[""tg1"",""tg2"",""tg3""]",tg1
