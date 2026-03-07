@@ -6,6 +6,7 @@ import '../../models/fillBlankData.dart';
 import '../QuestionPopup.dart';
 import '../TranslationButton.dart';
 import 'FillBlankChoices.dart';// adjust import
+import 'package:basabuddy/components/VoiceService.dart';
 
 class FillBlankExercise extends StatefulWidget {
   final FillBlankData fillBlankData;
@@ -25,6 +26,7 @@ class FillBlankExercise extends StatefulWidget {
 
 class _FillBlankExerciseState extends State<FillBlankExercise> {
   int? selectedIndex;
+  final VoiceService _voice = VoiceService();
 
   void selectIndex(int index) {
     setState(() {
@@ -139,6 +141,18 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
                       ),
 
                       Text(statement2, style: const TextStyle(fontSize: 20)),
+                      IconButton(
+                          icon: const Icon(Icons.volume_up),
+                          onPressed: () async {
+                            await _voice.stop();
+                            List<String> statements = [statement1];
+                            if (selectedIndex != null) {
+                              statements.add(choices[selectedIndex!]);
+                            }
+                            statements.add(statement2);
+                            await _voice.speakSequence(statements, state.isEnglish, pauseMs: 300);
+                          },
+                      ),
                     ],
                   ),
 

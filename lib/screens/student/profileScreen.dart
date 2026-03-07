@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:basabuddy/components/StreakServices.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -284,115 +285,170 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Row(children: [
+            CircleAvatar(
+              radius: 36,
+              backgroundColor: const Color(0xFF3FC3D4),
+              child: const Icon(Icons.person, size:40, color: Colors.white),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 36,
-                  backgroundColor: const Color(0xFF3FC3D4),
-                  child: const Icon(Icons.person, size: 40, color: Colors.white),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      profile['name'],
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+                Text(
+                  profile['name'],
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD8F7F3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    "My Classes",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  ...classes.map((c) {
-                    final classData = c['classes'];
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.class_),
-                        title: Text(classData['name']),
-                        subtitle: Text(classData['year']),
-                        trailing:
-                        const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: () {},
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => _showJoinClassSheet(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text("Join a New Class",
-                        style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF35ADD3),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD8F7F3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Account Info",
-                    style:
-                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text("Email"),
-                      Text(email),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                _logout(context);
-              },
-              style: ElevatedButton.styleFrom(
-                iconColor: const Color(0xFFF28B82),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                minimumSize: const Size(double.infinity, 48),
-              ),
-              child: const Text("Logout"),
-            ),
           ],
         ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFD8F7F3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                "My Classes",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              ...classes.map((c) {
+                final classData = c['classes'];
+                return Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.class_),
+                  title: Text(classData['name']),
+                  subtitle: Text(classData['year']),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {},
+                ),
+              );
+              }),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                onPressed: () => _showJoinClassSheet(context), 
+                icon: const Icon(Icons.add),
+                label: const Text("Join a New Class", style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF35ADD3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFD8F7F3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Account Info",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Email"),
+                  Text(email),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFD8F7F3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Shop",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(children: [
+                    ImageIcon(
+                      const AssetImage("assets/icons/fire.png"),
+                      color: Color(0xFF7FDBFF),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text("Buy a Streak Freeze"),
+                  ],),
+                    
+                  ElevatedButton(
+                    onPressed: () async {
+                      final userId = supabase.auth.currentUser?.id;
+                      if (userId == null) return;
+
+                      try {
+                        // Freeze streak until end of next day
+                        await StreakService().freezeStreak(userId);
+
+                        // Optional: show confirmation
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Streak frozen until tomorrow! ❄️')),
+                        );
+
+                        // Refresh profile data in case you want to show frozen streak in UI
+                        loadData();
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to freeze streak: $e')),
+                        );
+                      }
+                    },
+                    child: Row(children: [
+                      const SizedBox(width: 36),
+                      const Text("Buy"),
+                      const SizedBox(width: 36),
+                    ],),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: () {
+            _logout(context);
+          },
+          style: ElevatedButton.styleFrom(
+            iconColor: Color(0xFFF28B82), // soft red
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            minimumSize: Size(double.infinity, 48), // full width like "Join a New Class"
+          ),
+          child: const Text("Logout"),
+        ),
+      ], 
+    ),
       ),
     );
   }

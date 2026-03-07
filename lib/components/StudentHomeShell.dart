@@ -30,7 +30,7 @@ class StudentHomeShell  extends StatelessWidget {
         context.go('/student/home');
         break;
       case 1:
-        context.go('/b');
+        context.go('/student/progressScreen');
         break;
       case 2:
         context.go('/student/profileScreen');
@@ -75,8 +75,8 @@ class StudentHomeShell  extends StatelessWidget {
                   AssetImage("assets/icons/home.png"),
                 ),
                 label: 'home'),
-            const BottomNavigationBarItem(icon: Icon(Icons.search), label: 'B'),
-            const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'C'),
+            const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'progress'),
+            const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'profile'),
           ],
         ),
       ),

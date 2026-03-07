@@ -48,10 +48,12 @@ class _AddStoryPageState extends State<AddStoryPage> {
     descriptionController.dispose();
     for (var item in contentItems) {
       if (item is StoryPageInput) {
-        item.textController.dispose();
+        item.englishTextController.dispose();
+        item.tagalogTextController.dispose();
       }
       if (item is ExerciseInput) {
-        item.questionController.dispose();
+        item.englishQuestionController.dispose();
+        item.tagalogQuestionController.dispose();
       }
     }
     super.dispose();
@@ -72,6 +74,62 @@ class _AddStoryPageState extends State<AddStoryPage> {
 
   Future<void> publishStory() async {
     if (!_formKey.currentState!.validate()) return;
+    int pageNumber = 0;
+    for (var item in contentItems) {
+      if (item is StoryPageInput) {
+        pageNumber++;
+        if (item.englishTextController.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("English text is required on page $pageNumber"),
+            ),
+          );
+          return;
+        }
+      }
+      if (item is ExerciseInput) {
+        if (item.type == 'mulcho'){
+          if (item.englishQuestionController.text.trim().isEmpty || (item.choices.values.any((c) => c.text.trim().isEmpty))) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Please fill in all English fields."),
+              ),
+            );
+            return;
+          } 
+        }
+        if (item.type == 'ordering'){
+          if ((item.choices.values.any((c) => c.text.trim().isEmpty))) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Please fill in all English fields."),
+              ),
+            );
+            return;
+          } 
+        }
+        if (item.type == 'matching'){
+          if (item.pairs.any((p) => p.left.text.trim().isEmpty || p.right.text.trim().isEmpty)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Please fill in all English fields."),
+              ),
+            );
+            return;
+          } 
+        }
+        if (item.type == 'fill_in_blanks'){
+          if ((item.statement1Controller.text.trim().isEmpty && item.statement2Controller.text.trim().isEmpty) ||(item.fillChoices.any((c) => c.text.trim().isEmpty))) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Please fill in all English fields."),
+              ),
+            );
+            return;
+          } 
+        }
+      }
+    }
 
     setState(() => isPublishing = true);
 
@@ -102,7 +160,8 @@ class _AddStoryPageState extends State<AddStoryPage> {
           await supabase.from('story_page').insert({
             'story_id': storyId, 
             'page_num': pageNumber,
-            'text': item.textController.text,
+            'text': item.englishTextController.text,
+            'tagalog_text': item.tagalogTextController.text,
           });
         }
         if (item is ExerciseInput) {
@@ -113,8 +172,11 @@ class _AddStoryPageState extends State<AddStoryPage> {
             'after_page': pageNumber,
             'skill': item.skill,
             'question': extra['question'], 
+            'tagalog_question': extra['tagalog_question'],
             'choices': extra['choices'], 
+            'tagalog_choices': extra['tagalog_choices'], 
             'answer': extra['answer'], 
+
           });
           }
           if (item.type == 'ordering') {
@@ -123,7 +185,8 @@ class _AddStoryPageState extends State<AddStoryPage> {
             'story_id': storyId,
             'after_page': pageNumber,
             'skill': item.skill,
-            'data': extra['data'], 
+            'data': extra['data'],
+            'tagalog_data': extra['tagalog_data'] 
           });
           }
           if (item.type == 'matching') {
@@ -142,9 +205,13 @@ class _AddStoryPageState extends State<AddStoryPage> {
             'after_page': pageNumber,
             'skill': item.skill,
             'statement_1': extra['statement_1'], 
-            'statement_2': extra['statement_2'], 
+            'statement_2': extra['statement_2'],
+            'tagalog_statement_1': extra['tagalog_statement_1'], 
+            'tagalog_statement_2': extra['tagalog_statement_2'],  
             'choices': extra['choices'],
+            'tagalog_choices': extra['tagalog_choices'],
             'answer': extra['answer'],
+            'tagalog_answer': extra['tagalog_answer'],
           });
           }
         }
@@ -296,7 +363,9 @@ abstract class StoryContentItem {
 // =======================================================
 
 class StoryPageInput extends StoryContentItem {
-  final TextEditingController textController = TextEditingController();
+  final TextEditingController englishTextController = TextEditingController();
+  final TextEditingController tagalogTextController = TextEditingController();
+  final ValueNotifier<bool> isEnglish = ValueNotifier(true);
 
   Widget buildPageWidget(BuildContext context, {required Key key, required int index, required int pageNumber, required VoidCallback onDelete,}) {
     return Card(
@@ -304,37 +373,72 @@ class StoryPageInput extends StoryContentItem {
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children : [
+        child: ValueListenableBuilder(
+          valueListenable: isEnglish, 
+          builder: (context, englishSelected, _) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Row(
-                  children: [
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: const Icon(Icons.drag_handle),
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children : [
+                    Row(
+                      children: [
+                        ReorderableDragStartListener(
+                          index: index,
+                          child: const Icon(Icons.drag_handle),
+                        ),
+                        const SizedBox(width: 8),
+                        Text("Page $pageNumber", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ],
                     ),
-                    const SizedBox(width: 8),
-                    Text("Page $pageNumber", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Row(
+                      children: [
+                        ToggleButtons(
+                          isSelected: [englishSelected, !englishSelected],
+                          borderRadius: BorderRadius.circular(10),
+                          onPressed: (i) {
+                            isEnglish.value = i == 0;
+                          },
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Text("English"),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Text("Tagalog"),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                            onPressed: onDelete,
+                          ),
+                      ]
+                    )
+                    
                 ],),
-
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: onDelete,
+                
+                const SizedBox(width: 12),
+                TextFormField(
+                  key: ValueKey(englishSelected),
+                  controller: englishSelected ? englishTextController : tagalogTextController,
+                  decoration: InputDecoration(labelText: englishSelected ? "Page Text (English)" : "Kuwento (Tagalog)"),
+                  maxLines: 4,
+                  validator: (value) {
+                    if (isEnglish.value && (value == null || value.trim().isEmpty)) {
+                      return "English text is required";
+                    }
+                    return null;
+                  },
                 ),
-            ],),
-            
-            const SizedBox(width: 12),
-            TextFormField(
-              controller: textController,
-              decoration: const InputDecoration(labelText: "Page Text"),
-              maxLines: 4,
-              validator: (value) => value!.isEmpty ? "Required" : null,
-            ),
-          ],
-        ),
+              ],
+            );
+          }
+        )
+        
+        
       ),
     );
   }
@@ -356,18 +460,26 @@ class ExerciseInput extends StoryContentItem {
   final String type;
   int afterPage = 1;
   String skill = '';
+  int _choiceCounter = 3;
 
-  String? correctMulchoKey;
-  String? correctFillBlanksKey;
+  int? correctMulchoIndex;
+  int? correctFillBlanksIndex;
   String selectedSkill = 'synonyms and antonyms';
   final List<String> skills = ['synonyms and antonyms', 'story details'];
 
-  final TextEditingController questionController = TextEditingController();
+  final TextEditingController englishQuestionController = TextEditingController();
+  final TextEditingController tagalogQuestionController = TextEditingController();
   final TextEditingController statement1Controller = TextEditingController();
   final TextEditingController statement2Controller = TextEditingController();
+  final TextEditingController statement1TagalogController = TextEditingController();
+  final TextEditingController statement2TagalogController = TextEditingController();
+
+  final ValueNotifier<bool> isEnglish = ValueNotifier(true);
 
   Map<String, TextEditingController> choices = {};
+  Map<String, TextEditingController> tagalogChoices = {};
   List<TextEditingController> fillChoices = [];
+  List<TextEditingController> fillTagalogChoices = [];
   List<MatchingPair> pairs = [];
 
   ExerciseInput({required this.type}) {
@@ -375,9 +487,17 @@ class ExerciseInput extends StoryContentItem {
       choices['1'] = TextEditingController();
       choices['2'] = TextEditingController();
       choices['3'] = TextEditingController();
+      tagalogChoices['1'] = TextEditingController();
+      tagalogChoices['2'] = TextEditingController();
+      tagalogChoices['3'] = TextEditingController();
     }
     if (type == 'fill_in_blanks') {
       fillChoices = [
+        TextEditingController(),
+        TextEditingController(),
+        TextEditingController(),
+      ];
+      fillTagalogChoices = [
         TextEditingController(),
         TextEditingController(),
         TextEditingController(),
@@ -393,20 +513,32 @@ class ExerciseInput extends StoryContentItem {
   Map<String, dynamic> extraData() {
     final Map<String, dynamic> data = {};
     if(type == 'mulcho'){
-      final Map<String, String> jsonChoices = {};
+      final Map<String, String> englishJsonChoices = {};
+      final Map<String, String> tagalogJsonChoices = {};
       choices.forEach((key,controller) {
-        jsonChoices[key] = controller.text;
+        englishJsonChoices[key] = controller.text;
       });
-      data['question'] = questionController.text;
-      data['choices'] = jsonChoices;
-      data['answer'] = correctMulchoKey;
+      tagalogChoices.forEach((key,controller) {
+        tagalogJsonChoices[key] = controller.text;
+      });
+      data['question'] = englishQuestionController.text;
+      data['tagalog_question'] = tagalogQuestionController.text;
+      data['choices'] = englishJsonChoices;
+      data['tagalog_choices'] = tagalogJsonChoices;
+      data['answer'] = correctMulchoIndex != null ? englishJsonChoices[(correctMulchoIndex! + 1).toString()] : null;
+      data['tagalog_answer'] = correctMulchoIndex != null ? tagalogJsonChoices[(correctMulchoIndex! + 1).toString()] : null;
     }
     if(type == 'ordering'){
-      final Map<String, String> jsonChoices = {};
+      final Map<String, String> englishJsonChoices = {};
+      final Map<String, String> tagalogJsonChoices = {};
       choices.forEach((key,controller) {
-        jsonChoices[key] = controller.text;
+        englishJsonChoices[key] = controller.text;
       });
-      data['data'] = jsonChoices;
+      tagalogChoices.forEach((key,controller) {
+        tagalogJsonChoices[key] = controller.text;
+      });
+      data['data'] = englishJsonChoices;
+      data['tagalog_data'] = tagalogJsonChoices;
     }
     if(type == 'matching'){
       final Map<String, String> jsonPairs = {};
@@ -423,22 +555,28 @@ class ExerciseInput extends StoryContentItem {
     if(type == 'fill_in_blanks'){
       data['statement_1'] = statement1Controller.text;
       data['statement_2'] = statement2Controller.text;
-      data['choices'] = fillChoices.map((c) => c.text).toList();;
-      data['answer'] = correctFillBlanksKey;
+      data['tagalog_statement_1'] = statement1TagalogController.text;
+      data['tagalog_statement_2'] = statement2TagalogController.text;
+      data['choices'] = fillChoices.map((c) => c.text).toList();
+      data['tagalog_choices'] = fillTagalogChoices.map((c) => c.text).toList();
+      data['answer'] = correctFillBlanksIndex != null ? fillChoices[correctFillBlanksIndex!].text : 'none';
+      data['tagalog_answer'] = correctFillBlanksIndex != null ? fillTagalogChoices[correctFillBlanksIndex!].text : 'none';
     }
     return data;
   }
 
-  void renumberChoices(correctKey) {
-    final oldControllers = choices.values.toList();
-    choices.clear();
+  void renumberChoices(correctKey, lan_choices) {
+    final oldControllers = lan_choices.values.toList();
+    lan_choices.clear();
     for (int i = 0; i < oldControllers.length; i++) {
-      choices[(i + 1).toString()] = oldControllers[i];
+      lan_choices[(i + 1).toString()] = oldControllers[i];
     }
-    if (correctKey != null && !choices.containsKey(correctKey)) {
+    if (correctKey != null && !lan_choices.containsKey(correctKey)) {
       correctKey = null;
     }
   }
+
+  
 
   Widget buildExerciseWidget(BuildContext context, {required Key key, required int index, required VoidCallback onDelete,required VoidCallback onUpdate}) {
     return Card(
@@ -446,295 +584,349 @@ class ExerciseInput extends StoryContentItem {
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: ValueListenableBuilder(
+          valueListenable: isEnglish, 
+          builder: (context, englishSelected, _) {
+            final currentChoices = englishSelected ? choices : tagalogChoices;
+            final currentFillChoices = englishSelected ? fillChoices : fillTagalogChoices;
+            return Column(
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: const Icon(Icons.drag_handle),
+                    Row(
+                      children: [
+                        ReorderableDragStartListener(
+                          index: index,
+                          child: const Icon(Icons.drag_handle),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(type.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ]
                     ),
-                    const SizedBox(width: 8),
-                    Text(type.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ]
+
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: onDelete,
+                    ),
+                    
+                  ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: onDelete,
+                type != 'matching' ?
+                  ToggleButtons(
+                    isSelected: [englishSelected, !englishSelected],
+                    borderRadius: BorderRadius.circular(10),
+                    onPressed: (i) {
+                      isEnglish.value = i == 0;
+                    },
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text("English"),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text("Tagalog"),
+                      ),
+                    ],
+                  ) : SizedBox.shrink(),
+                if(type == 'mulcho')...[
+                  TextFormField(
+                    key: ValueKey(englishSelected),
+                    controller: englishSelected ? englishQuestionController : tagalogQuestionController,
+                    decoration:  InputDecoration(labelText: englishSelected ? "Question (English)" : "Tanong (Tagalog)"),
+                  ),
+                  FormField(
+                    initialValue: correctMulchoIndex,
+                    validator: (val) {
+                      return correctMulchoIndex == null ? 'Please select the correct answer' : null;
+                    },
+                    builder: (state) {
+                      return Column(children: [...currentChoices.entries.map((entry) {
+                      final key = entry.key;
+                      final controller = entry.value;
+                      
+                      return Row(
+                      children: [
+                        Radio<int>(
+                          value: int.parse(key) - 1,
+                          groupValue: correctMulchoIndex,
+                          onChanged: (val) {
+                            correctMulchoIndex = val;
+                            onUpdate();
+                          },
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                            controller: controller,
+                            decoration: InputDecoration(labelText: englishSelected ? 'Choice $key' : 'Pagpipilian $key'),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            final removedIndex = int.parse(key) - 1;
+                            if (correctMulchoIndex == removedIndex) {
+                              correctMulchoIndex = null;
+                            } else if (correctMulchoIndex != null &&
+                                      correctMulchoIndex! > removedIndex) {
+                              correctMulchoIndex = correctMulchoIndex! - 1;
+                            }
+                            choices.remove(key);
+                            tagalogChoices.remove(key);
+                            onUpdate();
+                          },
+                        ),
+                        ],
+                      );
+                    }).toList(),
+                  
+
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          state.errorText!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      ],
+                    );
+              
+                    },
+                  ),
+                  
+                  TextButton(
+                    onPressed: () {
+                      _choiceCounter++;
+                      choices[_choiceCounter.toString()] = TextEditingController();
+                      tagalogChoices[_choiceCounter.toString()] = TextEditingController();
+                      onUpdate();
+                    },
+                    child: const Text('+ Add Choice'),
+                  ),
+                ],
+                if(type == 'ordering')...[
+                  ReorderableListView(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    onReorder: (oldIndex, newIndex) {
+                      if (newIndex > oldIndex) newIndex--;
+
+                      final englishValues = choices.values.toList();
+                      final tagalogValues = tagalogChoices.values.toList();
+
+                      final movedEnglish = englishValues.removeAt(oldIndex);
+                      englishValues.insert(newIndex, movedEnglish);
+
+                      final movedTagalog = tagalogValues.removeAt(oldIndex);
+                      tagalogValues.insert(newIndex, movedTagalog);
+
+
+                      choices
+                        ..clear()
+                        ..addEntries(
+                          List.generate(
+                            englishValues.length,
+                            (i) => MapEntry((i + 1).toString(), englishValues[i]),
+                          ),
+                        );
+
+                      tagalogChoices
+                        ..clear()
+                        ..addEntries(
+                          List.generate(
+                            tagalogValues.length,
+                            (i) => MapEntry((i + 1).toString(), tagalogValues[i]),
+                          ),
+                        );
+
+                      onUpdate();
+                    },
+                    children: [...currentChoices.entries.map((entry) {
+                    final key = entry.key;
+                    final controller = entry.value;
+                    return Row(
+                      key: ValueKey(key),
+                      children: [
+                      ReorderableDragStartListener(
+                          index: int.parse(key) - 1,
+                          child: const Icon(Icons.drag_handle),
+                        ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextFormField(
+                          controller: controller,
+                          decoration: InputDecoration(labelText: englishSelected ? 'Event $key' : 'Pangyayari $key'),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          currentChoices.remove(key);
+                          renumberChoices(null, currentChoices);
+                          onUpdate();
+                        },
+                      ),
+                      ],
+                    );
+                  })]),
+                  TextButton(
+                    onPressed: () {
+                      currentChoices[(currentChoices.length + 1).toString()] = TextEditingController();
+                      onUpdate();
+                    },
+                    child: const Text('+ Add Choice'),
+                  ),
+                ],
+                if(type == 'matching')...[
+                  Column(
+                    children: [...pairs.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final pair = entry.value;
+                    return Row(
+                      children: [
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextFormField(
+                          controller: pair.left,
+                          decoration: InputDecoration(labelText: 'Left ${index+1}'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextFormField(
+                          controller: pair.right,
+                          decoration: InputDecoration(labelText: 'Right ${index+1}'),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          final removed = pairs.removeAt(index);
+                          removed.left.dispose();
+                          removed.right.dispose();
+                          onUpdate();
+                        },
+                      ),
+                      ],
+                    );
+                  })]),
+                  TextButton(
+                    onPressed: () {
+                      pairs.add(MatchingPair());
+                      onUpdate();
+                    },
+                    child: const Text('+ Add Pair'),
+                  ),
+                ],
+                if(type == 'fill_in_blanks')...[
+
+                  TextFormField(
+                    controller: englishSelected ? statement1Controller : statement1TagalogController,
+                    decoration:  InputDecoration(
+                      labelText: englishSelected ? "Sentence (before blank)" : "Pangungusap (bago blangko)",
+                    ),
+                  ),
+                  
+
+                  const SizedBox(height: 8),
+
+                  TextFormField(
+                    controller: englishSelected ? statement2Controller : statement2TagalogController,
+                    decoration:  InputDecoration(
+                      labelText: englishSelected ? "Sentence (after blank)" : "Pangungusap (bago blangko)",
+                    ),
+                  ),
+                  
+
+                  FormField(
+                    initialValue: correctFillBlanksIndex,
+                    validator: (val) {
+                      return correctFillBlanksIndex == null ? 'Please select the correct answer' : null;
+                    },
+                    builder: (state) {
+                      return Column(children: [...List.generate(currentFillChoices.length, (i) {
+                      return Row(
+                      children: [
+                        Radio<int>(
+                          value: i,
+                          groupValue: correctFillBlanksIndex,
+                          onChanged: (val) {
+                            correctFillBlanksIndex = val;
+                            onUpdate();
+                          },
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                            controller: currentFillChoices[i],
+                            decoration: InputDecoration(labelText: 'Choice ${i+1}'),
+                            onChanged: (val) {
+                              onUpdate();
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            if (correctFillBlanksIndex == i) {
+                              correctFillBlanksIndex = null;
+                            } else if (correctFillBlanksIndex != null &&
+                                      correctFillBlanksIndex! > i) {
+                              correctFillBlanksIndex = correctFillBlanksIndex! - 1;
+                            }
+                            fillChoices.removeAt(i);
+                            fillTagalogChoices.removeAt(i);
+                            onUpdate();
+                          },
+                        ),
+                        ],
+                      );
+                    }),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          state.errorText!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      ],
+                    );
+              
+                    },
+                  ),
+                  
+                  TextButton(
+                    onPressed: () {
+                      fillChoices.add(TextEditingController());
+                      fillTagalogChoices.add(TextEditingController());
+                      onUpdate();
+                    },
+                    child: const Text('+ Add Choice'),
+                  ),
+                ],
+                DropdownButtonFormField(
+                  value: skill.isEmpty? null : skill,
+                  items: skills.map((skill) {
+                    return DropdownMenuItem(
+                      value: skill,
+                      child: Text(skill),
+                    );
+                  }).toList(),
+                  decoration: const InputDecoration(labelText: "Skill", border: OutlineInputBorder(),),
+                  onChanged: (val) {
+                    if (val != null){
+                      skill = val;
+                      onUpdate();
+                    }
+                  },
+                  validator: (value) => value == null || value.isEmpty ? 'Please select a skill' : null,
                 ),
               ],
-            ),
-            if(type == 'mulcho')...[
-              TextFormField(
-                controller: questionController,
-                decoration: const InputDecoration(labelText: "Question"),
-                validator: (value) => value!.isEmpty ? "Required" : null,
-              ),
-              FormField(
-                initialValue: correctMulchoKey,
-                validator: (val) {
-                  return correctMulchoKey == null ? 'Please select the correct answer' : null;
-                },
-                builder: (state) {
-                  return Column(children: [...choices.entries.map((entry) {
-                  final key = entry.key;
-                  final controller = entry.value;
-                  return Row(
-                   children: [
-                    Radio<String>(
-                      value: key,
-                      groupValue: correctMulchoKey,
-                      onChanged: (val) {
-                        correctMulchoKey = val;
-                        onUpdate();
-                      },
-                    ),
-                    Expanded(
-                      child: TextFormField(
-                        controller: controller,
-                        decoration: InputDecoration(labelText: 'Choice $key'),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        choices.remove(key);
-                        renumberChoices(correctMulchoKey);
-                        onUpdate();
-                      },
-                    ),
-                    ],
-                  );
-                }).toList(),
-                if (state.hasError)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      state.errorText!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                  ],
-                );
-          
-                },
-              ),
-              
-              TextButton(
-                onPressed: () {
-                  choices[(choices.length + 1).toString()] = TextEditingController();
-                  onUpdate();
-                },
-                child: const Text('+ Add Choice'),
-              ),
-            ],
-            if(type == 'ordering')...[
-              ReorderableListView(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                onReorder: (oldIndex, newIndex) {
-                  if (newIndex > oldIndex) newIndex--;
-
-                  final values = choices.values.toList();
-
-                  final movedValue = values.removeAt(oldIndex);
-                  values.insert(newIndex, movedValue);
-
-                  choices
-                    ..clear()
-                    ..addEntries(
-                      List.generate(
-                        values.length,
-                        (i) => MapEntry((i + 1).toString(), values[i]),
-                      ),
-                    );
-
-                  onUpdate();
-                },
-                children: [...choices.entries.map((entry) {
-                final key = entry.key;
-                final controller = entry.value;
-                return Row(
-                  key: ValueKey(key),
-                  children: [
-                  ReorderableDragStartListener(
-                      index: int.parse(key) - 1,
-                      child: const Icon(Icons.drag_handle),
-                    ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextFormField(
-                      controller: controller,
-                      decoration: InputDecoration(labelText: 'Event $key'),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      choices.remove(key);
-                      renumberChoices(null);
-                      onUpdate();
-                    },
-                  ),
-                  ],
-                );
-              })]),
-              TextButton(
-                onPressed: () {
-                  choices[(choices.length + 1).toString()] = TextEditingController();
-                  onUpdate();
-                },
-                child: const Text('+ Add Choice'),
-              ),
-            ],
-            if(type == 'matching')...[
-              Column(
-                children: [...pairs.asMap().entries.map((entry) {
-                final index = entry.key;
-                final pair = entry.value;
-                return Row(
-                  children: [
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextFormField(
-                      controller: pair.left,
-                      decoration: InputDecoration(labelText: 'Left ${index+1}'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextFormField(
-                      controller: pair.right,
-                      decoration: InputDecoration(labelText: 'Right ${index+1}'),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      final removed = pairs.removeAt(index);
-                      removed.left.dispose();
-                      removed.right.dispose();
-                      onUpdate();
-                    },
-                  ),
-                  ],
-                );
-              })]),
-              TextButton(
-                onPressed: () {
-                  pairs.add(MatchingPair());
-                  onUpdate();
-                },
-                child: const Text('+ Add Pair'),
-              ),
-            ],
-            if(type == 'fill_in_blanks')...[
-
-              TextFormField(
-                controller: statement1Controller,
-                decoration: const InputDecoration(
-                  labelText: "Sentence (before blank)",
-                ),
-              ),
-              
-
-              const SizedBox(height: 8),
-
-              TextFormField(
-                controller: statement2Controller,
-                decoration: const InputDecoration(
-                  labelText: "Sentence (after blank)",
-                ),
-              ),
-              
-
-              FormField(
-                initialValue: correctFillBlanksKey,
-                validator: (val) {
-                  return correctFillBlanksKey == null ? 'Please select the correct answer' : null;
-                },
-                builder: (state) {
-                  return Column(children: [...List.generate(fillChoices.length, (i) {
-                  final choiceText = fillChoices[i].text;
-                  return Row(
-                   children: [
-                    Radio<String>(
-                      value: choiceText,
-                      groupValue: correctFillBlanksKey,
-                      onChanged: (val) {
-                        correctFillBlanksKey = val;
-                        onUpdate();
-                      },
-                    ),
-                    Expanded(
-                      child: TextFormField(
-                        controller: fillChoices[i],
-                        decoration: InputDecoration(labelText: 'Choice ${i+1}'),
-                        onChanged: (val) {
-                        if (correctFillBlanksKey == choiceText) {
-                          correctFillBlanksKey = val;
-                        }
-                        onUpdate();
-                      },
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        if (correctFillBlanksKey == choiceText) {
-                          correctFillBlanksKey = null;
-                        }
-                        fillChoices.removeAt(i);
-                        onUpdate();
-                      },
-                    ),
-                    ],
-                  );
-                }),
-                if (state.hasError)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      state.errorText!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                  ],
-                );
-          
-                },
-              ),
-              
-              TextButton(
-                onPressed: () {
-                  choices[(choices.length + 1).toString()] = TextEditingController();
-                  onUpdate();
-                },
-                child: const Text('+ Add Choice'),
-              ),
-            ],
-            DropdownButtonFormField(
-              value: skill.isEmpty? null : skill,
-              items: skills.map((skill) {
-                return DropdownMenuItem(
-                  value: skill,
-                  child: Text(skill),
-                );
-              }).toList(),
-              decoration: const InputDecoration(labelText: "Skill", border: OutlineInputBorder(),),
-              onChanged: (val) {
-                if (val != null){
-                  skill = val;
-                  onUpdate();
-                }
-              },
-              validator: (value) => value == null || value.isEmpty ? 'Please select a skill' : null,
-            ),
-          ],
-        ),
+            );
+          }
+        )
       ),
     );
   }

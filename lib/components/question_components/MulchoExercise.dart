@@ -9,6 +9,7 @@ import '../../bloc/translation_bloc.dart';
 import '../../colors.dart';
 import '../PopUp.dart';
 import '../QuestionPopup.dart';
+import 'package:basabuddy/components/VoiceService.dart';
 
 
 ///multiple choice exercise
@@ -33,7 +34,7 @@ class MulchoExercise extends StatefulWidget {
 
 class _MulchoExerciseState extends State<MulchoExercise> {
   final ValueNotifier<int> choiceIndex = ValueNotifier<int>(-1);
-
+  final VoiceService _voice = VoiceService();
 
   @override
   Widget build(BuildContext context) {
@@ -86,10 +87,25 @@ class _MulchoExerciseState extends State<MulchoExercise> {
                 }
                 return Column(
                   children: [
-                    Text(question, style: TextStyle(color: Colors.black, fontSize: 20),),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Text(question, style: TextStyle(color: Colors.black, fontSize: 20),),
+                          )
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.volume_up),
+                          onPressed: () {
+                            _voice.speak(question, state.isEnglish);
+                          },
+                        ),
+                      ],
+                    ),
+                    
                     Container(
                       height: 290,
-                      child: MulchoChoices(selectedContainerIndex: choiceIndex, choices: choices.values.toList()),
+                      child: MulchoChoices(selectedContainerIndex: choiceIndex, choices: choices.values.toList(), isEnglish: state.isEnglish),
                     )
                   ],
                 );
