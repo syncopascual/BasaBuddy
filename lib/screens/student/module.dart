@@ -5,12 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/story.dart';
+import '../../utils/database_helper.dart';
 
 class Module extends StatefulWidget {
-
   final String moduleType;
   const Module(this.moduleType, {super.key});
-
   @override
   State<Module> createState() => _ModuleState();
 }
@@ -78,37 +77,20 @@ class _ModuleState extends State<Module> {
     }else {
       ///Fetch stories
       print("MODULE.dart :: _fetchStories() called");
-      //print(Supabase.instance.client.auth.currentUser);
-      final response = await Supabase.instance.client
-          .from('list_stories')
-          .select()
-          .eq('module', widget.moduleType);
-      print("After Supabase query");
-      print(response);
 
-      final stories = (response as List)
-          .map((json) => Story.fromJson(json))
-          .toList();
+      List<Story> stories = await DatabaseHelper.instance.queryWhere('list_stories', Story.fromJson, 'module = ?', [widget.moduleType]);
+
       print("Stories");
       print(stories);
 
-      ///Get user level
-      final rawUserLevel = await Supabase.instance.client
-          .from('user_level_info')
-          .select();
-
-      int moduleLevel = rawUserLevel[0]["${widget.moduleType}_lvl"];
-
+      int moduleLevel = 10000; /// User is able to access all stories
 
       ///get story thumbnails
       for(int i = 0; i< stories.length;i++){
 
         try{
-          String url = Supabase.instance.client
-              .storage
-              .from('story-thumbnails')
-              .getPublicUrl('${widget.moduleType}/${stories[i].storyId}.png');
-          storyThumbnails[stories[i].storyId] = url;
+
+          storyThumbnails[stories[i].storyId] = 'assets/story_thumbnails/${widget.moduleType}/${stories[i].storyId}.png';
         }
         catch (e) {
           print('Error listing files: $e');

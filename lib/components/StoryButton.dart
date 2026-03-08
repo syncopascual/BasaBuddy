@@ -67,7 +67,7 @@ class StoryButton extends StatelessWidget {
               Colors.transparent,
               BlendMode.dst,
             ),
-            child: Image.network(
+            child: Image.asset(
               imageAsset,
               fit: BoxFit.contain,
             ),

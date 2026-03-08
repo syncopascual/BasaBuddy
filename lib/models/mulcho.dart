@@ -22,7 +22,7 @@ class Mulcho {
   @JsonKey(name: 'tagalog_choices')
   final Map<String, String> tagalogChoices;
 
-  final String answer;
+  final int answer;
 
   @JsonKey(name: 'after_page')
   final int afterPage;

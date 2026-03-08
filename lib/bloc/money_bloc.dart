@@ -1,5 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../models/userMoney.dart';
+import '../utils/database_helper.dart';
+
 
 
 abstract class MoneyEvent {}
@@ -31,33 +34,16 @@ class MoneyBloc extends Bloc<MoneyEvent, MoneyState> {
     //TODO: improve type safety
     on<ChangeMoney>((event, emit) async {
       print('CHANGEMONEY EVENT CALLED');
+      UserMoney? moneyObject = await DatabaseHelper.instance.queryFirst('user_money', UserMoney.fromJson);
+      int? newMoney = moneyObject!.money + 50;
 
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user == null) throw Exception('Not logged in');
+      await DatabaseHelper.instance.updateFirstNoWhere("user_money", {"money": newMoney});
 
-      final moneyJson = await Supabase.instance.client
-          .from('user_money')
-          .select();
-
-      moneyJson[0]["money"] += event.money;
-
-      await Supabase.instance.client
-          .from('user_money')
-          .update(moneyJson[0])
-      .eq("user_id", user.id);
-
-      emit(MoneyState(moneyJson[0]["money"]));
+      emit(MoneyState(newMoney));
 
     });
     on<SyncMoney>((event, emit) async {
-      print('SYNCMONEY EVENT CALLED');
-      final moneyJson = await Supabase.instance.client
-          .from('user_money')
-          .select();
-
-      final money = moneyJson[0]["money"];
-
-      emit(MoneyState(money));
+      print('SYNCMONEY EVENT CALLED - deprecated');
     });
   }
 }

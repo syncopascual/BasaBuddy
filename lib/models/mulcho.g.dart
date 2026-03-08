@@ -11,7 +11,7 @@ Mulcho _$MulchoFromJson(Map<String, dynamic> json) => Mulcho(
       storyId: json['story_id'] as String,
       question: json['question'] as String,
       choices: Map<String, String>.from(json['choices'] as Map),
-      answer: json['answer'] as String,
+      answer: (json['answer'] as num).toInt(),
       tagalogQuestion: json['tagalog_question'] as String,
       tagalogChoices: Map<String, String>.from(json['tagalog_choices'] as Map),
       skill: json['skill'] as String,
