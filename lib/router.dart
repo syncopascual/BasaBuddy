@@ -9,6 +9,7 @@ import 'package:basabuddy/screens/student/storyShell.dart';
 import 'package:basabuddy/screens/student/profileScreen.dart';
 import 'package:basabuddy/screens/student/progressScreen.dart';
 import 'package:basabuddy/screens/teacher/add_story_page.dart';
+import 'package:basabuddy/screens/teacher/add_questions_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
@@ -97,6 +98,14 @@ final router = GoRouter(
             final classId = state.extra as String;
             print("OUR CLASS ID ${classId}");
             return NoTransitionPage(child: AddStoryPage(classId: classId));
+          }
+        ),
+        GoRoute(
+          path: '/teacher/add_questions_page',
+          pageBuilder: (context, state) {
+            final classId = state.extra as String;
+            print("ADD QUESTIONS PAGE");
+            return NoTransitionPage(child: AddStagePage(classId: classId));
           }
         ),
 

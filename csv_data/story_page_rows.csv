@@ -15,7 +15,7 @@ id,story_id,page_num,text,tagalog_text
 53,447f0037-9686-4f96-b0de-95c9bc6f8aa8,1,Page 1,none
 54,3c51ab3d-ca40-42dd-810a-4cf2cd622c26,1,page 1,none
 55,828e7a23-82e5-45d3-9466-e9daf113973b,1,This is a page,none
-56,828e7a23-82e5-45d3-9466-e9daf113973b,2,"I eat. I sleep. I study. ",none
+56,828e7a23-82e5-45d3-9466-e9daf113973b,2,I eat. I sleep. I study. ,none
 57,885c73c2-2312-4ca2-9955-c74877da9a43,1,Page 1,none
 58,885c73c2-2312-4ca2-9955-c74877da9a43,2,I eat. I sleep. I study.,none
 61,7bf43c27-caff-4587-a9fb-5eff9ce41719,1,test1,tagalog test 1
@@ -32,3 +32,31 @@ id,story_id,page_num,text,tagalog_text
 72,6cc37058-790f-4d26-83d4-f16e256a442a,1,p1,p2
 73,e2f8826e-99e2-4fe2-802b-9c22196e8b3c,1,p1,
 74,e7879316-94d2-4764-8211-b0ba70ca41f8,1,p1,t1
+75,18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8,1,The dam holds water to keep the village safe.,Pinipigilan ng dam ang tubig upang panatilihing ligtas ang nayon.
+76,18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8,2,Guardians protect the dam and the villagers.,Pinoprotektahan ng mga tagapagbantay ang dam at ang mga tagabaryo.
+77,18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8,3,The villagers live near the dam.,Ang mga taganayon ay nakatira malapit sa dam.
+78,18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8,4,We must preserve the water and keep it clean.,Dapat nating pangalagaan ang tubig at panatilihin itong malinis.
+79,18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8,5,The mythical guardians are from a story.,Ang mga mitikal na tagapagbantay ay mula sa isang kuwento.
+80,18667b4a-ec48-4961-b9db-3fcc87cbea83,1,"One sunny Sunday, Bill, a clever monkey, found a shiny gold coin.","Isang maaraw na Linggo, si Bill, isang matalinong unggoy, ay nakakita ng makinang na gintong barya."
+81,18667b4a-ec48-4961-b9db-3fcc87cbea83,2,"Bill went to his friends, Warty Pig and Frog, and asked for advice.","Lumapit si Bill sa kanyang mga kaibigan, sina Warty Pig at Frog, at humingi ng payo."
+82,18667b4a-ec48-4961-b9db-3fcc87cbea83,3,"At the busy market, he found bananas on sale and said, ""How lucky!""","Sa masiglang pamilihan, nakita niya ang mga saging na naka-sale at sinabi, ""Ang swerte!"""
+83,18667b4a-ec48-4961-b9db-3fcc87cbea83,4,Bill became known as the smartest monkey in Pine Forest because he saved coins and bought cheap food.,Nakilala si Bill bilang pinakamatalinong unggoy sa Pine Forest dahil nag-ipon siya ng barya at bumili ng murang pagkain.
+84,85489db2-366b-4aba-bfec-d415e07ea58b,1,I live in a small village.,Nakatira ako sa isang maliit na baryo.
+85,85489db2-366b-4aba-bfec-d415e07ea58b,2,My siblings save money for our father's birthday.,Nag-iipon ng pera ang aking mga kapatid para sa kaarawan ng aming ama.
+86,85489db2-366b-4aba-bfec-d415e07ea58b,3,We have to use our talents to make other people happy.,Kailangan naming gamitin ang aming mga talento upang pasayahin ang ibang tao.
+87,85489db2-366b-4aba-bfec-d415e07ea58b,4,I bought eleven pencils and seven notebooks.,Bumili ako ng labing-isang lapis at pitong kuwaderno.
+88,85489db2-366b-4aba-bfec-d415e07ea58b,5,I saw a pilandok in the forest.,Nakakita ako ng pilandok sa gubat.
+89,05d87818-b7e7-4547-9bd1-519ad6af9a25,1,"Maria had an idea, fun and bright. She wanted to guess and get it right.",Nagkaroon si Maria ng ideya na masaya at mahusay. Gusto niyang manghula at tamaan ang sagot.
+90,05d87818-b7e7-4547-9bd1-519ad6af9a25,2,Maria practiced without fear because her math quiz was coming near.,Nagpraktis si Maria nang walang takot dahil malapit na ang kanyang pagsusulit sa matematika.
+91,05d87818-b7e7-4547-9bd1-519ad6af9a25,3,"If they're parallel, they'll never touch, side by side!","Kung parallel ang mga ito, hindi sila kailanman magtatagpo, magkatabi lamang!"
+92,05d87818-b7e7-4547-9bd1-519ad6af9a25,4,"If they intersect, they cross just so, making angles!","Kung nag-iintersect ang mga ito, nagkakasalubong sila at bumubuo ng mga anggulo!"
+93,05d87818-b7e7-4547-9bd1-519ad6af9a25,5,Maria smiled with shining eyes after she saw her test result.,Ngumiti si Maria nang may kumikislap na mga mata matapos niyang makita ang resulta ng kanyang pagsusulit.
+94,2b0643d1-1d18-423e-8133-d8b24647254b,1,"With fur as soft as the first light of dawn, the kitten rested quietly in the garden.","Sa balahibong kasing lambot ng unang liwanag ng bukang-liwayway, tahimik na nagpahinga ang kuting sa hardin."
+95,2b0643d1-1d18-423e-8133-d8b24647254b,2,"Exploring the stems and leaves, the kitten discovered a world full of wonders.","Habang sinusuri ang mga tangkay at dahon, natuklasan ng kuting ang mundong puno ng mga kababalaghan."
+96,2b0643d1-1d18-423e-8133-d8b24647254b,3,"With gratitude in our hearts, we humbly pray for guidance and love.","May pasasalamat sa aming mga puso, kami ay mapagkumbabang nananalangin para sa gabay at pagmamahal."
+97,2b0643d1-1d18-423e-8133-d8b24647254b,4,"Recycle, reduce, and reuse to help protect the Earth.","Mag-recycle, magbawas, at muling gamitin upang maprotektahan ang mundo."
+98,2b0643d1-1d18-423e-8133-d8b24647254b,5,"Beneath the vast sky, the kitten found its place in the world.","Sa ilalim ng napakalawak na langit, natagpuan ng kuting ang kanyang lugar sa mundo."
+99,706535eb-a87d-4188-9b20-f788aed4adbe,1,Emma is in a science class.,Nasa klase ng agham si Emma.
+100,706535eb-a87d-4188-9b20-f788aed4adbe,2,The teacher claps her hands.,Pumalakpak ang guro
+101,706535eb-a87d-4188-9b20-f788aed4adbe,3,Emma hears the sound come back.,Narinig ni Emma ang tunog na bumalik.
+102,706535eb-a87d-4188-9b20-f788aed4adbe,4,The teacher says this sound is called an echo.,Sinabi ng guro na ang tunog na ito ay tinatawag na echo.

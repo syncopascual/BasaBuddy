@@ -146,6 +146,7 @@ class _StoryShellState extends State<StoryShell> {
 
     ///FETCH MULTIPLE CHOICE EXERCISES
     try {
+      print("MY STORY ID: ${widget.storyId}");
 
       mulcho = await DatabaseHelper.instance.queryWhere('mulcho_exercise', Mulcho.fromJson, 'story_id = ?', [widget.storyId]);
       print("STORYSHELL.dart: mulcho fetched");
@@ -261,6 +262,7 @@ class _StoryShellState extends State<StoryShell> {
     }
 
     try {
+      print("MY MULCHO: ${wrappedMulcho}, MY MATCH: ${wrappedMatchData}");
       List<StoryItem> wrappedExercises = wrappedMulcho +
           wrappedFillBlankData +
           wrappedMatchData +
@@ -292,19 +294,36 @@ class _StoryShellState extends State<StoryShell> {
   ///called inside _fetchPagesNexercises(), orders the items
   List<StoryItem> orderItems(List<PageItem> pages, List<StoryItem?> exercises) {
     List<StoryItem> ordered = [];
+    print("MY PAGES $pages");
+    if (pages.isEmpty) {
+      print("EXERCISING! $exercises");
+      for (var ex in exercises) {
+        print("MY EX IS $ex");
+        if (ex != null && ex.data.afterPage == 0) {
+          ordered.add(ex);
+        }
+      }
+      print("ORDER UP: $ordered");
+      return ordered;
+    }
     for (int i = 1; i <= pages.length; i++) {
-      ///page 1 to ...
-      final page = pages.firstWhere(
-            (m) => m.data.pageNum == i,
-      );
+      final page = pages.firstWhere((m) => m.data.pageNum == i);
+
+      /// exercises before first page
+      if (i == 1) {
+        for (var ex in exercises) {
+          if (ex?.data.afterPage == 0) {
+            ordered.add(ex!);
+          }
+        }
+      }
 
       ordered.add(page);
-      //print("orderItems() -> iterating over exercises");
 
-      ///iterate over questions, check if it comes after page i
-      for (int j = 0; j < exercises.length; j++) {
-        if (exercises[j]?.data.afterPage == i) {
-          ordered.add(exercises[j]!);
+      /// exercises after this page
+      for (var ex in exercises) {
+        if (ex?.data.afterPage == i) {
+          ordered.add(ex!);
         }
       }
     }
@@ -411,6 +430,23 @@ class _StoryShellState extends State<StoryShell> {
           if (snapshot.hasData) {
             ///the loaded data
             var orderedStoryItems = snapshot.data!;
+
+            if (orderedStoryItems.isEmpty) {
+              return Container(
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/bg_images/grassy.png"),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: const Center(
+                  child: Text(
+                    "This stage has no story pages yet.",
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                ),
+              );
+            }
             //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
 
             return Container(

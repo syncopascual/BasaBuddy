@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:basabuddy/components/VoiceService.dart';
 
+
 enum TileState { normal, selected, correct, wrong, disabled }
 
 class MatchColumns extends StatefulWidget {
@@ -28,6 +29,7 @@ class _MatchColumnsState extends State<MatchColumns> {
   final Map<String, TileState> tileStates = {};
   final Set<String> matchedWords = {};
   final VoiceService _voice = VoiceService();
+  
 
   @override
   void initState() {
@@ -57,6 +59,10 @@ class _MatchColumnsState extends State<MatchColumns> {
 
     // Prevent selecting two from same column
     if (firstIsLeft == isLeft) return;
+
+    double cardHeight = 420; // your container height
+    int numTiles = widget.pairs.length; // 5
+    double tileHeight = (cardHeight - 36*2 - 16 - 6*(numTiles*2)) / numTiles;
     
     final firstWord = firstSelection!;
     final isCorrect = widget.pairs[firstWord] == word ||
@@ -111,44 +117,51 @@ class _MatchColumnsState extends State<MatchColumns> {
     }
   }
 
-  Widget buildTile(String word, bool isLeft) {
+  Widget buildTile(String word, bool isLeft, double tileHeight) {
     final state = tileStates[word]!;
 
     return GestureDetector(
       onTap: () => onTileTap(word, isLeft),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         margin: const EdgeInsets.symmetric(vertical: 6),
+        height: tileHeight,
         decoration: BoxDecoration(
           color: getColor(state),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.shade400),
         ),
         alignment: Alignment.center,
-        child: Text(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
           word,
+          textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 16),
         ),
-      ),
+      ),),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    double cardHeight = 420; // or MediaQuery if you want dynamic
+    int numTiles = widget.pairs.length; // 5 pairs
+    double tileHeight = (cardHeight - 36*2 - 16 - 6*(numTiles*2)) / numTiles;
     return Row(
       children: [
         Expanded(
           child: Column(
             children:
-            leftWords.map((w) => buildTile(w, true)).toList(),
+            leftWords.map((w) => buildTile(w, true, tileHeight)).toList(),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             children:
-            rightWords.map((w) => buildTile(w, false)).toList(),
+            rightWords.map((w) => buildTile(w, false, tileHeight)).toList(),
           ),
         ),
       ],

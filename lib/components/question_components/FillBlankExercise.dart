@@ -114,7 +114,7 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      Text(statement1, style: const TextStyle(fontSize: 20)),
+                      Text(statement1 == "none" ? "" : statement1, style: const TextStyle(fontSize: 20)),
 
                       GestureDetector(
                         onTap: unselect,
@@ -140,16 +140,18 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
                         ),
                       ),
 
-                      Text(statement2, style: const TextStyle(fontSize: 20)),
+                      Text(statement2 == "none" ? "" : statement2, style: const TextStyle(fontSize: 20)),
                       IconButton(
                           icon: const Icon(Icons.volume_up),
                           onPressed: () async {
                             await _voice.stop();
-                            List<String> statements = [statement1];
+                            List<String> statements = [statement1 == "none" ? "" : statement1];
                             if (selectedIndex != null) {
                               statements.add(choices[selectedIndex!]);
                             }
-                            statements.add(statement2);
+                            if (statement2 != "none") {
+                              statements.add(statement2);
+                            }
                             await _voice.speakSequence(statements, state.isEnglish, pauseMs: 300);
                           },
                       ),

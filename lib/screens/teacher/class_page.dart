@@ -374,7 +374,12 @@ class ClassPage extends StatelessWidget {
                               context.push('/teacher/add_story_page', extra: classId);
                             },
                             child: Text("Add a New Story", style: TextStyle(color: Colors.black))),
-
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(209, 255, 193, 7)),
+                            onPressed: (){
+                              context.push('/teacher/add_questions_page', extra: classId);
+                            },
+                            child: Text("Add New Questions", style: TextStyle(color: Colors.black))),
                         ],
                       ),
                     ),

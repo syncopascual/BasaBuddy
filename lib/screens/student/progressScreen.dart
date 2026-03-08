@@ -21,11 +21,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
   void loadData() async {
     try {
       final data = await getLevelsandStreakData();
+      if (!mounted) return;
       setState(() {
         levelsAndStreakData = data;
         loading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         error = e.toString();
         loading=false;

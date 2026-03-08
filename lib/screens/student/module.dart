@@ -61,11 +61,7 @@ class _ModuleState extends State<Module> {
       for(int i = 0; i< stories.length;i++){
 
         try{
-          String url = Supabase.instance.client
-            .storage
-            .from('story-thumbnails')
-            .getPublicUrl('$folder/default.png');
-          storyThumbnails[stories[i].storyId] = url;
+          storyThumbnails[stories[i].storyId] = 'assets/story_thumbnails/teachers_pick/default.png';
         }
         catch (e) {
           print('Error listing files: $e');

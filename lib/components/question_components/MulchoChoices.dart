@@ -37,14 +37,14 @@ class _MulchoChoicesState extends State<MulchoChoices> {
             builder: (context, selectedIndex, child) {
               return Container(
                 alignment: Alignment.center,
-                height: 40,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                 width: 10,
                 margin: EdgeInsets.all(10),//todo: unhardcode?
                 decoration: BoxDecoration(
                   color:  selectedIndex == index ? selected : mulchoChoice,
                   borderRadius: BorderRadius.all(Radius.circular(15)),
                 ),
-                child: Text(widget.choices[index], style: TextStyle(fontSize: 16),),
+                child: Text(widget.choices[index], textAlign: TextAlign.center, style: TextStyle(fontSize: 16),),
 
                 //child: Center(child: Text('Item $index')),
               );
