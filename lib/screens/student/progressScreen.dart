@@ -181,71 +181,86 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final streak = levelsAndStreakData!['streak'];
     
     return Scaffold(
-      backgroundColor: const Color(0xFF66E1DD),
+      backgroundColor: const Color(0xFFFFF9E6),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
+        child: SingleChildScrollView(
+          child:Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFD8F7F3),
-              borderRadius: BorderRadius.circular(12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFFFF),
+                border: Border.all(
+                  color: const Color(0xFFF6E7B0),
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  const Text(
+                    "Your Reading Journey",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F3D4C),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      StatTile(icon: Icons.menu_book, label: "Stories", value: "7"),
+                      StatTile(icon: Icons.local_fire_department, label: "Streak", value: streak.toString()),
+                      StatTile(icon: Icons.abc, label: "Vocab", value: vocab_lvl.toString()),
+                      StatTile(icon: Icons.auto_stories, label: "Narrative", value: narrative_lvl.toString()),
+                      StatTile(icon: Icons.article, label: "Info Texts", value: information_lvl.toString()),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [Text(
-              "Your Reading Journey",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "Stories Completed: ",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "Reading Streak: $streak",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "Vocabulary: $vocab_lvl",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "Narrative Stories: $narrative_lvl",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "Information Texts: $information_lvl",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),]
-            )),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFD8F7F3),
+              color: const Color(0xFFFFFFFF),
+              border: Border.all( // Corrected line
+                color: const Color(0xFFF6E7B0),
+                width: 1.5, // Specify the width of the border
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  "My Classes",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  "Module Progress",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0F3D4C)),
                 ),
                 const SizedBox(height: 12),
-                const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: () => _showJoinClassSheet(context), 
-                  icon: const Icon(Icons.add),
-                  label: const Text("Join a New Class", style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF35ADD3),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+                ModuleProgress(
+                  title: "Vocabulary",
+                  progress: 0.6,
+                  color: Colors.orange,
+                ),
+
+                ModuleProgress(
+                  title: "Narrative",
+                  progress: 0.4,
+                  color: Color(0xFFE5CAF3),
+                ),
+
+                ModuleProgress(
+                  title: "Informational",
+                  progress: 0.3,
+                  color: Color(0xFF6DC544),
                 ),
               ],
             ),
@@ -254,23 +269,30 @@ class _ProgressScreenState extends State<ProgressScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFD8F7F3),
+              color: const Color(0xFFFFFFFF),
+              border: Border.all( // Corrected line
+                color: const Color(0xFFF6E7B0),
+                width: 1.5, // Specify the width of the border
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Account Info",
+                  "Skills You Practiced",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    const Text("Email"),
+                    SkillIcon(icon: Icons.lightbulb, label: "Inference"),
+                    SkillIcon(icon: Icons.search, label: "Context"),
+                    SkillIcon(icon: Icons.format_list_numbered, label: "Sequence"),
+                    SkillIcon(icon: Icons.star, label: "Main Idea"),
                   ],
-                ),
+                )
               ],
             ),
           ),
@@ -278,80 +300,147 @@ class _ProgressScreenState extends State<ProgressScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFD8F7F3),
+              color: const Color(0xFFFFFFFF),
+              border: Border.all( // Corrected line
+                color: const Color(0xFFF6E7B0),
+                width: 1.5, // Specify the width of the border
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Shop",
+                  "Your Badges",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(children: [
-                      ImageIcon(
-                        const AssetImage("assets/icons/fire.png"),
-                        color: Color(0xFF7FDBFF),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text("Buy a Streak Freeze"),
-                    ],),
-                    
-                    ElevatedButton(
-                      onPressed: () async {
-                        final userId = supabase.auth.currentUser?.id;
-                        if (userId == null) return;
-
-                        try {
-                          // Freeze streak until end of next day
-                          await StreakService().freezeStreak(userId);
-
-                          // Optional: show confirmation
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Streak frozen until tomorrow! ❄️')),
-                          );
-
-                          // Refresh profile data in case you want to show frozen streak in UI
-                          loadData();
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to freeze streak: $e')),
-                          );
-                        }
-                      },
-                      child: Row(children: [
-                        const SizedBox(width: 36),
-                        const Text("Buy"),
-                        const SizedBox(width: 36),
-                      ],),
-            
-                    )
+                    BadgeIcon(icon: Icons.emoji_events, color: Color(0xFFFACC15)),
+                    SizedBox(width: 10),
+                    BadgeIcon(icon: Icons.local_fire_department, color: Colors.orange),
                   ],
-                ),
+                )
               ],
             ),
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-                  onPressed: () {
-                    _logout(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    iconColor: Color(0xFFF28B82), // soft red
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    minimumSize: Size(double.infinity, 48), // full width like "Join a New Class"
-                  ),
-                  child: const Text("Logout"),
-          ),
         ],
+      ),),
       ),
+    );
+  }
+}
+
+class StatTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const StatTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 65,
+      height: 70,
+  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+  child: Column(
+    mainAxisSize: MainAxisSize.min, // <-- tightens the column
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(icon, size: 20, color: Colors.orange),
+      const SizedBox(height: 2),
+      Text(
+        value,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
       ),
+      Text(
+        label,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 10),
+      ),
+    ],
+  ),
+);
+  }
+}
+
+class ModuleProgress extends StatelessWidget {
+  final String title;
+  final double progress;
+  final Color color;
+
+  const ModuleProgress({
+    required this.title,
+    required this.progress,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: TextStyle(fontWeight: FontWeight.w600)),
+        SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 10,
+            backgroundColor: Colors.grey.shade200,
+            color: color,
+          ),
+        ),
+        SizedBox(height: 14),
+      ],
+    );
+  }
+}
+
+class SkillIcon extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const SkillIcon({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 26,
+          backgroundColor: Color(0xFFFFF3C4),
+          child: Icon(icon, color: Colors.orange),
+        ),
+        SizedBox(height: 6),
+        Text(label, style: TextStyle(fontSize: 12))
+      ],
+    );
+  }
+}
+
+class BadgeIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+
+  const BadgeIcon({required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: color.withOpacity(0.2),
+      child: Icon(icon, color: color, size: 28),
     );
   }
 }

@@ -19,8 +19,8 @@ class StudentHomeShell  extends StatelessWidget {
   int _locationToIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
 
-    if (location.startsWith('/b')) return 1;
-    if (location.startsWith('/c')) return 2;
+    if (location.startsWith('/student/progressScreen')) return 1;
+    if (location.startsWith('/student/profileScreen')) return 2;
     return 0;
   }
 
