@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:basabuddy/components/StreakServices.dart';
+import 'dart:io';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -32,17 +33,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       error = null;
     });
 
-    final connected = await _checkInternet();
-    if (!connected) {
+    try {
+      await loadData(); // will handle SocketException internally
+    } catch (_) {
       setState(() {
         hasInternet = false;
         loading = false;
       });
-      return;
     }
-
-    setState(() => hasInternet = true);
-    await loadData();
   }
 
   Future<void> loadData() async {
@@ -51,11 +49,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         profileData = data;
         loading = false;
+        hasInternet = true; // success means we have internet
+      });
+    } on SocketException catch (_) {
+      setState(() {
+        error = null;
+        loading = false;
+        hasInternet = false; // show offline page
       });
     } catch (e) {
       setState(() {
         error = e.toString();
         loading = false;
+        hasInternet = true; // we tried to connect, just some other error
       });
     }
   }
