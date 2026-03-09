@@ -139,6 +139,7 @@ class _MatchColumnsState extends State<MatchColumns> {
           word,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 16),
+          softWrap: true,                // allow multiple lines
         ),
       ),),
     );

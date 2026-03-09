@@ -38,6 +38,7 @@ class FillBlankData {
   final int afterPage;
 
   final String skill;
+  final bool isStandalone;
 
   FillBlankData({
     required this.id,
@@ -52,6 +53,7 @@ class FillBlankData {
     required this.tagalogStatement2,
     required this.tagalogChoices,
     required this.tagalogAnswer,
+    required this.isStandalone
 
   });
 

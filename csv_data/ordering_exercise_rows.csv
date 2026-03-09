@@ -1,7 +1,7 @@
-id,data,story_id,after_page,skill,tagalog_data
-1,"{""1"":""Mila is in the forest"",""2"":""There are fruits in the forest"",""3"":""Mila sees an object""}",10efe7f8-1a53-4717-9d8b-cdd50d736fbd,3,story details,"{""1"":""Si Mila ay nasa gubat"",""2"":""May prutas sa gubat"",""3"":""May nakita si Mila""}"
-4,"{""1"":""She studied for the test"",""2"":""She got a perfect score"",""3"":""She woke up""}",a351097b-2e32-4d98-9d33-5c8f7fe824ab,2,story details,"{""1"":""Nag-aral siya para sa pagsusulit"",""2"":""Nakakuha siya ng perpektong marka"",""3"":""Nagising siya""}"
-5,"{""1"":""Eat"",""2"":""Sleep"",""3"":""Study""}",828e7a23-82e5-45d3-9466-e9daf113973b,2,story details,{}
-6,"{""1"":""Eat"",""2"":""Sleep"",""3"":""Study""}",885c73c2-2312-4ca2-9955-c74877da9a43,2,story details,{}
-7,"{""1"":""dsfasdf"",""2"":""asdfasdf"",""3"":""sdfsdfa""}",6321dd29-c310-49aa-9844-ab64188d5006,1,story details,"{""1"":""sdaf"",""2"":""asdf"",""3"":""asdf""}"
-8,"{""1"":""testing2"",""2"":""testing1"",""3"":""testing3""}",e2f8826e-99e2-4fe2-802b-9c22196e8b3c,1,story details,"{""1"":""tg2"",""2"":""tg1"",""3"":""tg3""}"
+id,data,story_id,after_page,skill,tagalog_data,is_standalone
+1,"{""1"":""Mila is in the forest"",""2"":""There are fruits in the forest"",""3"":""Mila sees an object""}",10efe7f8-1a53-4717-9d8b-cdd50d736fbd,3,story details,"{""1"":""Si Mila ay nasa gubat"",""2"":""May prutas sa gubat"",""3"":""May nakita si Mila""}",FALSE
+4,"{""1"":""She studied for the test"",""2"":""She got a perfect score"",""3"":""She woke up""}",a351097b-2e32-4d98-9d33-5c8f7fe824ab,2,story details,"{""1"":""Nag-aral siya para sa pagsusulit"",""2"":""Nakakuha siya ng perpektong marka"",""3"":""Nagising siya""}",FALSE
+5,"{""1"":""Eat"",""2"":""Sleep"",""3"":""Study""}",828e7a23-82e5-45d3-9466-e9daf113973b,2,story details,{},FALSE
+6,"{""1"":""Eat"",""2"":""Sleep"",""3"":""Study""}",885c73c2-2312-4ca2-9955-c74877da9a43,2,story details,{},FALSE
+7,"{""1"":""dsfasdf"",""2"":""asdfasdf"",""3"":""sdfsdfa""}",6321dd29-c310-49aa-9844-ab64188d5006,1,story details,"{""1"":""sdaf"",""2"":""asdf"",""3"":""asdf""}",FALSE
+8,"{""1"":""testing2"",""2"":""testing1"",""3"":""testing3""}",e2f8826e-99e2-4fe2-802b-9c22196e8b3c,1,story details,"{""1"":""tg2"",""2"":""tg1"",""3"":""tg3""}",FALSE

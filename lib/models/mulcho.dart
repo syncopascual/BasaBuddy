@@ -29,6 +29,7 @@ class Mulcho {
 
   final String skill;
 
+  final bool isStandalone;
 
   Mulcho({
     required this.id,
@@ -39,7 +40,8 @@ class Mulcho {
     required this.tagalogQuestion,
     required this.tagalogChoices,
     required this.skill,
-    required this.afterPage
+    required this.afterPage,
+    required this.isStandalone
   });
 
   factory Mulcho.fromJson(Map<String, dynamic> json) =>

@@ -43,6 +43,9 @@ class _ModuleState extends State<Module> {
         .eq('student_id', userId);
       print("classIdsResponse: $classIds");
       final classIdList = (classIds as List).map((c) => c['class_id']).toList();
+      if (classIdList.isEmpty) {
+        return [[], 1];
+      }
       print("classIdList: $classIdList");
 
       final teacherStoryFirst = await supabase
@@ -166,7 +169,7 @@ Widget build(BuildContext context) {
                       storyLevel: stories[i].level,
                       imageAsset: storyThumbnails[stories[i].storyId]!,
                       onPressed: () =>
-                          context.go('/story/${stories[i].storyId}'),
+                          context.go('/story/${stories[i].storyId}', extra: widget.moduleType == 'teachers_pick'),
                     ),
                   ),
               ],

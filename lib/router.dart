@@ -59,8 +59,10 @@ final router = GoRouter(
         GoRoute(
           path: '/story/:storyId',
           pageBuilder: (context, state) {
+            print("ROUTER EXTRA: ${state.extra}");
             final storyId = state.pathParameters['storyId']!;
-            return NoTransitionPage(child: StoryShell(storyId: storyId));
+            final isTeacher = state.extra as bool? ?? false;
+            return NoTransitionPage(child: StoryShell(storyId: storyId, isTeacherStory: isTeacher));
           },
         ),
 

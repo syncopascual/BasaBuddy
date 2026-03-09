@@ -103,8 +103,7 @@ class _MulchoExerciseState extends State<MulchoExercise> {
                       ],
                     ),
                     
-                    Container(
-                      height: 290,
+                    Expanded(
                       child: MulchoChoices(selectedContainerIndex: choiceIndex, choices: choices.values.toList(), isEnglish: state.isEnglish),
                     )
                   ],

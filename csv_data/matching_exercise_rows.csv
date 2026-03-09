@@ -1,13 +1,13 @@
-id,story_id,pairs,after_page,skill
-1,10efe7f8-1a53-4717-9d8b-cdd50d736fbd,"{""object"":""thing"",""chair"":""seat"",""forest"":""jungle""}",3,synonyms and antonyms
-4,a351097b-2e32-4d98-9d33-5c8f7fe824ab,"{""Crying"":""Studying"",""Happy"":""Eating"",""Angry"":""Inconveniences""}",2,story details
-5,828e7a23-82e5-45d3-9466-e9daf113973b,"{""Eat"":""Devour"",""Sleep"":""Rest"",""Study"":""Learn""}",2,synonyms and antonyms
-6,885c73c2-2312-4ca2-9955-c74877da9a43,"{""Sleep"":""Nap"",""Eat"":""Devour"",""Study"":""Learn""}",2,synonyms and antonyms
-7,c1526a26-08a9-4532-b5c6-da6b1a17ed49,{},1,story details
-8,1515efab-afcb-4779-bb32-08774075b40c,"{""sdfasdf"":""asdf"",""asdf"":""sdf""}",1,story details
-9,e2f8826e-99e2-4fe2-802b-9c22196e8b3c,"{""1"":""one"",""2"":""two"",""3"":""three""}",1,synonyms and antonyms
-10,18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8,"{""dam"":""A wall that holds water"",""mythical"":""Imaginary or from a story"",""preserve"":""Keep safe"",""guardians"":""People who protect something"",""villagers"":""People who live in the village""}",3,content vocabulary
-11,18667b4a-ec48-4961-b9db-3fcc87cbea83,"{""Market"":""Pamilihan"",""Bananas"":""Saging"",""Coin"":""Barya""}",3,synonyms and antonyms
-12,85489db2-366b-4aba-bfec-d415e07ea58b,"{""Happy"":""Glad"",""Talents"":""Skills"",""Make"":""Create""}",3,synonyms and antonyms
-13,2b0643d1-1d18-423e-8133-d8b24647254b,"{""Recycle"":""Use again for another purpose"",""Reduce"":""Use less"",""Reuse"":""Use again""}",4,content vocabulary
-14,706535eb-a87d-4188-9b20-f788aed4adbe,"{""Something you hear"":""Isang bagay na naririnig"",""Something you see"":""Isang bagay na nakikita"",""Something you eat"":""Isang bagay na kinakain"",""Something you draw"":""Isang bagay na iginuguhit""}",3,drawing  conclusions
+id,story_id,pairs,after_page,skill,is_standalone
+1,10efe7f8-1a53-4717-9d8b-cdd50d736fbd,"{""object"":""thing"",""chair"":""seat"",""forest"":""jungle""}",3,synonyms and antonyms,FALSE
+4,a351097b-2e32-4d98-9d33-5c8f7fe824ab,"{""Crying"":""Studying"",""Happy"":""Eating"",""Angry"":""Inconveniences""}",2,story details,FALSE
+5,828e7a23-82e5-45d3-9466-e9daf113973b,"{""Eat"":""Devour"",""Sleep"":""Rest"",""Study"":""Learn""}",2,synonyms and antonyms,FALSE
+6,885c73c2-2312-4ca2-9955-c74877da9a43,"{""Sleep"":""Nap"",""Eat"":""Devour"",""Study"":""Learn""}",2,synonyms and antonyms,FALSE
+7,c1526a26-08a9-4532-b5c6-da6b1a17ed49,{},1,story details,FALSE
+8,1515efab-afcb-4779-bb32-08774075b40c,"{""sdfasdf"":""asdf"",""asdf"":""sdf""}",1,story details,FALSE
+9,e2f8826e-99e2-4fe2-802b-9c22196e8b3c,"{""1"":""one"",""2"":""two"",""3"":""three""}",1,synonyms and antonyms,FALSE
+10,18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8,"{""dam"":""A wall that holds water"",""mythical"":""Imaginary or from a story"",""preserve"":""Keep safe"",""guardians"":""People who protect something"",""villagers"":""People who live in the village""}",3,content vocabulary,FALSE
+11,18667b4a-ec48-4961-b9db-3fcc87cbea83,"{""Market"":""Pamilihan"",""Bananas"":""Saging"",""Coin"":""Barya""}",3,synonyms and antonyms,FALSE
+12,85489db2-366b-4aba-bfec-d415e07ea58b,"{""Happy"":""Glad"",""Talents"":""Skills"",""Make"":""Create""}",3,synonyms and antonyms,FALSE
+13,2b0643d1-1d18-423e-8133-d8b24647254b,"{""Recycle"":""Use again for another purpose"",""Reduce"":""Use less"",""Reuse"":""Use again""}",4,content vocabulary,FALSE
+14,706535eb-a87d-4188-9b20-f788aed4adbe,"{""Something you hear"":""Isang bagay na naririnig"",""Something you see"":""Isang bagay na nakikita"",""Something you eat"":""Isang bagay na kinakain"",""Something you draw"":""Isang bagay na iginuguhit""}",3,drawing  conclusions,FALSE

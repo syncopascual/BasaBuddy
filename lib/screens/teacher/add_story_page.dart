@@ -525,8 +525,7 @@ class ExerciseInput extends StoryContentItem {
       data['tagalog_question'] = tagalogQuestionController.text;
       data['choices'] = englishJsonChoices;
       data['tagalog_choices'] = tagalogJsonChoices;
-      data['answer'] = correctMulchoIndex != null ? englishJsonChoices[(correctMulchoIndex! + 1).toString()] : null;
-      data['tagalog_answer'] = correctMulchoIndex != null ? tagalogJsonChoices[(correctMulchoIndex! + 1).toString()] : null;
+      data['answer'] = correctMulchoIndex != null ?(correctMulchoIndex! + 1) : null;
     }
     if(type == 'ordering'){
       final Map<String, String> englishJsonChoices = {};

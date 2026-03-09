@@ -20,6 +20,7 @@ class MatchingData {
 
 
   final String skill;
+  final bool isStandalone;
 
   MatchingData({
     required this.id,
@@ -27,6 +28,7 @@ class MatchingData {
     required this.afterPage,
     required this.pairs,
     required this.skill,
+    required this.isStandalone
   });
 
   factory MatchingData.fromJson(Map<String, dynamic> json) =>

@@ -22,7 +22,7 @@ class OrderData {
 
   final String skill;
 
-
+  final bool isStandalone;
 
   OrderData({
     required this.id,
@@ -30,7 +30,8 @@ class OrderData {
     required this.data,
     required this.skill,
     required this.afterPage,
-    required this.tagalogData
+    required this.tagalogData,
+    required this.isStandalone
   });
 
   factory OrderData.fromJson(Map<String, dynamic> json) =>

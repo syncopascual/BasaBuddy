@@ -73,8 +73,16 @@ flutter:
     - assets/bg_images/
     - assets/fonts/
     - assets/icons/
-    - assets/story_pages/10efe7f8-1a53-4717-9d8b-cdd50d736fbd/
-    - assets/story_pages/2b0643d1-1d18-423e-8133-d8b24647254b/
+    # STORY_ASSETS_START
+    - assets/story_pages\05d87818-b7e7-4547-9bd1-519ad6af9a25/
+    - assets/story_pages\10efe7f8-1a53-4717-9d8b-cdd50d736fbd/
+    - assets/story_pages\18667b4a-ec48-4961-b9db-3fcc87cbea83/
+    - assets/story_pages\18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8/
+    - assets/story_pages\2b0643d1-1d18-423e-8133-d8b24647254b/
+    - assets/story_pages\85489db2-366b-4aba-bfec-d415e07ea58b/
+    - assets/story_pages/
+# STORY_ASSETS_END
+
     - assets/story_thumbnails/default/
     - assets/story_thumbnails/information/
     - assets/story_thumbnails/narrative/

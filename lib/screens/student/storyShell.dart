@@ -34,7 +34,8 @@ import '../../utils/database_helper.dart';
 
 class StoryShell extends StatefulWidget {
   final String storyId;
-  const StoryShell({super.key, required this.storyId});
+  final bool isTeacherStory;
+  const StoryShell({super.key, required this.storyId, this.isTeacherStory = false,});
 
   @override
   State<StoryShell> createState() => _StoryShellState();
@@ -114,8 +115,24 @@ class _StoryShellState extends State<StoryShell> {
         "STORYSHELL.dart: _fetchPagesNexercises() called, storyId: ${widget.storyId}");
 
     /// Fetch the story's pages
-    List<Storypage> pages = await DatabaseHelper.instance.queryWhere('story_page', Storypage.fromJson, 'story_id = ?', [widget.storyId]);
+    List<Storypage> pages;
 
+    if (widget.isTeacherStory) {
+      final response = await Supabase.instance.client
+          .from('story_page')
+          .select()
+          .eq('story_id', widget.storyId);
+
+      pages = (response as List)
+          .map((json) => Storypage.fromJson(json))
+          .toList();
+    } else {
+      pages = await DatabaseHelper.instance.queryWhere(
+          'story_page',
+          Storypage.fromJson,
+          'story_id = ?',
+          [widget.storyId]);
+    }
 
     final List<PageItem> wrappedPages =
     pages.map((page) => PageItem(page)).toList();
@@ -146,9 +163,29 @@ class _StoryShellState extends State<StoryShell> {
 
     ///FETCH MULTIPLE CHOICE EXERCISES
     try {
-      print("MY STORY ID: ${widget.storyId}");
-
-      mulcho = await DatabaseHelper.instance.queryWhere('mulcho_exercise', Mulcho.fromJson, 'story_id = ?', [widget.storyId]);
+      if (widget.isTeacherStory) {
+        final response = await Supabase.instance.client
+            .from('mulcho_exercise')
+            .select()
+            .eq('story_id', widget.storyId);
+        print("RESPONSE: $response");
+        for (var item in response) {
+          print('--- item ---');
+          item.forEach((key, value) {
+            print('key: $key, value: $value, type: ${value.runtimeType}');
+          });
+        }
+        mulcho = (response as List)
+            .map((json) => Mulcho.fromJson(json))
+            .toList();
+        print("mulcho: $mulcho");
+      } else {
+        mulcho = await DatabaseHelper.instance.queryWhere(
+            'mulcho_exercise',
+            Mulcho.fromJson,
+            'story_id = ?',
+            [widget.storyId]);
+      }
       print("STORYSHELL.dart: mulcho fetched");
 
       ///for type safety
@@ -177,10 +214,22 @@ class _StoryShellState extends State<StoryShell> {
     late List<StoryItem> wrappedOrderData;
     try {
 
+      if (widget.isTeacherStory) {
+        final response = await Supabase.instance.client
+            .from('ordering_exercise')
+            .select()
+            .eq('story_id', widget.storyId);
 
-
-
-      orderData = await DatabaseHelper.instance.queryWhere('ordering_exercise', OrderData.fromJson, 'story_id = ?', [widget.storyId]);
+        orderData = (response as List)
+            .map((json) => OrderData.fromJson(json))
+            .toList();
+      } else {
+        orderData = await DatabaseHelper.instance.queryWhere(
+            'ordering_exercise',
+            OrderData.fromJson,
+            'story_id = ?',
+            [widget.storyId]);
+      }
       print("STORYSHELL.dart: ordering exercise fetched");
 
 
@@ -207,7 +256,22 @@ class _StoryShellState extends State<StoryShell> {
     late List<StoryItem> wrappedMatchData;
     try {
 
-      matchData = await DatabaseHelper.instance.queryWhere('matching_exercise', MatchingData.fromJson, 'story_id = ?', [widget.storyId]);
+      if (widget.isTeacherStory) {
+        final response = await Supabase.instance.client
+            .from('matching_exercise')
+            .select()
+            .eq('story_id', widget.storyId);
+
+        matchData = (response as List)
+            .map((json) => MatchingData.fromJson(json))
+            .toList();
+      } else {
+        matchData = await DatabaseHelper.instance.queryWhere(
+            'matching_exercise',
+            MatchingData.fromJson,
+            'story_id = ?',
+            [widget.storyId]);
+      }
       print("STORYSHELL.dart: matching exercise fetched");
 
 
@@ -234,7 +298,22 @@ class _StoryShellState extends State<StoryShell> {
     late List<StoryItem> wrappedFillBlankData;
     try {
 
-      fillBlankData = await DatabaseHelper.instance.queryWhere('fill_in_blank', FillBlankData.fromJson, 'story_id = ?', [widget.storyId]);
+      if (widget.isTeacherStory) {
+        final response = await Supabase.instance.client
+            .from('fill_in_blank')
+            .select()
+            .eq('story_id', widget.storyId);
+
+        fillBlankData = (response as List)
+            .map((json) => FillBlankData.fromJson(json))
+            .toList();
+      } else {
+        fillBlankData = await DatabaseHelper.instance.queryWhere(
+            'fill_in_blank',
+            FillBlankData.fromJson,
+            'story_id = ?',
+            [widget.storyId]);
+      }
 
       print("STORYSHELL.dart: fill in blank exercise fetched");
 
