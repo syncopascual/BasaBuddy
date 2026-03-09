@@ -7,6 +7,8 @@ import 'package:basabuddy/utils/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'bloc/connectivity_bloc.dart';
+import 'package:get_it/get_it.dart';
 
 
 Future<void> main() async {
@@ -15,6 +17,8 @@ Future<void> main() async {
     url: 'https://sdyhiksgcibobqhcaofq.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkeWhpa3NnY2lib2JxaGNhb2ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTE3NDMsImV4cCI6MjA4NDM2Nzc0M30.wqzcjBBDwBnkxWszrkMq-wxwH5O2WrBEEHgEKzWQdAY',
   );
+
+  setupGetIt();
 
   ///Setup database
   final db = await DatabaseHelper.instance.db;
@@ -48,6 +52,12 @@ Future<void> main() async {
 
 
   runApp(MyApp());
+}
+void setupGetIt() {
+  final getIt = GetIt.instance;
+
+  // Create and register connectivity bloc
+  getIt.registerSingleton<ConnectivityBloc>(ConnectivityBloc());
 }
 
 

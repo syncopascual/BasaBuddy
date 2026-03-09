@@ -13,7 +13,7 @@ class StoryButton extends StatelessWidget {
     required this.storyLevel,
     required this.imageAsset,
     required this.onPressed,
-    this.size = 64,
+    this.size = 90,
   });
 
   bool get isCompleted => userLevel > storyLevel;

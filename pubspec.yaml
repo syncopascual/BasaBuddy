@@ -43,6 +43,8 @@ dependencies:
   csv: ^6.0.0
   connectivity_plus: ^7.0.0
   flutter_tts: 3.8.5
+  equatable: ^2.0.8
+  get_it: ^9.2.1
 
 dev_dependencies:
   flutter_test:
@@ -74,12 +76,12 @@ flutter:
     - assets/fonts/
     - assets/icons/
     # STORY_ASSETS_START
-    - assets/story_pages\05d87818-b7e7-4547-9bd1-519ad6af9a25/
-    - assets/story_pages\10efe7f8-1a53-4717-9d8b-cdd50d736fbd/
-    - assets/story_pages\18667b4a-ec48-4961-b9db-3fcc87cbea83/
-    - assets/story_pages\18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8/
-    - assets/story_pages\2b0643d1-1d18-423e-8133-d8b24647254b/
-    - assets/story_pages\85489db2-366b-4aba-bfec-d415e07ea58b/
+    - assets/story_pages/05d87818-b7e7-4547-9bd1-519ad6af9a25/
+    - assets/story_pages/10efe7f8-1a53-4717-9d8b-cdd50d736fbd/
+    - assets/story_pages/18667b4a-ec48-4961-b9db-3fcc87cbea83/
+    - assets/story_pages/18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8/
+    - assets/story_pages/2b0643d1-1d18-423e-8133-d8b24647254b/
+    - assets/story_pages/85489db2-366b-4aba-bfec-d415e07ea58b/
     - assets/story_pages/
 # STORY_ASSETS_END
 

@@ -1,8 +1,10 @@
 import 'package:basabuddy/screens/student/module.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../bloc/connectivity_bloc.dart';
 import '../../colors.dart';
 
 class StudentHome  extends StatefulWidget {
@@ -24,35 +26,35 @@ class _StudentHomeState extends State<StudentHome > {
               fit: BoxFit.cover,
             ),),
           Positioned(
-            top: 290,
+            top: 270,
             left: 170,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: vocabButton,
                 textStyle: TextStyle(
                   fontWeight: FontWeight.w900,
-                  fontSize: 24,
+                  fontSize: 20,
                 )),
               onPressed: (){
                 context.push('/student/home/module/vocab');
               },
-              child: Text("Vocab Island", style: TextStyle(color: textColor))),
+              child: Text("Vocab Island", style: TextStyle(color: textColor, fontFamily: 'Nunito'))),
           ),
 
           Positioned(
-            top: 440,
-            left: 190,
+            top: 420,
+            left: 180,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: informationButton,
                 textStyle: TextStyle(
                   fontWeight: FontWeight.w900,
-                  fontSize: 24,
+                  fontSize: 20,
                 )),
               onPressed: (){
                 context.push('/student/home/module/information');
               },
-              child: Text("Knowledge Island", style: TextStyle(color: textColor))),
+              child: Text("Knowledge Island", style: TextStyle(color: textColor, fontFamily: 'Nunito'))),
           ),
 
           Positioned(
@@ -63,29 +65,38 @@ class _StudentHomeState extends State<StudentHome > {
                 backgroundColor: narrativeButton,
                 textStyle: TextStyle(
                   fontWeight: FontWeight.w900,
-                  fontSize: 24,
+                  fontSize: 20,
                 )),
                 onPressed: (){
                   context.push('/student/home/module/narrative');
                 },
-                child: Text("Story Island", style: TextStyle(color: textColor))),
+                child: Text("Story Island", style: TextStyle(color: textColor, fontFamily: 'Nunito'))),
           ),
-          Positioned(
-            top: 340,
-            left: -20,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: teachersPickButton,
-                textStyle: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 24,
-                )),
-              onPressed: () {
-                context.push('/student/home/module/teachers_pick');
-              },
-              child: Text("Teachers' Pick Island", style: TextStyle(color: textColor)),
-            ),
+
+          /// Teachers' Pick Island Button — only shown when online
+          BlocBuilder<ConnectivityBloc, ConnectivityState>(
+            builder: (context, state) {
+              final isOnline = state is ConnectivitySuccess && state.isConnected;
+              if (!isOnline) return const SizedBox.shrink();
+              return  Positioned(
+                top: 320,
+                left: -20,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: teachersPickButton,
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 20,
+                      )),
+                  onPressed: () {
+                    context.push('/student/home/module/teachers_pick');
+                  },
+                  child: Text("Teachers' Pick Island", style: TextStyle(color: textColor, fontFamily: 'Nunito')),
+                ),
+              );
+            },
           ),
+
 
         ]
       ),

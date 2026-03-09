@@ -1,9 +1,11 @@
 import 'package:basabuddy/components/TopAppBar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bloc/connectivity_bloc.dart';
 import '../bloc/money_bloc.dart';
 import '../bloc/translation_bloc.dart';
 import '../colors.dart';
@@ -60,6 +62,7 @@ class StudentHomeShell  extends StatelessWidget {
         BlocProvider(
             lazy: false,
             create: (BuildContext context) => translationBloc),
+        BlocProvider(lazy: false, create: (BuildContext context) => GetIt.instance<ConnectivityBloc>()),
       ],
       child: Scaffold(
         appBar: TopAppBar(screenWidth),

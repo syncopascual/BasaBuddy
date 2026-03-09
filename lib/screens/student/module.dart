@@ -152,7 +152,7 @@ Widget build(BuildContext context) {
 
         final totalHeight = topPadding + bottomPadding +
             (stories.length - 1) * verticalSpacing + 150; // extra buffer for last button
-        final offsets = [0, 50, 100, 50, 0, -50, -100, -50];
+        final offsets = [0, 70, 0, -70, 0, 70];
 
         return SingleChildScrollView(
           child: SizedBox(
