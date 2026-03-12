@@ -16,7 +16,7 @@ Mulcho _$MulchoFromJson(Map<String, dynamic> json) => Mulcho(
       tagalogChoices: Map<String, String>.from(json['tagalog_choices'] as Map),
       skill: json['skill'] as String,
       afterPage: int.tryParse(json['after_page'].toString()) ?? 0,
-      isStandalone: json['is_standalone'] as bool,
+      isStandalone: json['is_standalone'].toString().toLowerCase() == 'true'
     );
 
 Map<String, dynamic> _$MulchoToJson(Mulcho instance) => <String, dynamic>{

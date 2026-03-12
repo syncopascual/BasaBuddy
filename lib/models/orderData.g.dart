@@ -13,7 +13,7 @@ OrderData _$OrderDataFromJson(Map<String, dynamic> json) => OrderData(
       skill: json['skill'] as String,
       afterPage: (json['after_page'] as num).toInt(),
       tagalogData: Map<String, String>.from(json['tagalog_data'] as Map),
-      isStandalone: json['is_standalone'] as bool,
+      isStandalone: json['is_standalone'].toString().toLowerCase() == 'true',
     );
 
 Map<String, dynamic> _$OrderDataToJson(OrderData instance) => <String, dynamic>{
