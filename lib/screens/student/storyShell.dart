@@ -356,6 +356,7 @@ class _StoryShellState extends State<StoryShell> {
         totalAttempts[skill] = 0;
       }
       firstAttemptObjects = wrappedExercises;
+      print("ordering items...");
 
       ///order this correctly
       final orderedItems = orderItems(wrappedPages, wrappedExercises);
@@ -384,6 +385,9 @@ class _StoryShellState extends State<StoryShell> {
       }
       print("ORDER UP: $ordered");
       return ordered;
+    }
+    if(exercises.isEmpty){
+      return pages;
     }
     for (int i = 1; i <= pages.length; i++) {
       final page = pages.firstWhere((m) => m.data.pageNum == i);
