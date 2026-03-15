@@ -30,6 +30,38 @@ class DatabaseHelper {
       )
     ''');
 
+    await db.execute('''
+        CREATE TABLE stage_level (
+          user_id TEXT,
+          story_id TEXT,
+          skill TEXT,
+          total_items INTEGER,
+          total_attempts INTEGER,
+          first_attempt_correct INTEGER,
+          date TEXT,
+          PRIMARY KEY (user_id, story_id, skill)
+        )
+      ''');
+
+    await db.execute('''
+      CREATE TABLE user_level_info (
+        user_id TEXT PRIMARY KEY,
+        vocab_lvl INTEGER,
+        narrative_lvl INTEGER,
+        information_lvl INTEGER
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE user_streak (
+        user_id TEXT PRIMARY KEY,
+        current_streak INTEGER,
+        longest_streak INTEGER,
+        last_active_date TEXT,
+        streak_frozen_until TEXT
+      )
+      ''');
+
     await db.insert('user_money', {
       'user_id': 'your_user_id',//TODO:: add actual user id from supabase?
       'money': 0,

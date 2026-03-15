@@ -32,6 +32,7 @@ class _TopAppBarState extends State<TopAppBar> {
       if (user == null) return;
 
       final fetchedStreak = await StreakService().getCurrentStreak(user.id);
+      print("FETCHED STREAK: $fetchedStreak");
       streakNotifier.value = fetchedStreak;
     } catch (e) {
       print("Error fetching streak: $e");

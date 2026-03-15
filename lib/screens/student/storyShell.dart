@@ -17,6 +17,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:basabuddy/components/StreakServices.dart';
 import 'package:basabuddy/components/StreakNotifier.dart';
+import 'package:basabuddy/utils/database_helper.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../../colors.dart';
 import '../../components/question_components/FillBlankExercise.dart';
@@ -45,17 +47,36 @@ void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalI
     Map<String, int> firstAttemptCorrect) async
 {
   try{
-    print("addStageData called");
+    print("addStageData called: $storyId, skillScores: $skillScores, totalItems:$totalItems, totalAttempts$totalAttempts");
     //get user id from user_level_info table
-    var rawUserLevel =
-    await Supabase.instance.client.from('user_level_info').select();
-    String userId = rawUserLevel[0]['user_id'];
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+    String userId = user.id;
     String safeDate = DateTime.now().toIsoDate();
 
-    skillScores.forEach((key, value) async {
+    for (final entry in skillScores.entries)  {
+      final key = entry.key;
+      final value = entry.value;
+      final db = await DatabaseHelper.instance.db;
+      print("KEY: $key, VALUE: $value, TOTAL ITEMS: $totalItems, totalAttempts:$totalAttempts, firstAttemptCorrect:$firstAttemptCorrect");
       if(totalItems.containsKey(key) && totalAttempts.containsKey(key) && firstAttemptCorrect.containsKey(key)){
+        
+        await db.insert(
+          "stage_level",
+          {
+            "user_id": userId,
+            "story_id": storyId,
+            "skill": key,
+            "total_items": totalItems[key]!,
+            "total_attempts": totalAttempts[key]!,
+            "first_attempt_correct": firstAttemptCorrect[key]!,
+            "date": safeDate,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
         //for each skill, add a row to stage_data
-        await Supabase.instance.client
+        try {
+          await Supabase.instance.client
             .from('stage_level')
             .insert(StageData(
             storyId: storyId,
@@ -66,9 +87,11 @@ void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalI
             date: safeDate,
             skill: key)
             .toJson());
+        } catch (e) {}
+        
       }
 
-    });
+    };
   } catch(e) {
     print("error uploading data");
   }

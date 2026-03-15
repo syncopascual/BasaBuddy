@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:basabuddy/utils/offline_sync.dart';
 
 import '../colors.dart';
 
@@ -45,6 +45,11 @@ class _LoginState extends State<Login> {
 
       if (!mounted) return;
       if (role =='student') {
+        try {
+          syncUserProgress();
+        } catch (e) {
+          print("Offline sync failed: $e");
+        }
         context.go('/student/home');
       } else if (role == 'teacher'){
         context.go('/teacher/home');
