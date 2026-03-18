@@ -16,6 +16,31 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Map<String, dynamic>? levelsAndStreakData;
   bool loading = true;
   String? error;
+  List<String> skillsPracticed = [];
+  final Map<String, IconData> skillIcons = {
+    // Vocabulary skills
+    'sight words': Icons.remove_red_eye,           // seeing words
+    'word patterns': Icons.pattern,                // pattern icon
+    'word functions': Icons.functions,            // fx / function symbol
+    'synonyms antonyms': Icons.sync_alt,          // interchange / pair
+    'word roots': Icons.account_tree,             // tree/root symbol
+    'content vocabulary': Icons.menu_book,        // book
+
+    // Narrative comprehension skills
+    'story elements': Icons.auto_stories,         // story/book
+    'sequence': Icons.format_list_numbered,      // numbered list
+    'problem solution': Icons.lightbulb,          // idea / solution
+    'character traits': Icons.person,             // person icon
+    'cause effect': Icons.call_split,             // split / branching
+    'prediction': Icons.visibility,               // looking ahead
+    'summary': Icons.notes,                       // summary / note icon
+
+    // Informational text skills
+    'key details': Icons.star,                     // important / highlight
+    'text structure': Icons.view_week,            // structured blocks
+    'discourse markers': Icons.compare_arrows,    // linking / relation
+    'drawing conclusions': Icons.check_circle,    // conclusion / correct
+  };
 
   @override
   void initState() {
@@ -41,68 +66,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
     }
     
   }
-
-  void _showJoinClassSheet(BuildContext context) {
-    final codeController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context, 
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 20,
-            right: 20,
-            top: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                "Join a Class",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                "Enter the class code your teacher gave you.",
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: codeController,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(
-                  hintText: "Class Code",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  final code = codeController.text.trim();
-                  if (code.isNotEmpty) {
-                    _joinClass(code);
-                    Navigator.pop(context);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color (0xFF4CAF50),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: const Text("Join Class"),
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
+  String capitalizeEachWord(String input) {
+    return input
+        .split(' ')
+        .map((word) => word.isNotEmpty
+            ? word[0].toUpperCase() + word.substring(1).toLowerCase()
+            : '')
+        .join(' ');
   }
+
   final supabase = Supabase.instance.client;
 
   Future<bool> hasInternet() async {
@@ -214,6 +186,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           'total_vocab': vocab,
           'total_info': info,
           'total_narrative': narrative,
+          'skillsPracticed': [],
         };
       }
       final completedStoryIds = uniqueStoryIds; // e.g., ['id1', 'id2', 'id3']
@@ -233,12 +206,27 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
       for (final story in storiesWithModules) {
         final module = story['module'] as String;
-        final storyId = story['id'] as String;
+        final storyId = story['story_id'] as String;
 
         if (modulesMap.containsKey(module)) {
           modulesMap[module]!.add(storyId);
         }
       }
+
+      final completedSkillsRes = await supabase
+        .from('stage_level')
+        .select('skill')
+        .eq('user_id', userId);
+
+      final uniqueSkills = <String>{};
+      for (final row in completedSkillsRes) {
+        final skill = row['skill'] as String;
+        uniqueSkills.add(skill);
+      }
+      final skillsWithIcons = uniqueSkills.map((s) => {
+        'skill': s,
+        'icon': skillIcons[s] ?? Icons.help_outline,
+      }).toList();
 
       print("${modulesMap['vocab']!.length}, ${modulesMap['information']!.length}, ${modulesMap['vocab']!.length}");
       await db.insert(
@@ -263,6 +251,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         'total_vocab': vocab,
         'total_info': info,
         'total_narrative': narrative,
+        'skillsPracticed': skillsWithIcons,
       };
     } else {
       final localLevels = await db.query(
@@ -300,6 +289,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           'total_vocab': vocab,
           'total_info': info,
           'total_narrative': narrative,
+          'skillsPracticed': [],
         };
       }
       final completedStoryIds = uniqueStoryIds;
@@ -327,6 +317,24 @@ class _ProgressScreenState extends State<ProgressScreen> {
         }
       }
 
+      final completedSkillsRes = await db.query(
+        'stage_level',
+        columns: ['skill'],
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+
+      final uniqueSkills = <String>{};
+      for (final row in completedSkillsRes) {
+        final skill = row['skill'] as String;
+        uniqueSkills.add(skill);
+      }
+
+      final skillsWithIcons = uniqueSkills.map((s) => {
+        'skill': s,
+        'icon': skillIcons[s] ?? Icons.help_outline,
+      }).toList();
+
       print("${modulesMap['vocab']!.length}, ${modulesMap['information']!.length}, ${modulesMap['vocab']!.length}");
 
       int uniqueStoriesOffline = localStories.map((e) => e['story_id']).toSet().length;
@@ -345,13 +353,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
         'total_vocab': vocab,
         'total_info': info,
         'total_narrative': narrative,
+        'skillsPracticed': skillsWithIcons,
       };
     }
-  }
-
-  Future<void> _logout(BuildContext context) async {
-    await Supabase.instance.client.auth.signOut();
-    context.go('/login');
   }
 
   @override
@@ -375,7 +379,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final total_info = levelsAndStreakData!['total_info'];
     final total_narrative = levelsAndStreakData!['total_narrative'];
 
-    print("Vocab: $vocab_stories_read / $total_vocab, Info: $information_stories_read / total_info, Narrative: $narrative_stories_read / $total_narrative");
+    print("Vocab: $vocab_stories_read / $total_vocab, Info: $information_stories_read / $total_info, Narrative: $narrative_stories_read / $total_narrative");
+    print("Skills: ${levelsAndStreakData!['skillsPracticed']}");
     
     
     
@@ -466,6 +471,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
           const SizedBox(height: 24),
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: const Color(0xFFFFFFFF),
@@ -483,44 +489,31 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    SkillIcon(icon: Icons.lightbulb, label: "Inference"),
-                    SkillIcon(icon: Icons.search, label: "Context"),
-                    SkillIcon(icon: Icons.format_list_numbered, label: "Sequence"),
-                    SkillIcon(icon: Icons.star, label: "Main Idea"),
-                  ],
-                )
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFFFF),
-              border: Border.all( // Corrected line
-                color: const Color(0xFFF6E7B0),
-                width: 1.5, // Specify the width of the border
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Your Badges",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    BadgeIcon(icon: Icons.emoji_events, color: Color(0xFFFACC15)),
-                    SizedBox(width: 10),
-                    BadgeIcon(icon: Icons.local_fire_department, color: Colors.orange),
-                  ],
-                )
+                if (levelsAndStreakData!['skillsPracticed'] != null &&
+                  (levelsAndStreakData!['skillsPracticed'] as List).isNotEmpty)
+                LayoutBuilder(
+          builder: (context, constraints) {
+            final skillList = levelsAndStreakData!['skillsPracticed'] as List;
+            final spacing = 12.0; // horizontal spacing
+            final iconsPerRow = 4;
+            final iconWidth = (constraints.maxWidth - spacing * (iconsPerRow - 1)) / iconsPerRow;
+
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: skillList.map((skillMap) {
+                final skillName = capitalizeEachWord(skillMap['skill'] as String);
+                final skillIcon = skillMap['icon'] as IconData;
+                return SizedBox(
+                  width: iconWidth,
+                  child: SkillIcon(icon: skillIcon, label: skillName),
+                );
+              }).toList(),
+            );
+          },
+        )
+              else
+                const Text("No skills practiced yet."),
               ],
             ),
           ),
@@ -615,6 +608,8 @@ class SkillIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         CircleAvatar(
           radius: 26,
@@ -622,7 +617,7 @@ class SkillIcon extends StatelessWidget {
           child: Icon(icon, color: Colors.orange),
         ),
         SizedBox(height: 6),
-        Text(label, style: TextStyle(fontSize: 12))
+        Text(label, style: TextStyle(fontSize: 12), textAlign: TextAlign.center,)
       ],
     );
   }

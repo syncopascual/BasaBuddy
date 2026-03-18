@@ -464,8 +464,31 @@ class ExerciseInput extends StoryContentItem {
 
   int? correctMulchoIndex;
   int? correctFillBlanksIndex;
-  String selectedSkill = 'synonyms and antonyms';
-  final List<String> skills = ['synonyms and antonyms', 'story details'];
+  String selectedSkill = 'synonyms antonyms';
+  final List<String> skills = [
+    // Vocabulary skills
+    'sight words',
+    'word patterns',
+    'word functions',
+    'synonyms antonyms',
+    'word roots',
+    'content vocabulary',
+
+    // Narrative comprehension skills
+    'story elements',
+    'sequence',
+    'problem solution',
+    'character traits',
+    'cause effect',
+    'prediction',
+    'summary',
+
+    // Informational text skills
+    'key details',
+    'text structure',
+    'discourse markers',
+    'drawing conclusions',
+  ];
 
   final TextEditingController englishQuestionController = TextEditingController();
   final TextEditingController tagalogQuestionController = TextEditingController();

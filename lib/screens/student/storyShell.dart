@@ -43,7 +43,7 @@ class StoryShell extends StatefulWidget {
   State<StoryShell> createState() => _StoryShellState();
 }
 
-void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalItems, Map<String, int> totalAttempts,
+Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalItems, Map<String, int> totalAttempts,
     Map<String, int> firstAttemptCorrect) async
 {
   try{
@@ -74,9 +74,19 @@ void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalI
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
+        final stageData = StageData(
+          storyId: storyId,
+          userId: userId,
+          totalItems: totalItems[key]!,
+          totalAttempts: totalAttempts[key]!,
+          firstAttemptCorrect: firstAttemptCorrect[key]!,
+          date: safeDate,
+          skill: key,
+        );
+        print("Uploading to Supabase: ${stageData.toJson()}");
         //for each skill, add a row to stage_data
         try {
-          await Supabase.instance.client
+          final res = await Supabase.instance.client
             .from('stage_level')
             .insert(StageData(
             storyId: storyId,
@@ -86,8 +96,10 @@ void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalI
             firstAttemptCorrect: firstAttemptCorrect[key]!,
             date: safeDate,
             skill: key)
-            .toJson());
-        } catch (e) {}
+            .toJson())
+            .select();
+            print("Supabase insert result: $res");
+        } catch (e) {print("Supabase insert failed: $e");}
         
       }
 
@@ -657,7 +669,7 @@ class _StoryShellState extends State<StoryShell> {
       }
       print("firstAttemptCorrect, totalItems, totalAttempts");
       print("$firstAttemptCorrect, $totalItems, $totalAttempts");
-      addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
+      await addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
 
       BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
 
