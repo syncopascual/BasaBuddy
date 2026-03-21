@@ -159,7 +159,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     if (online) {
       final levelsRes = await supabase
         .from('user_level_info')
-        .select('user_id, vocab_lvl, narrative_lvl, information_lvl')
+        .select('user_id, vocab_lvl, narrative_lvl, information_lvl, updated_at')
         .eq('user_id', userId)
         .single();
 
@@ -236,6 +236,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           "vocab_lvl": levelsRes["vocab_lvl"],
           "narrative_lvl": levelsRes["narrative_lvl"],
           "information_lvl": levelsRes["information_lvl"],
+          'updated_at': levelsRes["updated_at"]
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );

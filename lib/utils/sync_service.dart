@@ -29,7 +29,8 @@ class SyncService {
       total_items INTEGER NOT NULL,
       total_attempts      INTEGER NOT NULL,
       first_attempt_correct INTEGER NOT NULL,
-      date        TEXT    NOT NULL
+      date        TEXT    NOT NULL,
+      updated_at  TEXT    NOT NULL
     )
   ''';
 
@@ -66,6 +67,7 @@ class SyncService {
         totalAttempts: row['total_attempts'] as int,
         firstAttemptCorrect: row['first_attempt_correct'] as int,
         date: row['date'] as String,
+        updatedAt: row['updated_at'] as String,
       );
 
       final uploaded = await _uploadOne(data);
@@ -95,6 +97,7 @@ class SyncService {
         'total_attempts': data.totalAttempts,
         'first_attempt_correct': data.firstAttemptCorrect,
         'date': data.date,
+        'updated_at': data.updatedAt,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );

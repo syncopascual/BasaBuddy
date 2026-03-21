@@ -25,13 +25,24 @@ class StreakService {
 
   Future<void> freezeStreak(String userId) async {
   final now = DateTime.now();
+  final db = await DatabaseHelper.instance.db;
 
   // Calculate the end of the next day (local time)
   final nextDayEnd = DateTime(now.year, now.month, now.day + 1, 23, 59, 59);
   final nextDayEndUtc = nextDayEnd.toUtc();
+  await db.update(
+    'user_streak',
+    {
+      'streak_frozen_until': nextDayEndUtc.toIso8601String(),
+      'updated_at': now,
+    },
+    where: 'user_id = ?',
+    whereArgs: [userId],
+  );
 
   await supabase.from('profiles').update({
     'streakFrozenUntil': nextDayEndUtc.toIso8601String(),
+    'updated_at': now.toUtc().toIso8601String()
   }).eq('id', userId);
 }
 
@@ -76,6 +87,7 @@ class StreakService {
     // Check if freeze is active
     if (streakFrozenUntilStr != null) {
       final frozenUntil = DateTime.parse(streakFrozenUntilStr).toUtc();
+      final now = DateTime.now().toUtc().toIso8601String();
       if (todayUtc.isBefore(frozenUntil)) {
 
         await db.insert(
@@ -85,7 +97,8 @@ class StreakService {
             "current_streak": currentStreak,
             "longest_streak": longestStreak,
             "last_active_date": todayUtc.toIso8601String(),
-            "streak_frozen_until": streakFrozenUntilStr
+            "streak_frozen_until": streakFrozenUntilStr,
+            "updated_at": now
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
@@ -116,6 +129,7 @@ class StreakService {
       newStreak = difference == 1 ? currentStreak + 1 : 1;
       if (newStreak > newLongest) newLongest = newStreak;
     }
+    final now = DateTime.now().toUtc().toIso8601String();
 
     await db.insert(
       "user_streak",
@@ -124,7 +138,8 @@ class StreakService {
         "current_streak": newStreak,
         "longest_streak": newLongest,
         "last_active_date": todayUtc.toIso8601String(),
-        "streak_frozen_until": streakFrozenUntilStr
+        "streak_frozen_until": streakFrozenUntilStr,
+        "updated_at": now
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );

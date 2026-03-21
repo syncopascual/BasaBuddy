@@ -62,7 +62,6 @@ class _MatchColumnsState extends State<MatchColumns> {
 
     double cardHeight = 420; // your container height
     int numTiles = widget.pairs.length; // 5
-    double tileHeight = (cardHeight - 36*2 - 16 - 6*(numTiles*2)) / numTiles;
     
     final firstWord = firstSelection!;
     final isCorrect = widget.pairs[firstWord] == word ||
@@ -117,7 +116,7 @@ class _MatchColumnsState extends State<MatchColumns> {
     }
   }
 
-  Widget buildTile(String word, bool isLeft, double tileHeight) {
+  Widget buildTile(String word, bool isLeft) {
     final state = tileStates[word]!;
 
     return GestureDetector(
@@ -126,22 +125,19 @@ class _MatchColumnsState extends State<MatchColumns> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         margin: const EdgeInsets.symmetric(vertical: 6),
-        height: tileHeight,
         decoration: BoxDecoration(
           color: getColor(state),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.shade400),
         ),
         alignment: Alignment.center,
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
+        child: Text(
           word,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 16),
           softWrap: true,                // allow multiple lines
         ),
-      ),),
+      ),
     );
   }
 
@@ -149,20 +145,19 @@ class _MatchColumnsState extends State<MatchColumns> {
   Widget build(BuildContext context) {
     double cardHeight = 420; // or MediaQuery if you want dynamic
     int numTiles = widget.pairs.length; // 5 pairs
-    double tileHeight = (cardHeight - 36*2 - 16 - 6*(numTiles*2)) / numTiles;
     return Row(
       children: [
         Expanded(
           child: Column(
             children:
-            leftWords.map((w) => buildTile(w, true, tileHeight)).toList(),
+            leftWords.map((w) => buildTile(w, true)).toList(),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             children:
-            rightWords.map((w) => buildTile(w, false, tileHeight)).toList(),
+            rightWords.map((w) => buildTile(w, false)).toList(),
           ),
         ),
       ],

@@ -50,6 +50,7 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
     print("addStageData called: $storyId, skillScores: $skillScores, totalItems:$totalItems, totalAttempts$totalAttempts");
     //get user id from user_level_info table
     final user = Supabase.instance.client.auth.currentUser;
+    final now = DateTime.now().toUtc().toIso8601String();
     if (user == null) return;
     String userId = user.id;
     String safeDate = DateTime.now().toIsoDate();
@@ -71,6 +72,7 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
             "total_attempts": totalAttempts[key]!,
             "first_attempt_correct": firstAttemptCorrect[key]!,
             "date": safeDate,
+            "updated_at": now,
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
@@ -81,6 +83,7 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
           totalAttempts: totalAttempts[key]!,
           firstAttemptCorrect: firstAttemptCorrect[key]!,
           date: safeDate,
+          updatedAt: now,
           skill: key,
         );
         print("Uploading to Supabase: ${stageData.toJson()}");
@@ -95,6 +98,7 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
             totalAttempts: totalAttempts[key]!,
             firstAttemptCorrect: firstAttemptCorrect[key]!,
             date: safeDate,
+            updatedAt: now,
             skill: key)
             .toJson())
             .select();
@@ -167,6 +171,7 @@ class _StoryShellState extends State<StoryShell> {
           Storypage.fromJson,
           'story_id = ?',
           [widget.storyId]);
+      print("PAGES HERE: $pages");
     }
 
     final List<PageItem> wrappedPages =
@@ -585,8 +590,14 @@ class _StoryShellState extends State<StoryShell> {
                     unfilledColor: Colors.grey,
                   ),
                 ),
-                storyWidget(
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: SingleChildScrollView(
+                    child: storyWidget(
                     orderedStoryItems[currentPage].data, "", orderedStoryItems),
+                  ),
+                ),
+                
                 SizedBox(height: 12),
 
                 ///Don't display back and next button for question items
@@ -670,6 +681,8 @@ class _StoryShellState extends State<StoryShell> {
       print("firstAttemptCorrect, totalItems, totalAttempts");
       print("$firstAttemptCorrect, $totalItems, $totalAttempts");
       await addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
+
+      if (!mounted) return; 
 
       BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
 

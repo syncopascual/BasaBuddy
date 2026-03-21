@@ -44,8 +44,8 @@ class MatchingExercise extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.all(Radius.circular(45)),
         ),
-          child: SingleChildScrollView(
-            child: Column(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 "Tap the matching pairs",
@@ -53,14 +53,14 @@ class MatchingExercise extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-              MatchColumns(
+              SingleChildScrollView( child: MatchColumns(
                 pairs: matchingData.pairs,
                 onCompleted: ()
                    => correctPopup(context, onCorrect)
                 ,
-              ),
+              ),),
             ],
-          ),),
+          ),
         ),
 
 
