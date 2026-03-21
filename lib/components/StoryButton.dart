@@ -30,7 +30,8 @@ class StoryButton extends StatelessWidget {
 
     final ColorFilter? imageFilter = isCompleted
         ? const ColorFilter.mode(
-      Color(0xFFFFC107),
+      Color(0xFFFFFFFF),
+      //Color(0xFFFFC107),
       BlendMode.modulate,
     )
         : isLocked
@@ -45,23 +46,17 @@ class StoryButton extends StatelessWidget {
     return GestureDetector(
       onTap: isLocked ? null : onPressed,
       child: Container(
-        margin: EdgeInsets.symmetric(vertical:12),
-        width: size,
-        height: size,
+
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: backgroundColor,
-          boxShadow: [
-            if (!isLocked)
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.lightBlueAccent, Colors.lightGreenAccent],
+          ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(6),
+        child: ClipOval(
           child: ColorFiltered(
             colorFilter: imageFilter ?? const ColorFilter.mode(
               Colors.transparent,
@@ -69,7 +64,9 @@ class StoryButton extends StatelessWidget {
             ),
             child: Image.asset(
               imageAsset,
-              fit: BoxFit.contain,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
             ),
           ),
         ),

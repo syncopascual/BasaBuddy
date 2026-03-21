@@ -1,8 +1,4 @@
 id,story_id,title,module,level,description,class_id
-<<<<<<< HEAD
-=======
-3,8e367b1b-d702-4cb8-bd83-8304f365fd99,The Hero's Journey,narrative,1,The journey of a hero across the world,
->>>>>>> 1a9537ea31c5370ba8738d60ffd1e709299c1e60
 30,a351097b-2e32-4d98-9d33-5c8f7fe824ab,Ultimate Story,teachers_pick,1,I'm working on a Sunday,32018df3-cb74-4237-9e4a-ca80de73812a
 31,447f0037-9686-4f96-b0de-95c9bc6f8aa8,Test Story,teachers_pick,1,Test Description,32018df3-cb74-4237-9e4a-ca80de73812a
 32,3c51ab3d-ca40-42dd-810a-4cf2cd622c26,test story,teachers_pick,1,description,32018df3-cb74-4237-9e4a-ca80de73812a
