@@ -18,7 +18,21 @@ class DatabaseHelper {
   Future<Database> _initDb() async {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'basabuddy.db');
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    return await openDatabase(path, version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade,);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      final now = DateTime.now().toUtc().toIso8601String();
+      await db.execute("ALTER TABLE stage_level ADD COLUMN updated_at TEXT");
+      await db.execute("ALTER TABLE user_level_info ADD COLUMN updated_at TEXT");
+      await db.execute("ALTER TABLE user_streak ADD COLUMN updated_at TEXT");
+
+      // Backfill existing rows with current timestamp
+      await db.execute("UPDATE stage_level SET updated_at = '$now'");
+      await db.execute("UPDATE user_level_info SET updated_at = '$now'");
+      await db.execute("UPDATE user_streak SET updated_at = '$now'");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -29,6 +43,41 @@ class DatabaseHelper {
         money INTEGER
       )
     ''');
+
+    await db.execute('''
+        CREATE TABLE stage_level (
+          user_id TEXT,
+          story_id TEXT,
+          skill TEXT,
+          total_items INTEGER,
+          total_attempts INTEGER,
+          first_attempt_correct INTEGER,
+          date TEXT,
+          updated_at TEXT,
+          PRIMARY KEY (user_id, story_id, skill)
+        )
+      ''');
+
+    await db.execute('''
+      CREATE TABLE user_level_info (
+        user_id TEXT PRIMARY KEY,
+        vocab_lvl INTEGER,
+        narrative_lvl INTEGER,
+        information_lvl INTEGER,
+        updated_at TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE user_streak (
+        user_id TEXT PRIMARY KEY,
+        current_streak INTEGER,
+        longest_streak INTEGER,
+        last_active_date TEXT,
+        streak_frozen_until TEXT,
+        updated_at TEXT
+      )
+      ''');
 
     await db.insert('user_money', {
       'user_id': 'your_user_id',//TODO:: add actual user id from supabase?

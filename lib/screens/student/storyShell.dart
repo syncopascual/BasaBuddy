@@ -17,6 +17,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:basabuddy/components/StreakServices.dart';
 import 'package:basabuddy/components/StreakNotifier.dart';
+import 'package:basabuddy/utils/database_helper.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../../colors.dart';
 import '../../components/question_components/FillBlankExercise.dart';
@@ -41,21 +43,53 @@ class StoryShell extends StatefulWidget {
   State<StoryShell> createState() => _StoryShellState();
 }
 
-void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalItems, Map<String, int> totalAttempts,
+Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalItems, Map<String, int> totalAttempts,
     Map<String, int> firstAttemptCorrect) async
 {
   try{
-    print("addStageData called");
+    print("addStageData called: $storyId, skillScores: $skillScores, totalItems:$totalItems, totalAttempts$totalAttempts");
     //get user id from user_level_info table
-    var rawUserLevel =
-    await Supabase.instance.client.from('user_level_info').select();
-    String userId = rawUserLevel[0]['user_id'];
+    final user = Supabase.instance.client.auth.currentUser;
+    final now = DateTime.now().toUtc().toIso8601String();
+    if (user == null) return;
+    String userId = user.id;
     String safeDate = DateTime.now().toIsoDate();
 
-    skillScores.forEach((key, value) async {
+    for (final entry in skillScores.entries)  {
+      final key = entry.key;
+      final value = entry.value;
+      final db = await DatabaseHelper.instance.db;
+      print("KEY: $key, VALUE: $value, TOTAL ITEMS: $totalItems, totalAttempts:$totalAttempts, firstAttemptCorrect:$firstAttemptCorrect");
       if(totalItems.containsKey(key) && totalAttempts.containsKey(key) && firstAttemptCorrect.containsKey(key)){
+        
+        await db.insert(
+          "stage_level",
+          {
+            "user_id": userId,
+            "story_id": storyId,
+            "skill": key,
+            "total_items": totalItems[key]!,
+            "total_attempts": totalAttempts[key]!,
+            "first_attempt_correct": firstAttemptCorrect[key]!,
+            "date": safeDate,
+            "updated_at": now,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        final stageData = StageData(
+          storyId: storyId,
+          userId: userId,
+          totalItems: totalItems[key]!,
+          totalAttempts: totalAttempts[key]!,
+          firstAttemptCorrect: firstAttemptCorrect[key]!,
+          date: safeDate,
+          updatedAt: now,
+          skill: key,
+        );
+        print("Uploading to Supabase: ${stageData.toJson()}");
         //for each skill, add a row to stage_data
-        await Supabase.instance.client
+        try {
+          final res = await Supabase.instance.client
             .from('stage_level')
             .insert(StageData(
             storyId: storyId,
@@ -64,11 +98,16 @@ void addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalI
             totalAttempts: totalAttempts[key]!,
             firstAttemptCorrect: firstAttemptCorrect[key]!,
             date: safeDate,
+            updatedAt: now,
             skill: key)
-            .toJson());
+            .toJson())
+            .select();
+            print("Supabase insert result: $res");
+        } catch (e) {print("Supabase insert failed: $e");}
+        
       }
 
-    });
+    };
   } catch(e) {
     print("error uploading data");
   }
@@ -132,6 +171,7 @@ class _StoryShellState extends State<StoryShell> {
           Storypage.fromJson,
           'story_id = ?',
           [widget.storyId]);
+      print("PAGES HERE: $pages");
     }
 
     final List<PageItem> wrappedPages =
@@ -550,8 +590,14 @@ class _StoryShellState extends State<StoryShell> {
                     unfilledColor: Colors.grey,
                   ),
                 ),
-                storyWidget(
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: SingleChildScrollView(
+                    child: storyWidget(
                     orderedStoryItems[currentPage].data, "", orderedStoryItems),
+                  ),
+                ),
+                
                 SizedBox(height: 12),
 
                 ///Don't display back and next button for question items
@@ -634,7 +680,9 @@ class _StoryShellState extends State<StoryShell> {
       }
       print("firstAttemptCorrect, totalItems, totalAttempts");
       print("$firstAttemptCorrect, $totalItems, $totalAttempts");
-      addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
+      await addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
+
+      if (!mounted) return; 
 
       BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
 

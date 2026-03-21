@@ -20,7 +20,13 @@ class MatchingData {
 
 
   final String skill;
+  @JsonKey(name: 'isStandalone', fromJson: _boolFromInt)
   final bool isStandalone;
+
+  static bool _boolFromInt(dynamic value) {
+    if (value is bool) return value;
+    return value == 1;
+  }
 
   MatchingData({
     required this.id,

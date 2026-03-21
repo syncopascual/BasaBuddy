@@ -173,6 +173,7 @@ Future<void> initializeUserData(String userId) async {
       .maybeSingle();
 
   final role = profileRes?['role'] ?? 'student';
+  final now = DateTime.now().toUtc().toIso8601String();
 
   if(role == "student"){
     final levelInfo = await Supabase.instance.client
@@ -188,6 +189,7 @@ Future<void> initializeUserData(String userId) async {
             'vocab_lvl': 1,
             'narrative_lvl': 1,
             'information_lvl': 1,
+            'updated_at': now
           }
           );
     }

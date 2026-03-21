@@ -19,7 +19,8 @@ class UserLevelInfo {
   @JsonKey(name: 'information_lvl')
   final int informationLevel;
 
-
+  @JsonKey(name: 'updated_at')
+  final int updatedAt;
 
 
   UserLevelInfo({
@@ -27,7 +28,8 @@ class UserLevelInfo {
     required this.userId,
     required this.vocabLevel,
     required this.narrativeLevel,
-    required this.informationLevel
+    required this.informationLevel,
+    required this.updatedAt
   });
 
   factory UserLevelInfo.fromJson(Map<String, dynamic> json) =>

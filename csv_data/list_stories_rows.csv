@@ -1,4 +1,8 @@
 id,story_id,title,module,level,description,class_id
+<<<<<<< HEAD
+=======
+3,8e367b1b-d702-4cb8-bd83-8304f365fd99,The Hero's Journey,narrative,1,The journey of a hero across the world,
+>>>>>>> 1a9537ea31c5370ba8738d60ffd1e709299c1e60
 30,a351097b-2e32-4d98-9d33-5c8f7fe824ab,Ultimate Story,teachers_pick,1,I'm working on a Sunday,32018df3-cb74-4237-9e4a-ca80de73812a
 31,447f0037-9686-4f96-b0de-95c9bc6f8aa8,Test Story,teachers_pick,1,Test Description,32018df3-cb74-4237-9e4a-ca80de73812a
 32,3c51ab3d-ca40-42dd-810a-4cf2cd622c26,test story,teachers_pick,1,description,32018df3-cb74-4237-9e4a-ca80de73812a
@@ -21,7 +25,6 @@ id,story_id,title,module,level,description,class_id
 53,85489db2-366b-4aba-bfec-d415e07ea58b,Pilo the Pilandok,vocab,3,Common words in Pilo the Pilandok,
 54,05d87818-b7e7-4547-9bd1-519ad6af9a25,Maria and Her Math Class,vocab,4,Common words in Maria and Her Math Class,
 55,2b0643d1-1d18-423e-8133-d8b24647254b,My Kitten Friend,vocab,5,Common words in My Kitten Friend,
-56,706535eb-a87d-4188-9b20-f788aed4adbe,Emma’s Science Adventure: The Magic of Numbers and Echoes,information,1,Common words in Emma’s Science Adventure,
 57,2ce3e546-10e8-4a72-9334-b94bba0b7b8c,Useful Metals,information,1,,
 58,f03b0670-cbc8-467c-906e-c108fad4e429,Clay: The Earth's Soft Treasure,information,2,,
 59,927fe3d2-9718-4ada-9e9d-0d70103c7f3f,How to Wrap a Gift,information,3,,

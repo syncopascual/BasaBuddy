@@ -14,6 +14,7 @@ StageData _$StageDataFromJson(Map<String, dynamic> json) => StageData(
       firstAttemptCorrect: (json['first_attempt_correct'] as num).toInt(),
       date: json['date'] as String,
       skill: json['skill'] as String,
+      updatedAt: json['updatedAt'] as String,
     );
 
 Map<String, dynamic> _$StageDataToJson(StageData instance) => <String, dynamic>{
@@ -23,5 +24,6 @@ Map<String, dynamic> _$StageDataToJson(StageData instance) => <String, dynamic>{
       'total_attempts': instance.totalAttempts,
       'first_attempt_correct': instance.firstAttemptCorrect,
       'date': instance.date,
+      'updatedAt': instance.updatedAt,
       'skill': instance.skill,
     };

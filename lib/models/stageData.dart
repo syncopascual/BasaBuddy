@@ -25,6 +25,8 @@ class StageData {
 
   final String date;
 
+  final String updatedAt;
+
   final String skill;
 
 
@@ -35,7 +37,8 @@ class StageData {
     required this.totalAttempts,
     required this.firstAttemptCorrect,
     required this.date,
-    required this.skill
+    required this.skill,
+    required this.updatedAt
   });
 
   factory StageData.fromJson(Map<String, dynamic> json) =>
