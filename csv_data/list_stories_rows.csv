@@ -16,11 +16,6 @@ id,story_id,title,module,level,description,class_id
 48,6cc37058-790f-4d26-83d4-f16e256a442a,test,teachers_pick,1,test,32018df3-cb74-4237-9e4a-ca80de73812a
 49,e2f8826e-99e2-4fe2-802b-9c22196e8b3c,test,teachers_pick,1,desc,32018df3-cb74-4237-9e4a-ca80de73812a
 50,e7879316-94d2-4764-8211-b0ba70ca41f8,test,teachers_pick,1,test,32018df3-cb74-4237-9e4a-ca80de73812a
-51,18ca8bb2-5915-4988-8d2e-bb0b7c6f73a8,The Guardians of Wawa Dam,vocab,1,Common words in The Guardians of Wawa Dam,
-52,18667b4a-ec48-4961-b9db-3fcc87cbea83,Bill's Smart Decision,vocab,2,Common words in Bill's Smart Decision,
-53,85489db2-366b-4aba-bfec-d415e07ea58b,Pilo the Pilandok,vocab,3,Common words in Pilo the Pilandok,
-54,05d87818-b7e7-4547-9bd1-519ad6af9a25,Maria and Her Math Class,vocab,4,Common words in Maria and Her Math Class,
-55,2b0643d1-1d18-423e-8133-d8b24647254b,My Kitten Friend,vocab,5,Common words in My Kitten Friend,
 57,2ce3e546-10e8-4a72-9334-b94bba0b7b8c,Useful Metals,information,1,,
 58,f03b0670-cbc8-467c-906e-c108fad4e429,Clay: The Earth's Soft Treasure,information,2,,
 59,927fe3d2-9718-4ada-9e9d-0d70103c7f3f,How to Wrap a Gift,information,3,,
@@ -34,6 +29,5 @@ id,story_id,title,module,level,description,class_id
 67,163ed93d-e533-4c78-84e5-a614cea3bfe4,Maria and Lines,narrative,2,,
 68,03acea88-a70a-4915-bf30-60a3428ddd1c,Kitty's garden adventure,narrative,3,,
 69,5c0f549d-d800-4a69-9e14-018355859716,Emma goes gardening!,narrative,4,,
-70,d442475b-d2af-42c8-b06e-d5730a11d7f1,Pilo Pilandok 2,vocab,1,,
 71,15c357bf-814a-4644-b0e4-b57b8fd9d863,Bathala creates the world,vocab,2,,
 72,7a66422b-d381-4383-b0a7-97cb41b54046,Emma learns place value,vocab,3,,
