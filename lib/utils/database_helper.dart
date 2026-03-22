@@ -54,7 +54,7 @@ class DatabaseHelper {
           first_attempt_correct INTEGER,
           date TEXT,
           updated_at TEXT,
-          PRIMARY KEY (user_id, story_id, skill)
+          PRIMARY KEY (user_id, story_id, skill, date)
         )
       ''');
 

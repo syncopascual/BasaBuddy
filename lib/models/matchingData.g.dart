@@ -12,7 +12,7 @@ MatchingData _$MatchingDataFromJson(Map<String, dynamic> json) => MatchingData(
       afterPage: (json['after_page'] as num).toInt(),
       pairs: Map<String, String>.from(json['pairs'] as Map),
       skill: json['skill'] as String,
-      isStandalone: MatchingData._boolFromInt(json['isStandalone']),
+      isStandalone: MatchingData._boolFromInt(json['is_standalone']),
     );
 
 Map<String, dynamic> _$MatchingDataToJson(MatchingData instance) =>
@@ -22,5 +22,5 @@ Map<String, dynamic> _$MatchingDataToJson(MatchingData instance) =>
       'pairs': instance.pairs,
       'after_page': instance.afterPage,
       'skill': instance.skill,
-      'isStandalone': instance.isStandalone,
+      'is_standalone': instance.isStandalone,
     };

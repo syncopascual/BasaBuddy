@@ -13,6 +13,8 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:equatable/equatable.dart';
+import 'package:basabuddy/utils/offline_sync.dart';
+import 'package:http/http.dart' as http;
 
 abstract class ConnectivityEvent extends Equatable {
   const ConnectivityEvent();
@@ -69,15 +71,38 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
     });
 
     // Handle events inside on<> to follow best practices
-    on<ConnectivityChanged>((event, emit) {
+    on<ConnectivityChanged>((event, emit) async {
       print("CONNECTIVITY BLOC--------- connectivity changed!!");
       print("event results ");
       print(event.results);
       final isConnected = event.results.any((result) => result != ConnectivityResult.none);
+      final wasOffline = state is! ConnectivitySuccess;
+
+      emit(isConnected ? ConnectivitySuccess(isConnected) : ConnectivityFailure());
+
+      if (isConnected && wasOffline) {
+        Future.delayed(const Duration(seconds: 2), () async {
+          final hasActualInternet = await hasInternet();
+          if (hasActualInternet) {
+            print("CONNECTIVITY BLOC: back online, syncing...");
+            await syncUserProgress();
+          }
+        });
+      }
       print('isConnected');
       print(isConnected);
-      emit(isConnected ? ConnectivitySuccess(isConnected) : ConnectivityFailure());
+      
     });
+  }
+
+  Future<bool> hasInternet() async {
+    try {
+      final response = await http.get(Uri.parse('https://google.com'))
+        .timeout(const Duration(seconds: 5));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
   }
 
   // Check the current network status when initializing

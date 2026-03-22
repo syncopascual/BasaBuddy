@@ -39,7 +39,7 @@ class FillBlankData {
 
   final String skill;
 
-  @JsonKey(name: 'isStandalone', fromJson: _boolFromInt)
+  @JsonKey(name: 'is_standalone', fromJson: _boolFromInt)
   final bool isStandalone;
 
   static bool _boolFromInt(dynamic value) {

@@ -98,8 +98,8 @@ class _AddStagePageState extends State<AddStagePage> {
             (e) => MapEntry(e.key, TextEditingController(text: e.value))
           )
         );
-        exercise.correctMulchoIndex = (question['answer'] != null) 
-          ? (exercise.choices.entries.toList().indexWhere((e) => e.value.text == question['answer'])) 
+        exercise.correctMulchoIndex = (question['answer'] != null)
+          ? (int.parse(question['answer'].toString())) - 1
           : null;
         break;
 

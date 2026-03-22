@@ -23,7 +23,7 @@ FillBlankData _$FillBlankDataFromJson(Map<String, dynamic> json) =>
           .map((e) => e as String)
           .toList(),
       tagalogAnswer: json['tagalog_answer'] as String,
-      isStandalone: FillBlankData._boolFromInt(json['isStandalone']),
+      isStandalone: FillBlankData._boolFromInt(json['is_standalone']),
     );
 
 Map<String, dynamic> _$FillBlankDataToJson(FillBlankData instance) =>
@@ -40,5 +40,5 @@ Map<String, dynamic> _$FillBlankDataToJson(FillBlankData instance) =>
       'answer': instance.answer,
       'after_page': instance.afterPage,
       'skill': instance.skill,
-      'isStandalone': instance.isStandalone,
+      'is_standalone': instance.isStandalone,
     };

@@ -308,7 +308,9 @@ class ClassPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     elevation: 3,
-                    child: Padding(
+                    child: SizedBox( 
+                      width: double.infinity,
+                      child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,7 +384,7 @@ class ClassPage extends StatelessWidget {
                             child: Text("Add New Questions", style: TextStyle(color: Colors.black))),
                         ],
                       ),
-                    ),
+                    ),),
                   ),
                   const SizedBox(height: 16),
                   // Student list

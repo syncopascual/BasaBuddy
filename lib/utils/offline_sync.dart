@@ -57,7 +57,20 @@ Future<void> syncUserProgress() async {
     );
 
     for (final row in localStages) {
-      await supabase.from('stage_level').upsert(row);
+      try {
+        await supabase.from('stage_level').upsert({
+          'user_id': row['user_id'],
+          'story_id': row['story_id'],
+          'skill': row['skill'],
+          'date': row['date'],
+          'total_items': row['total_items'],
+          'total_attempts': row['total_attempts'],
+          'first_attempt_correct': row['first_attempt_correct'],
+          'updated_at': row['updated_at'],
+        }, onConflict: 'user_id, story_id, skill, date'); // ← specify conflict columns
+      } catch(e) {
+        print("Failed to sync row for ${row['skill']}: $e");
+      }
     }
 
     final remoteStages = await supabase

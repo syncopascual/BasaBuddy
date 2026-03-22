@@ -25,6 +25,7 @@ class StageData {
 
   final String date;
 
+  @JsonKey(name: 'updated_at')
   final String updatedAt;
 
   final String skill;

@@ -106,7 +106,6 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(45)),
               ),
-              height: 420,
               width: double.infinity,
               child: Column(
                 children: [

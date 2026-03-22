@@ -11,12 +11,12 @@ Mulcho _$MulchoFromJson(Map<String, dynamic> json) => Mulcho(
       storyId: json['story_id'] as String,
       question: json['question'] as String,
       choices: Map<String, String>.from(json['choices'] as Map),
-      answer: (json['answer'] as num).toInt(),
+      answer: json['answer'] as String,
       tagalogQuestion: json['tagalog_question'] as String,
       tagalogChoices: Map<String, String>.from(json['tagalog_choices'] as Map),
       skill: json['skill'] as String,
       afterPage: (json['after_page'] as num).toInt(),
-      isStandalone: Mulcho._boolFromInt(json['isStandalone']),
+      isStandalone: Mulcho._boolFromInt(json['is_standalone']),
     );
 
 Map<String, dynamic> _$MulchoToJson(Mulcho instance) => <String, dynamic>{
@@ -29,5 +29,5 @@ Map<String, dynamic> _$MulchoToJson(Mulcho instance) => <String, dynamic>{
       'answer': instance.answer,
       'after_page': instance.afterPage,
       'skill': instance.skill,
-      'isStandalone': instance.isStandalone,
+      'is_standalone': instance.isStandalone,
     };

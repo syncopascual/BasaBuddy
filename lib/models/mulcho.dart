@@ -22,14 +22,14 @@ class Mulcho {
   @JsonKey(name: 'tagalog_choices')
   final Map<String, String> tagalogChoices;
 
-  final int answer;
+  final String answer;
 
   @JsonKey(name: 'after_page')
   final int afterPage;
 
   final String skill;
 
-  @JsonKey(name: 'isStandalone', fromJson: _boolFromInt)
+  @JsonKey(name: 'is_standalone', fromJson: _boolFromInt)
   final bool isStandalone;
 
   static bool _boolFromInt(dynamic value) {

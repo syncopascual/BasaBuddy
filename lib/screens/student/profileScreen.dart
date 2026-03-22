@@ -283,8 +283,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         leading: const Icon(Icons.class_),
                         title: Text(classData['name']),
                         subtitle: Text(classData['year']),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: () {},
                       ),
                     );
                   }),

@@ -20,7 +20,7 @@ class UserLevelInfo {
   final int informationLevel;
 
   @JsonKey(name: 'updated_at')
-  final int updatedAt;
+  final String updatedAt;
 
 
   UserLevelInfo({

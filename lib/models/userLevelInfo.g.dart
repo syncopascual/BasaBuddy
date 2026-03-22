@@ -13,7 +13,7 @@ UserLevelInfo _$UserLevelInfoFromJson(Map<String, dynamic> json) =>
       vocabLevel: (json['vocab_lvl'] as num).toInt(),
       narrativeLevel: (json['narrative_lvl'] as num).toInt(),
       informationLevel: (json['information_lvl'] as num).toInt(),
-      updatedAt: (json['updated_at'] as num).toInt(),
+      updatedAt: json['updated_at'] as String,
     );
 
 Map<String, dynamic> _$UserLevelInfoToJson(UserLevelInfo instance) =>

@@ -50,64 +50,72 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
     print("addStageData called: $storyId, skillScores: $skillScores, totalItems:$totalItems, totalAttempts$totalAttempts");
     //get user id from user_level_info table
     final user = Supabase.instance.client.auth.currentUser;
-    final now = DateTime.now().toUtc().toIso8601String();
     if (user == null) return;
+    final now = DateTime.now().toUtc().toIso8601String();
     String userId = user.id;
     String safeDate = DateTime.now().toIsoDate();
+    final db = await DatabaseHelper.instance.db;
 
     for (final entry in skillScores.entries)  {
       final key = entry.key;
-      final value = entry.value;
-      final db = await DatabaseHelper.instance.db;
-      print("KEY: $key, VALUE: $value, TOTAL ITEMS: $totalItems, totalAttempts:$totalAttempts, firstAttemptCorrect:$firstAttemptCorrect");
-      if(totalItems.containsKey(key) && totalAttempts.containsKey(key) && firstAttemptCorrect.containsKey(key)){
-        
-        await db.insert(
-          "stage_level",
-          {
-            "user_id": userId,
-            "story_id": storyId,
-            "skill": key,
-            "total_items": totalItems[key]!,
-            "total_attempts": totalAttempts[key]!,
-            "first_attempt_correct": firstAttemptCorrect[key]!,
-            "date": safeDate,
-            "updated_at": now,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
+      if (!totalItems.containsKey(key) || !totalAttempts.containsKey(key) || !firstAttemptCorrect.containsKey(key)) continue;
+
+      print("Processing skill: $key, date: $safeDate");
+      try {
+        final existing = await db.query(
+          'stage_level',
+          where: 'user_id = ? AND story_id = ? AND skill= ? and date = ?',
+          whereArgs: [userId, storyId, key, safeDate],
         );
-        final stageData = StageData(
-          storyId: storyId,
-          userId: userId,
-          totalItems: totalItems[key]!,
-          totalAttempts: totalAttempts[key]!,
-          firstAttemptCorrect: firstAttemptCorrect[key]!,
-          date: safeDate,
-          updatedAt: now,
-          skill: key,
-        );
-        print("Uploading to Supabase: ${stageData.toJson()}");
-        //for each skill, add a row to stage_data
-        try {
-          final res = await Supabase.instance.client
-            .from('stage_level')
-            .insert(StageData(
-            storyId: storyId,
-            userId: userId,
-            totalItems: totalItems[key]!,
-            totalAttempts: totalAttempts[key]!,
-            firstAttemptCorrect: firstAttemptCorrect[key]!,
-            date: safeDate,
-            updatedAt: now,
-            skill: key)
-            .toJson())
-            .select();
-            print("Supabase insert result: $res");
-        } catch (e) {print("Supabase insert failed: $e");}
-        
+        print("Existing rows found for $key: ${existing.length}");
+
+        if (existing.isEmpty){
+          await db.insert(
+            "stage_level",
+            {
+              "user_id": userId,
+              "story_id": storyId,
+              "skill": key,
+              "total_items": totalItems[key]!,
+              "total_attempts": totalAttempts[key]!,
+              "first_attempt_correct": firstAttemptCorrect[key]!,
+              "date": safeDate,
+              "updated_at": now,
+            },
+          );
+          print("SQLite: inserted new row for $key");
+        } else {
+          await db.update(
+            'stage_level',
+            {
+              'total_attempts': (existing.first['total_attempts'] as int) + totalAttempts[key]!,
+              'first_attempt_correct': (existing.first['first_attempt_correct'] as int) + firstAttemptCorrect[key]!,
+              'updated_at': now,
+            },
+            where: 'user_id = ? AND story_id = ? AND skill= ? and date = ?',
+            whereArgs: [userId, storyId, key, safeDate],
+          );
+          print("SQLite: updated existing row for $key");
+        }
+      } catch (e) {
+        print("SQLite error for $key: $e");
       }
 
-    };
+      try {
+        await Supabase.instance.client.rpc('upsert_stage_level', params: {
+          'p_user_id': userId,
+          'p_story_id': storyId,
+          'p_skill': key,
+          'p_date': safeDate,
+          'p_total_items': totalItems[key]!,
+          'p_total_attempts': totalAttempts[key]!,
+          'p_first_attempt_correct': firstAttemptCorrect[key]!,
+          'p_updated_at': now,
+        });
+      } catch(e) {
+        print("Supabase upsert failed: $e");
+      }
+  } 
   } catch(e) {
     print("error uploading data");
   }
@@ -199,7 +207,7 @@ class _StoryShellState extends State<StoryShell> {
     //print("imageURLs to precache: $imageURLs");
 
     late List<Mulcho> mulcho;
-    late List<StoryItem> wrappedMulcho;
+    List<StoryItem> wrappedMulcho = [];
 
     ///FETCH MULTIPLE CHOICE EXERCISES
     try {
@@ -251,7 +259,7 @@ class _StoryShellState extends State<StoryShell> {
 
     ///FETCH ORDERING EXERCISES
     late List<OrderData> orderData;
-    late List<StoryItem> wrappedOrderData;
+    List<StoryItem> wrappedOrderData = [];
     try {
 
       if (widget.isTeacherStory) {
@@ -293,7 +301,7 @@ class _StoryShellState extends State<StoryShell> {
 
     ///FETCH MATCHING EXERCISES
     late List<MatchingData> matchData;
-    late List<StoryItem> wrappedMatchData;
+    List<StoryItem> wrappedMatchData = [];
     try {
 
       if (widget.isTeacherStory) {
@@ -335,7 +343,7 @@ class _StoryShellState extends State<StoryShell> {
 
     ///FETCH FILL IN THE BLANK EXERCISES
     late List<FillBlankData> fillBlankData;
-    late List<StoryItem> wrappedFillBlankData;
+    List<StoryItem> wrappedFillBlankData = [];
     try {
 
       if (widget.isTeacherStory) {
@@ -419,7 +427,7 @@ class _StoryShellState extends State<StoryShell> {
       print("EXERCISING! $exercises");
       for (var ex in exercises) {
         print("MY EX IS $ex");
-        if (ex != null && ex.data.afterPage == 0) {
+        if (ex != null) {
           ordered.add(ex);
         }
       }
@@ -524,6 +532,9 @@ class _StoryShellState extends State<StoryShell> {
 
   ImageProvider<Object> determineBg(currentComponent) {
     int? pageNum;
+    if (widget.isTeacherStory) {
+      return AssetImage("assets/bg_images/grassy.png");
+    }
     if (currentComponent is PageItem) {
       pageNum = currentComponent.data.pageNum;
     } else if (currentComponent is Storypage) {pageNum = currentComponent.pageNum;}
@@ -660,10 +671,12 @@ class _StoryShellState extends State<StoryShell> {
           }
         });
   }
-  
+  bool _storyFinished = false;
   Future<void> nextPage(orderedStoryItems) async {
     ///if its the last page
     if (currentPage == orderedStoryItems.length - 1) {
+      if (_storyFinished) return; // ← prevent double trigger
+      _storyFinished = true;
       ///get stage_data
 
       for(StoryItem storyItem in firstAttemptObjects){

@@ -131,7 +131,7 @@ class _MulchoExerciseState extends State<MulchoExercise> {
 
                 //print("choiceIndex.value ${choiceIndex.value +1}, answer ${widget.mulcho.answer}");
                 ///if correct answer
-                if((choiceIndex.value+1) == widget.mulcho.answer){
+                if((choiceIndex.value+1) == int.parse(widget.mulcho.answer)){
                   correctPopup(context, widget.onCorrectAnswer);
                 } else{
                   print("wrong answer, correct answer");
