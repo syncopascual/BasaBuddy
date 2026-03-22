@@ -71,6 +71,11 @@ Future<void> createTableFromCsv({
     return 'TEXT';
   }
 
+  if (firstDataRow.length < headers.length) {
+    print('WARNING: Header has ${headers.length} columns but first data row only has ${firstDataRow.length}');
+    print('Headers: $headers');
+    print('First row: $firstDataRow');
+  }
   final String columns = List.generate(
     headers.length,
         (i) => '"${headers[i]}" ${_inferType(firstDataRow[i])}',
