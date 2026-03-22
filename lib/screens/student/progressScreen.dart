@@ -18,28 +18,32 @@ class _ProgressScreenState extends State<ProgressScreen> {
   String? error;
   List<String> skillsPracticed = [];
   final Map<String, IconData> skillIcons = {
-    // Vocabulary skills
-    'sight words': Icons.remove_red_eye,           // seeing words
-    'word patterns': Icons.pattern,                // pattern icon
-    'word functions': Icons.functions,            // fx / function symbol
-    'synonyms antonyms': Icons.sync_alt,          // interchange / pair
-    'word roots': Icons.account_tree,             // tree/root symbol
-    'content vocabulary': Icons.menu_book,        // book
+    // =========================
+    // Vocabulary Skills
+    // =========================
+    'synonyms and antonyms': Icons.sync_alt,      // opposite/paired words
+    'verbs': Icons.directions_run,                // action
+    'nouns': Icons.category,                      // things/categories
+    'pronouns': Icons.record_voice_over,          // referring to people
+    'adjectives': Icons.color_lens,               // describing (color/quality)
+    'content vocabulary': Icons.menu_book,        // subject words
 
-    // Narrative comprehension skills
-    'story elements': Icons.auto_stories,         // story/book
-    'sequence': Icons.format_list_numbered,      // numbered list
-    'problem solution': Icons.lightbulb,          // idea / solution
-    'character traits': Icons.person,             // person icon
-    'cause effect': Icons.call_split,             // split / branching
-    'prediction': Icons.visibility,               // looking ahead
-    'summary': Icons.notes,                       // summary / note icon
+    // =========================
+    // Narrative Skills
+    // =========================
+    'story details': Icons.list_alt,              // details list
+    'sequencing events': Icons.format_list_numbered, // order/sequence
+    'problem and solution': Icons.lightbulb,      // solution/idea
+    'characters feelings and traits': Icons.emoji_emotions, // emotions
+    'cause and effect': Icons.call_split,         // cause → effect
+    'drawing conclusions': Icons.check_circle,    // conclusion
 
-    // Informational text skills
-    'key details': Icons.star,                     // important / highlight
-    'text structure': Icons.view_week,            // structured blocks
-    'discourse markers': Icons.compare_arrows,    // linking / relation
-    'drawing conclusions': Icons.check_circle,    // conclusion / correct
+    // =========================
+    // Informational Skills
+    // =========================
+    'key details': Icons.star,                    // important info
+    'identify text types': Icons.category,        // classification
+    'text structure': Icons.view_week,            // structure/layout
   };
 
   @override

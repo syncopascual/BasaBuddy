@@ -11,9 +11,32 @@ class AddStagePage extends StatefulWidget {
 }
 
 final List<String> allSkills = [
-  'sight words','word patterns','word functions','synonyms antonyms','word roots','content vocabulary',
-  'story elements','sequence','problem solution','character traits','cause effect','prediction','summary',
-  'key details','text structure','discourse markers','drawing conclusions',
+  // =========================
+  // Vocabulary Skills
+  // =========================
+  'synonyms and antonyms',
+  'verbs',
+  'nouns',
+  'pronouns',
+  'adjectives',
+  'content vocabulary',
+
+  // =========================
+  // Narrative Skills
+  // =========================
+  'story details',
+  'sequencing events',
+  'problem and solution',
+  'characters feelings and traits',
+  'cause and effect',
+  'drawing conclusions',
+
+  // =========================
+  // Informational Skills
+  // =========================
+  'key details',
+  'identify text types',
+  'text structure',
 ];
 
 class _AddStagePageState extends State<AddStagePage> {
