@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-
+import 'dart:convert';
 part 'fillBlankData.g.dart';
 
 ///A multiple choice question object
@@ -64,8 +64,19 @@ class FillBlankData {
 
   });
 
-  factory FillBlankData.fromJson(Map<String, dynamic> json) =>
-      _$FillBlankDataFromJson(json);
+  factory FillBlankData.fromJson(Map<String, dynamic> json) {
+    print('DEBUG FillBlankData.fromJson: $json');
+
+    // Decode list fields if they come back as raw JSON strings
+    if (json['choices'] is String) {
+      json['choices'] = jsonDecode(json['choices'] as String);
+    }
+    if (json['tagalog_choices'] is String) {
+      json['tagalog_choices'] = jsonDecode(json['tagalog_choices'] as String);
+    }
+
+    return _$FillBlankDataFromJson(json);
+  }
 
   Map<String, dynamic> toJson() => _$FillBlankDataToJson(this);
 }
