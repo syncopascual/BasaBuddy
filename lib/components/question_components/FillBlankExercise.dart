@@ -40,6 +40,16 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
     });
   }
 
+  @override
+  void didUpdateWidget(FillBlankExercise oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fillBlankData != widget.fillBlankData) {
+      setState(() {
+        selectedIndex = null;
+      });
+    }
+  }
+
   void onSubmit({
     required bool isEnglish,
     required List<String> choices,

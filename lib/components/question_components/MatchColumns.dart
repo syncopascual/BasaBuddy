@@ -8,11 +8,13 @@ enum TileState { normal, selected, correct, wrong, disabled }
 class MatchColumns extends StatefulWidget {
   final Map<String, String> pairs;
   final VoidCallback onCompleted;
+  final bool soundEnabled;
 
   const MatchColumns({
     super.key,
     required this.pairs,
     required this.onCompleted,
+    required this.soundEnabled,
   });
 
   @override
@@ -46,8 +48,11 @@ class _MatchColumnsState extends State<MatchColumns> {
   void onTileTap(String word, bool isLeft) {
     if (tileStates[word] == TileState.disabled ||
         tileStates[word] == TileState.correct) return;
-    _voice.stop();
-    _voice.speak(word, true);
+        
+    if (widget.soundEnabled) {
+      _voice.stop();
+      _voice.speak(word, true);
+    }
     if (firstSelection == null) {
       setState(() {
         firstSelection = word;

@@ -25,6 +25,12 @@ class PageContainer extends StatefulWidget {
 
 class _PageContainerState extends State<PageContainer> {
   final VoiceService _voice = VoiceService();
+
+  @override
+  void dispose() {
+    _voice.stop();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Container(

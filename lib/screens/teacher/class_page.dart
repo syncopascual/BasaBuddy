@@ -147,6 +147,11 @@ Future<(double, double, int, List<Map<String, double>>, List<Map<String, double>
 
 }
 
+String formatRate(double? value) {
+  if (value == null || value.isNaN || value.isInfinite) return '--';
+  return value.toStringAsFixed(2);
+}
+
 int getTotalStoriesRead(List<Map<String, dynamic>> response){
   ///get total stories read:
   final rows = response as List;
@@ -186,8 +191,8 @@ int getTotalStoriesRead(List<Map<String, dynamic>> response){
 
     sumOfData["total_attempts"] = current3 + increment3;
   }
-  double firstAttemptCorrectRate = sumOfData["first_attempt_correct"]! / sumOfData["total_items"]!;
-  double averageRetryRate = (sumOfData["total_attempts"]! - sumOfData["total_items"]!)/ (sumOfData["total_items"]! - sumOfData["first_attempt_correct"]!);
+  double firstAttemptCorrectRate = sumOfData["total_items"]! == 0 ? double.nan : sumOfData["first_attempt_correct"]! / sumOfData["total_items"]!;
+  double averageRetryRate = (sumOfData["total_items"]! - sumOfData["first_attempt_correct"]!) == 0 ? double.nan : (sumOfData["total_attempts"]! - sumOfData["total_items"]!)/ (sumOfData["total_items"]! - sumOfData["first_attempt_correct"]!);
 
 
   return (firstAttemptCorrectRate, averageRetryRate);
@@ -324,12 +329,12 @@ class ClassPage extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               )),
                           const SizedBox(height: 4),
-                          Text('Accuracy Rate: ${snapshot.data?.firstAttemptCorrect}',
+                          Text('Accuracy Rate: ${formatRate(snapshot.data?.firstAttemptCorrect)}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               )),
                           const SizedBox(height: 4),
-                          Text('Average retry rate: ${snapshot.data?.averageRetries}',
+                          Text('Average retry rate: ${formatRate(snapshot.data?.averageRetries)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.red,
