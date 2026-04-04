@@ -52,7 +52,6 @@ class _TeacherHomeShellState extends State<TeacherHomeShell> {
     }
 
     return Scaffold(
-      appBar: TopAppBarTeacher(screenWidth, teacherName: teacherName!),
       body: widget.child,
     );
   }
