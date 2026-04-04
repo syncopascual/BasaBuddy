@@ -5,87 +5,6 @@ abstract class StoryContentItem {
   StoryContentItem() : id = UniqueKey().toString();
 }
 
-class StoryPageInput extends StoryContentItem {
-  final TextEditingController englishTextController = TextEditingController();
-  final TextEditingController tagalogTextController = TextEditingController();
-  final ValueNotifier<bool> isEnglish = ValueNotifier(true);
-
-  Widget buildPageWidget(BuildContext context, {required Key key, required int index, required int pageNumber, required VoidCallback onDelete,}) {
-    return Card(
-      key: key,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: ValueListenableBuilder(
-          valueListenable: isEnglish, 
-          builder: (context, englishSelected, _) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children : [
-                    Row(
-                      children: [
-                        ReorderableDragStartListener(
-                          index: index,
-                          child: const Icon(Icons.drag_handle),
-                        ),
-                        const SizedBox(width: 8),
-                        Text("Page $pageNumber", style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                    ),
-                    Row(
-                      children: [
-                        ToggleButtons(
-                          isSelected: [englishSelected, !englishSelected],
-                          borderRadius: BorderRadius.circular(10),
-                          onPressed: (i) {
-                            isEnglish.value = i == 0;
-                          },
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: Text("English"),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: Text("Tagalog"),
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                            onPressed: onDelete,
-                          ),
-                      ]
-                    )
-                    
-                ],),
-                
-                const SizedBox(width: 12),
-                TextFormField(
-                  key: ValueKey(englishSelected),
-                  controller: englishSelected ? englishTextController : tagalogTextController,
-                  decoration: InputDecoration(labelText: englishSelected ? "Page Text (English)" : "Kuwento (Tagalog)"),
-                  maxLines: 4,
-                  validator: (value) {
-                    if (isEnglish.value && (value == null || value.trim().isEmpty)) {
-                      return "English text is required";
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            );
-          }
-        )
-        
-        
-      ),
-    );
-  }
-}
 
 class MatchingPair {
   TextEditingController left;
@@ -326,7 +245,6 @@ class ExerciseInput extends StoryContentItem {
                                 }
                                 choices.remove(k);
                                 tagalogChoices.remove(k);
-                                // Fix: renumber both maps
                                 correctMulchoIndex = renumberChoices(choices, correctMulchoIndex);
                                 renumberChoices(tagalogChoices, null);
                                 onUpdate();

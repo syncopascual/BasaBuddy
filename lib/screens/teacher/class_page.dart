@@ -21,7 +21,7 @@ Future<ClassData> fetchClassInfo(String classId) async {
           )
         ''')
       .eq('class_id', classId);
-  print(response);
+
   List<Student> students = [];
   try{
     students = (response as List)
@@ -37,8 +37,8 @@ Future<ClassData> fetchClassInfo(String classId) async {
       .select()
       .eq('id', classId);
 
-  String className = classNameCode[0]["name"];
-  String classCode =  classNameCode[0]["class_code"];
+  final className = classNameCode[0]["name"] as String;
+  final classCode =  classNameCode[0]["class_code"] as String;
 
   var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(classId, 'class');
 
@@ -149,16 +149,19 @@ Future<(double, double, int, List<Map<String, double>>, List<Map<String, double>
 
 String formatRate(double? value) {
   if (value == null || value.isNaN || value.isInfinite) return '--';
-  return value.toStringAsFixed(2);
+  return '${(value * 100).toStringAsFixed(0)}%';
+}
+
+String formatRetryRate(double? value) {
+  if (value == null || value.isNaN || value.isInfinite) return '--';
+  return '${value.toStringAsFixed(1)}×';
 }
 
 int getTotalStoriesRead(List<Map<String, dynamic>> response){
   ///get total stories read:
-  final rows = response as List;
-
   final uniqueReads = <String>{};
 
-  for (final row in rows) {
+  for (final row in response) {
     final userId = row['user_id'];
     final storyId = row['story_id'];
 
@@ -279,6 +282,32 @@ List<Map<String, double>> worstPerforming
   );
 }
 
+const List<_AvatarTheme> _avatarThemes = [
+  _AvatarTheme(bg: Color(0xFFB5D4F4), text: Color(0xFF0C447C)),
+  _AvatarTheme(bg: Color(0xFF9FE1CB), text: Color(0xFF085041)),
+  _AvatarTheme(bg: Color(0xFFF4C0D1), text: Color(0xFF72243E)),
+  _AvatarTheme(bg: Color(0xFFCECBF6), text: Color(0xFF3C3489)),
+  _AvatarTheme(bg: Color(0xFFFAC775), text: Color(0xFF633806)),
+];
+
+class _AvatarTheme {
+  final Color bg;
+  final Color text;
+  const _AvatarTheme({required this.bg, required this.text});
+}
+
+_AvatarTheme _themeForName(String name) {
+  final index = name.isNotEmpty ? name.codeUnitAt(0) % _avatarThemes.length : 0;
+  return _avatarThemes[index];
+}
+
+String _initials(String name) {
+  final parts = name.trim().split(' ');
+  if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+  if (parts[0].isNotEmpty) return parts[0][0].toUpperCase();
+  return '?';
+}
+
 class ClassPage extends StatelessWidget {
   final String classId;
 
@@ -293,165 +322,353 @@ class ClassPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return FutureBuilder<ClassData>(
       future: fetchClassInfo(classId),
       builder: (context, snapshot) {
-        if(snapshot.hasData){
+        if (!snapshot.hasData) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snapshot.hasError) {
           return Scaffold(
-            appBar: AppBar(
-              title: Text(snapshot.data!.className),
-              backgroundColor: Colors.blueAccent,
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Stats card
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 3,
-                    child: SizedBox( 
-                      width: double.infinity,
-                      child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Class Code: ${snapshot.data!.classCode}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text('Stories read this month: ${snapshot.data?.storiesRead}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              )),
-                          const SizedBox(height: 4),
-                          Text('Accuracy Rate: ${formatRate(snapshot.data?.firstAttemptCorrect)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              )),
-                          const SizedBox(height: 4),
-                          Text('Average retry rate: ${formatRate(snapshot.data?.averageRetries)}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red,
-                              )),
+            body: Center(child: Text('Error: ${snapshot.error}')),
+          );
+        }
+        final data = snapshot.data!;
 
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: _buildAppBar(data),
+          body: _ClassPageBody(classId: classId, data: data),
+        );
+      },
+    );
+  }
 
-                          const SizedBox(height: 8),
-                          Text('Needs focus:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              )),
-                          Wrap(
-                            children: snapshot.data!.worstSkills.map((skillMap) {
-                              final entry = skillMap.entries.first;
-                              return Chip(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                label: Text('${entry.key}'),
-                                backgroundColor: Colors.pink.shade100
-                              );
-                            }).toList(),
-                          ),
-                          const SizedBox(height: 8),
-                          Text('Excelling areas:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              )),
-                          Wrap(
-                            children: snapshot.data!.topSkills.map((skillMap) {
-                              final entry = skillMap.entries.first;
-                              return Chip(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                label: Text('${entry.key}'),
-                                backgroundColor: Colors.green.shade100,
-                              );
-                            }).toList(),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
-                            onPressed: (){
-                              context.push('/teacher/add_story_page', extra: classId);
-                            },
-                            child: Text("Add a New Story", style: TextStyle(color: Colors.black))),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(209, 255, 193, 7)),
-                            onPressed: (){
-                              context.push('/teacher/add_questions_page', extra: classId);
-                            },
-                            child: Text("Add New Questions", style: TextStyle(color: Colors.black))),
-                        ],
-                      ),
-                    ),),
-                  ),
-                  const SizedBox(height: 16),
-                  // Student list
-                  const Text(
-                    'Student List',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: snapshot.data!.students.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListTile(
-                            onTap: ()async {
-                              ///Fetch student data
-                              StudentData studentData = await fetchStudentInfo(snapshot.data!.students[index].studentId);
-                              ///Display student data
-                              showDialog(
-                                context: context,
-                                builder: (_) => StudentDataDialogBox(
-                                  name: studentData.studentName,
-                                  storiesRead: studentData.storiesRead.toString(),
-                                  accuracyRate: studentData.firstAttemptCorrect.toString(),
-                                  averageRetryRate: studentData.averageRetries.toString(),
-                                  strengths: [
-                                    {'Synonym-antonym': 92},
-                                    {'Ordering events': 88},
-                                    {'Story Elements': 85},
-                                  ],
-                                  needsReview: [
-                                    {'Possessive Pronouns': 60},
-                                    {'Verbs': 55},
-                                  ],
-                                ),
-                              );
-                            },
-                            leading: const CircleAvatar(
-                              child: Icon(Icons.person),
-                            ),
-                            title: Text(snapshot.data!.students[index].name),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+  PreferredSizeWidget _buildAppBar(ClassData data) {
+    return AppBar(
+      backgroundColor: const Color(0xFF1D9E75),
+      foregroundColor: const Color(0xFFE1F5EE),
+      elevation: 0,
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              data.className,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFFE1F5EE),
               ),
             ),
-          );
-        } else
-        {
-          return const Center(child:CircularProgressIndicator());
-        }
-      }
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              'Code: ${data.classCode}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF9FE1CB),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ClassPageBody extends StatefulWidget {
+  final String classId;
+  final ClassData data;
+
+  const _ClassPageBody({required this.classId, required this.data});
+
+  @override
+  State<_ClassPageBody> createState() => _ClassPageBodyState();
+}
+
+class _ClassPageBodyState extends State<_ClassPageBody> {
+  // Tracks which student row is currently loading
+  String? _loadingStudentId;
+
+  Future<void> _onStudentTap(Student student) async {
+    setState(() => _loadingStudentId = student.studentId);
+
+    try {
+      final studentData = await fetchStudentInfo(student.studentId);
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (_) => StudentDataDialogBox(
+          name: studentData.studentName,
+          storiesRead: studentData.storiesRead.toString(),
+          accuracyRate: formatRate(studentData.firstAttemptCorrect),
+          averageRetryRate: formatRetryRate(studentData.averageRetries),
+          strengths: studentData.topSkills
+              .map((m) => {m.keys.first: (m.values.first * 100)})
+              .toList(),
+          needsReview: studentData.worstSkills
+              .map((m) => {m.keys.first: (m.values.first * 100)})
+              .toList(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load student data: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _loadingStudentId = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = widget.data;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildMetricGrid(data),
+        const SizedBox(height: 12),
+        _buildSkillsCard(data),
+        const SizedBox(height: 12),
+        _buildActionButtons(context),
+        const SizedBox(height: 20),
+        _buildStudentListHeader(data),
+        const SizedBox(height: 8),
+        ...data.students.map((s) => _buildStudentRow(s)),
+      ],
+    );
+  }
+
+  // ── Metric grid ──────────────────────────────
+
+  Widget _buildMetricGrid(ClassData data) {
+    final accuracy = data.firstAttemptCorrect;
+    final retries = data.averageRetries;
+
+    // Color accuracy green if ≥70%, amber if below
+    final accuracyColor = (!accuracy.isNaN && accuracy >= 0.7)
+        ? const Color(0xFF0F6E56)
+        : const Color(0xFF854F0B);
+
+    // Color retries amber if >1.5, else teal
+    final retryColor = (!retries.isNaN && retries > 1.5)
+        ? const Color(0xFF854F0B)
+        : const Color(0xFF0F6E56);
+
+    return Row(
+      children: [
+        Expanded(child: _metricTile('Stories read', '${data.storiesRead}', Colors.black87)),
+        const SizedBox(width: 8),
+        Expanded(child: _metricTile('Accuracy', formatRate(accuracy), accuracyColor)),
+        const SizedBox(width: 8),
+        Expanded(child: _metricTile('Avg retries', formatRetryRate(retries), retryColor)),
+      ],
+    );
+  }
+
+  Widget _metricTile(String label, String value, Color valueColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Color(0xFFF5F4ED),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+          const SizedBox(height: 4),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.w500, color: valueColor)),
+        ],
+      ),
+    );
+  }
+
+  // ── Skills card ──────────────────────────────
+
+  Widget _buildSkillsCard(ClassData data) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _skillSection('Needs focus', data.worstSkills,
+              const Color(0xFFFBEAF0), const Color(0xFF72243E)),
+          if (data.worstSkills.isNotEmpty && data.topSkills.isNotEmpty)
+            const SizedBox(height: 12),
+          _skillSection('Excelling in', data.topSkills,
+              const Color(0xFFEAF3DE), const Color(0xFF27500A)),
+        ],
+      ),
+    );
+  }
+
+  Widget _skillSection(
+      String label, List<Map<String, double>> skills, Color bg, Color textColor) {
+    if (skills.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label.toUpperCase(),
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.05,
+                color: Colors.grey.shade800)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: skills.map((skillMap) {
+            final entry = skillMap.entries.first;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(entry.key,
+                  style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w500, color: textColor)),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  // ── Action buttons ───────────────────────────
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _actionButton(
+            label: '+ Add story',
+            bg: const Color(0xFFE1F5EE),
+            textColor: const Color(0xFF085041),
+            onTap: () => context.push('/teacher/add_story_page', extra: widget.classId),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _actionButton(
+            label: '+ Add questions',
+            bg: const Color(0xFFFAEEDA),
+            textColor: const Color(0xFF633806),
+            onTap: () => context.push('/teacher/add_questions_page', extra: widget.classId),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _actionButton({
+    required String label,
+    required Color bg,
+    required Color textColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Center(
+            child: Text(label,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: textColor)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Student list ─────────────────────────────
+
+  Widget _buildStudentListHeader(ClassData data) {
+    return Text(
+      'Students · ${data.students.length}',
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+    );
+  }
+
+  Widget _buildStudentRow(Student student) {
+    final theme = _themeForName(student.name);
+    final initials = _initials(student.name);
+    final isLoading = _loadingStudentId == student.studentId;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: isLoading ? null : () => _onStudentTap(student),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade200, width: 0.5),
+            ),
+            child: Row(
+              children: [
+                // Avatar
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: theme.bg,
+                  child: Text(initials,
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: theme.text)),
+                ),
+                const SizedBox(width: 12),
+                // Name
+                Expanded(
+                  child: Text(student.name,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w500)),
+                ),
+                // Loading spinner or chevron
+                if (isLoading)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Icon(Icons.chevron_right,
+                      size: 18, color: Colors.grey.shade400),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
