@@ -7,6 +7,27 @@ import '../../components/StudentDataDialogBox.dart';
 import '../../models/student.dart';
 import '../../wrappers/StudentData.dart';
 
+class ClassContentItem {
+  final String id;
+  final String title;
+  final bool isStory;
+  final int pageCount;
+  final int exerciseCount;
+
+  const ClassContentItem({
+    required this.id,
+    required this.title,
+    required this.isStory,
+    required this.pageCount,
+    required this.exerciseCount,
+  });
+
+  String get subtitle => isStory
+      ? '$pageCount page${pageCount != 1 ? 's' : ''} · '
+        '$exerciseCount exercise${exerciseCount != 1 ? 's' : ''}'
+      : '$exerciseCount exercise${exerciseCount != 1 ? 's' : ''}';
+}
+
 Future<ClassData> fetchClassInfo(String classId) async {
   ///Fetch list of students
   ///Join 'class_students' and 'profiles' tables to get names
@@ -58,6 +79,48 @@ Future<ClassData> fetchClassInfo(String classId) async {
   return classData;
 }
 
+Future<List<ClassContentItem>> fetchClassContent(String classId) async {
+  final response = await Supabase.instance.client
+      .from('list_stories')
+      .select('''
+        story_id,
+        title,
+        story_page (count),
+        mulcho_exercise (count),
+        ordering_exercise (count),
+        matching_exercise (count),
+        fill_in_blank (count)
+      ''')
+      .eq('class_id', classId)
+      .eq('module', 'teachers_pick');
+
+  int _count(dynamic raw) {
+    if (raw is List && raw.isNotEmpty) {
+      final first = raw[0];
+      if (first is Map && first.containsKey('count')) {
+        return (first['count'] as int?) ?? 0;
+      }
+      return raw.length;
+    }
+    return 0;
+  }
+
+  return (response as List).map((item) {
+    final pageCount     = _count(item['story_page']);
+    final exerciseCount = _count(item['mulcho_exercise']) +
+                          _count(item['ordering_exercise']) +
+                          _count(item['matching_exercise']) +
+                          _count(item['fill_in_blank']);
+
+    return ClassContentItem(
+      id:            item['story_id'] as String,
+      title:         item['title'] as String? ?? 'Untitled',
+      isStory:       pageCount > 0,
+      pageCount:     pageCount,
+      exerciseCount: exerciseCount,
+    );
+  }).toList();
+}
 Future<StudentData> fetchStudentInfo(String studentId) async {
 
   ///Fetch student name
@@ -397,6 +460,19 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
   // Tracks which student row is currently loading
   String? _loadingStudentId;
 
+  Future<List<ClassContentItem>>? _contentFuture;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _refreshContent() {
+  setState(() {
+    _contentFuture = fetchClassContent(widget.classId);
+  });
+}
+
   Future<void> _onStudentTap(Student student) async {
     setState(() => _loadingStudentId = student.studentId);
 
@@ -442,10 +518,157 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
         const SizedBox(height: 12),
         _buildActionButtons(context),
         const SizedBox(height: 20),
+        _buildContentSection(),
+        const SizedBox(height: 20),
         _buildStudentListHeader(data),
         const SizedBox(height: 8),
         ...data.students.map((s) => _buildStudentRow(s)),
       ],
+    );
+  }
+
+  Widget _buildContentSection() {
+    return FutureBuilder<List<ClassContentItem>>(
+      future: _contentFuture ??= fetchClassContent(widget.classId),
+      builder: (context, snapshot) {
+        // Header always shows — even while loading
+        final itemCount = snapshot.data?.length;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Class content',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                if (itemCount != null)
+                  Text('$itemCount item${itemCount != 1 ? 's' : ''}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (snapshot.connectionState == ConnectionState.waiting)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (snapshot.hasError)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text('Could not load content: ${snapshot.error}',
+                    style: const TextStyle(color: Colors.red, fontSize: 13)),
+              )
+            else if (snapshot.data!.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text('No content added yet.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+              )
+            else
+              ...snapshot.data!.map((item) => _buildContentCard(item)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildContentCard(ClassContentItem item) {
+    // Stories → blue, Stages → purple
+    final Color badgeBg   = item.isStory ? const Color(0xFFE6F1FB) : const Color(0xFFEEEDFE);
+    final Color badgeIcon = item.isStory ? const Color(0xFF185FA5) : const Color(0xFF534AB7);
+    final Color pillBg    = item.isStory ? const Color(0xFFE6F1FB) : const Color(0xFFEEEDFE);
+    final Color pillText  = item.isStory ? const Color(0xFF0C447C) : const Color(0xFF3C3489);
+    final String pillLabel = item.isStory ? 'Story' : 'Stage';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            context.push('/teacher/content_detail', extra: {'storyId': item.id, 'isStory': item.isStory});
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200, width: 0.5),
+            ),
+            child: Row(
+              children: [
+                // Icon badge
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: item.isStory
+                        ? _storyIcon(badgeIcon)
+                        : _stageIcon(badgeIcon),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Title + subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(item.subtitle,
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade500)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Type pill
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: pillBg,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(pillLabel,
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: pillText)),
+                ),
+                const SizedBox(width: 6),
+                Icon(Icons.chevron_right, size: 18, color: Colors.grey.shade300),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Story icon: lined page
+  Widget _storyIcon(Color color) {
+    return CustomPaint(
+      size: const Size(18, 18),
+      painter: _StoryIconPainter(color),
+    );
+  }
+
+  // Stage icon: list rows
+  Widget _stageIcon(Color color) {
+    return CustomPaint(
+      size: const Size(18, 18),
+      painter: _StageIconPainter(color),
     );
   }
 
@@ -455,12 +678,10 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
     final accuracy = data.firstAttemptCorrect;
     final retries = data.averageRetries;
 
-    // Color accuracy green if ≥70%, amber if below
     final accuracyColor = (!accuracy.isNaN && accuracy >= 0.7)
         ? const Color(0xFF0F6E56)
         : const Color(0xFF854F0B);
 
-    // Color retries amber if >1.5, else teal
     final retryColor = (!retries.isNaN && retries > 1.5)
         ? const Color(0xFF854F0B)
         : const Color(0xFF0F6E56);
@@ -565,7 +786,10 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
             label: '+ Add story',
             bg: const Color(0xFFE1F5EE),
             textColor: const Color(0xFF085041),
-            onTap: () => context.push('/teacher/add_story_page', extra: widget.classId),
+            onTap: () async {
+              await context.push('/teacher/add_story_page', extra: widget.classId);
+              _refreshContent();
+            },
           ),
         ),
         const SizedBox(width: 8),
@@ -574,7 +798,10 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
             label: '+ Add questions',
             bg: const Color(0xFFFAEEDA),
             textColor: const Color(0xFF633806),
-            onTap: () => context.push('/teacher/add_questions_page', extra: widget.classId),
+            onTap: () async {
+              await context.push('/teacher/add_questions_page', extra: widget.classId);
+              _refreshContent();
+            },
           ),
         ),
       ],
@@ -612,7 +839,7 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
   Widget _buildStudentListHeader(ClassData data) {
     return Text(
       'Students · ${data.students.length}',
-      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
     );
   }
 
@@ -671,4 +898,59 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
       ),
     );
   }
+}
+
+class _StoryIconPainter extends CustomPainter {
+  final Color color;
+  _StoryIconPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    // Page outline
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(1, 0, size.width - 2, size.height),
+      const Radius.circular(2),
+    );
+    canvas.drawRRect(rect, paint);
+
+    // Lines
+    canvas.drawLine(Offset(4, size.height * 0.35), Offset(size.width - 4, size.height * 0.35), paint);
+    canvas.drawLine(Offset(4, size.height * 0.55), Offset(size.width - 4, size.height * 0.55), paint);
+    canvas.drawLine(Offset(4, size.height * 0.75), Offset(size.width * 0.6,  size.height * 0.75), paint);
+  }
+
+  @override
+  bool shouldRepaint(_StoryIconPainter old) => old.color != color;
+}
+
+class _StageIconPainter extends CustomPainter {
+  final Color color;
+  _StageIconPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final rr = Radius.circular(2);
+    final h = size.height;
+    final w = size.width;
+
+    // Three rows of decreasing width
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, 0,       w,       h * 0.25), rr), paint);
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, h * 0.4, w,       h * 0.25), rr), paint);
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, h * 0.8, w * 0.6, h * 0.25), rr), paint);
+  }
+
+  @override
+  bool shouldRepaint(_StageIconPainter old) => old.color != color;
 }

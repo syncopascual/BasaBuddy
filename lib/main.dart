@@ -51,7 +51,12 @@ Future<void> main() async {
   ];
 
 
-  runApp(MyApp());
+  runApp(
+    BlocProvider<ConnectivityBloc>(
+      create: (_) => GetIt.instance<ConnectivityBloc>(),
+      child: MyApp(),
+    ),
+  );
 }
 void setupGetIt() {
   final getIt = GetIt.instance;

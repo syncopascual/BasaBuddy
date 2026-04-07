@@ -81,10 +81,14 @@ class ExerciseInput extends StoryContentItem {
         choices['$i'] = TextEditingController();
         tagalogChoices['$i'] = TextEditingController();
       }
+      if (type == 'mulcho') {
+        correctMulchoIndex = 0;
+      }
     }
     if (type == 'fill_in_blanks') {
       fillChoices = List.generate(3, (_) => TextEditingController());
       fillTagalogChoices = List.generate(3, (_) => TextEditingController());
+      correctFillBlanksIndex = 0;
     }
     if (type == 'matching'){
       pairs = List.generate(3, (_) => MatchingPair());

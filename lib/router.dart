@@ -1,6 +1,7 @@
 import 'package:basabuddy/components/question_components/MulchoExercise.dart';
 import 'package:basabuddy/models/mulcho.dart';
 import 'package:basabuddy/screens/student/home.dart';
+import 'package:basabuddy/screens/teacher/content_detail.dart';
 import 'package:basabuddy/screens/teacher/home.dart';
 import 'package:basabuddy/screens/login.dart';
 import 'package:basabuddy/screens/signup.dart';
@@ -10,6 +11,11 @@ import 'package:basabuddy/screens/student/profileScreen.dart';
 import 'package:basabuddy/screens/student/progressScreen.dart';
 import 'package:basabuddy/screens/teacher/add_story_page.dart';
 import 'package:basabuddy/screens/teacher/add_questions_page.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/connectivity_bloc.dart';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +28,67 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 final _shellTeacherNavigatorKey = GlobalKey<NavigatorState>();
 
+class TeacherWrapper extends StatelessWidget {
+  final Widget child;
+
+  const TeacherWrapper({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        child,
+
+        BlocBuilder<ConnectivityBloc, ConnectivityState>(
+          builder: (context, state) {
+            if (state is ConnectivityFailure) {
+              return const NoInternetOverlay();
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class NoInternetOverlay extends StatelessWidget {
+  const NoInternetOverlay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1D9E75),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.wifi_off_rounded, size: 80, color: Colors.white70),
+              const SizedBox(height: 24),
+              const Text(
+                "No Internet Connection",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Please check your connection and try again.",
+                style: TextStyle(fontSize: 15, color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 final router = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/login',
@@ -84,7 +151,9 @@ final router = GoRouter(
     ShellRoute(
       navigatorKey: _shellTeacherNavigatorKey,
       builder: (context, state, child) {
-        return TeacherHomeShell(child: child);
+        return TeacherWrapper(
+          child: TeacherHomeShell(child: child),
+        );
       },
       routes: [
         ///Student Home Route
@@ -110,7 +179,16 @@ final router = GoRouter(
             return NoTransitionPage(child: AddStagePage(classId: classId));
           }
         ),
-
+        GoRoute(
+          path: '/teacher/content_detail',
+          builder: (context, state) {
+            final data = state.extra as Map<String, dynamic>;
+            return ContentDetailPage(
+              storyId: data['storyId'],
+              isStory: data['isStory'],
+            );
+          }
+        ),
   
       ],
     ),
