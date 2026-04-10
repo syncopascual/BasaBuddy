@@ -79,8 +79,8 @@ class _MulchoExerciseState extends State<MulchoExercise> {
                 late String question = "";
                 late Map<String, String> choices = {};
                 if(!state.isEnglish){
-                  question = widget.mulcho.tagalogQuestion;
-                  choices = widget.mulcho.tagalogChoices;
+                  question = widget.mulcho.tagalogQuestion!;
+                  choices = widget.mulcho.tagalogChoices!;
                 } else {
                   question = widget.mulcho.question;
                   choices = widget.mulcho.choices;

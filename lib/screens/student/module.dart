@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/story.dart';
+import '../../models/userLevelInfo.dart';
 import '../../utils/database_helper.dart';
 
 class Module extends StatefulWidget {
@@ -82,7 +83,32 @@ class _ModuleState extends State<Module> {
       print("Stories");
       print(stories);
 
-      int moduleLevel = 10000; /// User is able to access all stories
+      try{
+        UserLevelInfo? userInfo = await DatabaseHelper.instance.queryFirst<UserLevelInfo>('user_level_info', UserLevelInfo.fromJson);
+        print("user level info gotten");
+      }
+      catch(e) {
+        print("user level info e:");
+        print(e);
+      }
+      UserLevelInfo? userInfo = await DatabaseHelper.instance.queryFirst<UserLevelInfo>('user_level_info', UserLevelInfo.fromJson);
+      print("user level info gotten");
+      int moduleLevel = 5;
+
+      switch(widget.moduleType){
+        case "narrative":
+          moduleLevel = userInfo!.narrativeLevel;
+          break;
+        case "information":
+          moduleLevel = userInfo!.informationLevel;
+          break;
+        case "vocab":
+          moduleLevel = userInfo!.vocabLevel;
+          break;
+
+      }
+
+
 
       ///get story thumbnails
       for(int i = 0; i< stories.length;i++){

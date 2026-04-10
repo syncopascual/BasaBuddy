@@ -8,7 +8,7 @@ part of 'userLevelInfo.dart';
 
 UserLevelInfo _$UserLevelInfoFromJson(Map<String, dynamic> json) =>
     UserLevelInfo(
-      id: (json['id'] as num).toInt(),
+      id: (json['id'] as num?)?.toInt(),
       userId: json['user_id'] as String,
       vocabLevel: (json['vocab_lvl'] as num).toInt(),
       narrativeLevel: (json['narrative_lvl'] as num).toInt(),

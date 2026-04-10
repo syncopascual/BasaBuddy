@@ -46,16 +46,21 @@ class StoryButton extends StatelessWidget {
     return GestureDetector(
       onTap: isLocked ? null : onPressed,
       child: Container(
-
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
+          gradient: isLocked
+              ? LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.grey.shade400, Colors.grey.shade300],
+          )
+              : const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [Colors.lightBlueAccent, Colors.lightGreenAccent],
           ),
         ),
-        padding: EdgeInsets.all(6),
+        padding: const EdgeInsets.all(6),
         child: ClipOval(
           child: ColorFiltered(
             colorFilter: imageFilter ?? const ColorFilter.mode(
