@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../bloc/connectivity_bloc.dart';
+import '../../bloc/theme_bloc.dart';
 import '../../colors.dart';
 
 class StudentHome  extends StatefulWidget {
@@ -36,6 +37,7 @@ class _StudentHomeState extends State<StudentHome > {
                   fontSize: 20,
                 )),
               onPressed: (){
+                BlocProvider.of<ThemeBloc>(context).add(SetVocab());
                 context.push('/student/home/module/vocab');
               },
               child: Text("Vocab Island", style: TextStyle(color: textColor, fontFamily: 'Nunito'))),
@@ -52,6 +54,7 @@ class _StudentHomeState extends State<StudentHome > {
                   fontSize: 20,
                 )),
               onPressed: (){
+                BlocProvider.of<ThemeBloc>(context).add(SetInformation());
                 context.push('/student/home/module/information');
               },
               child: Text("Knowledge Island", style: TextStyle(color: textColor, fontFamily: 'Nunito'))),
@@ -68,6 +71,7 @@ class _StudentHomeState extends State<StudentHome > {
                   fontSize: 20,
                 )),
                 onPressed: (){
+                  BlocProvider.of<ThemeBloc>(context).add(SetNarrative());
                   context.push('/student/home/module/narrative');
                 },
                 child: Text("Story Island", style: TextStyle(color: textColor, fontFamily: 'Nunito'))),

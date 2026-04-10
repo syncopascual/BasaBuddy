@@ -1,3 +1,4 @@
+import 'package:basabuddy/bloc/theme_bloc.dart';
 import 'package:basabuddy/components/TopAppBar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,12 +12,35 @@ import '../bloc/translation_bloc.dart';
 import '../colors.dart';
 
 ///A sort of wrapper around the whole app, contains the bottom navigation bar
-class StudentHomeShell  extends StatelessWidget {
-  final Widget child;
-  final MoneyBloc moneyBloc = MoneyBloc();
-  final TranslationBloc translationBloc = TranslationBloc();
 
-  StudentHomeShell({required this.child});
+class StudentHomeShell extends StatefulWidget {
+  final Widget child;
+  const StudentHomeShell({required this.child});
+
+  @override
+  State<StudentHomeShell> createState() => _StudentHomeShellState();
+}
+class _StudentHomeShellState extends State<StudentHomeShell> {
+  late final MoneyBloc moneyBloc;
+  late final TranslationBloc translationBloc;
+  late final ThemeBloc themeBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    moneyBloc = MoneyBloc()..add(SyncMoney());
+    translationBloc = TranslationBloc();
+    themeBloc = ThemeBloc();
+  }
+
+  @override
+  void dispose() {
+    moneyBloc.close();
+    translationBloc.close();
+    themeBloc.close();
+    super.dispose();
+  }
+
 
   int _locationToIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
@@ -56,31 +80,33 @@ class StudentHomeShell  extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-            lazy: false,
-            create: (BuildContext context) => moneyBloc..add(SyncMoney())),
-        BlocProvider(
-            lazy: false,
-            create: (BuildContext context) => translationBloc),
-        BlocProvider(lazy: false, create: (BuildContext context) => GetIt.instance<ConnectivityBloc>()),
+        BlocProvider.value(value: moneyBloc),
+        BlocProvider.value(value: translationBloc),
+        BlocProvider.value(value: themeBloc),
+        BlocProvider(lazy: false, create: (_) => GetIt.instance<ConnectivityBloc>()),
       ],
       child: Scaffold(
         appBar: TopAppBar(screenWidth),
-        body: child,
-        bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: selected,
-          currentIndex: currentIndex,
-          onTap: (index) => _onTap(context, index),
-          items: [
-            BottomNavigationBarItem(
+        body: widget.child,
+        bottomNavigationBar: BlocBuilder<ThemeBloc, ThemeState>(
+          builder: (BuildContext context, state) {
+            return BottomNavigationBar(
+              backgroundColor: moduleTheme[state.theme]!['bottomBarBg'],
+              currentIndex: currentIndex,
+              onTap: (index) => _onTap(context, index),
+              items: [
+                BottomNavigationBarItem(
 
-                icon: const ImageIcon(
-                  AssetImage("assets/icons/home.png"),
-                ),
-                label: 'home'),
-            const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'progress'),
-            const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'profile'),
-          ],
+                    icon: const ImageIcon(
+                      AssetImage("assets/icons/home.png"),
+                    ),
+                    label: 'home'),
+                const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'progress'),
+                const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'profile'),
+              ],
+            );
+          },
+
         ),
       ),
     );

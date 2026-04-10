@@ -48,6 +48,14 @@ class StoryButton extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha:0.10), // Shadow color
+              spreadRadius: 0,   // Extends the shadow
+              blurRadius: 4,    // Softens the shadow
+              offset: Offset(4, 6), // Position (x, y)
+            ),
+          ],
           gradient: isLocked
               ? LinearGradient(
             begin: Alignment.topLeft,
@@ -57,10 +65,10 @@ class StoryButton extends StatelessWidget {
               : const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.lightBlueAccent, Colors.lightGreenAccent],
+            colors: [Color(0x33281802), Color(0x33F29513)],
           ),
         ),
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(8),
         child: ClipOval(
           child: ColorFiltered(
             colorFilter: imageFilter ?? const ColorFilter.mode(
