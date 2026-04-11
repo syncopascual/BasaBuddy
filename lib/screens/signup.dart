@@ -205,6 +205,7 @@ Future<void> initializeUserData(String userId) async {
           .insert({
             'user_id': userId, 
             'money': 0,
+            'updated_at': now
       });
     }
   } else if(role == "teacher"){

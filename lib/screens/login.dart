@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:basabuddy/utils/offline_sync.dart';
 
+import 'dart:io';
+import 'package:basabuddy/utils/error_handler.dart';
+
 import '../colors.dart';
 
 class Login extends StatefulWidget {
@@ -58,13 +61,10 @@ class _LoginState extends State<Login> {
           SnackBar(content: Text("Unknown role: $role")),
         );
       }
-    } on AuthException catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Unexpected error: $e")),
+      SnackBar(content: Text(getAuthErrorMessage(e))),
     );
     } finally {
       if (mounted) setState(() => _loading = false);

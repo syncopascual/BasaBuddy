@@ -131,6 +131,55 @@ Future<void> syncUserProgress() async {
       }).eq('id', userId);
     }
 
+    final remoteMoney = await supabase
+      .from('user_money')
+      .select('money, updated_at')
+      .eq('user_id', userId)
+      .maybeSingle(); // maybeSingle so it returns null instead of throwing if no row exists
+
+    final localMoney = await db.query(
+      'user_money',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+
+    if (remoteMoney == null && localMoney.isNotEmpty) {
+      // No remote row yet — push local up
+      await supabase.from('user_money').insert({
+        'user_id': userId,
+        'money': localMoney.first['money'],
+        'updated_at': localMoney.first['updated_at'],
+      });
+    } else if (remoteMoney != null && localMoney.isEmpty) {
+      // No local row — pull remote down
+      await db.insert('user_money', {
+        'user_id': userId,
+        'money': remoteMoney['money'],
+        'updated_at': remoteMoney['updated_at'],
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    } else if (remoteMoney != null && localMoney.isNotEmpty) {
+      final remoteMoneyUpdatedAt = DateTime.parse(remoteMoney['updated_at']);
+      final localMoneyUpdatedAt = localMoney.first['updated_at'] != null
+          ? DateTime.parse(localMoney.first['updated_at'] as String)
+          : DateTime.fromMillisecondsSinceEpoch(0);
+
+      if (remoteMoneyUpdatedAt.isAfter(localMoneyUpdatedAt)) {
+        // Remote is newer — pull down
+        await db.insert('user_money', {
+          'user_id': userId,
+          'money': remoteMoney['money'],
+          'updated_at': remoteMoney['updated_at'],
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+      } else {
+        // Local is newer — push up
+        await supabase.from('user_money').upsert({
+          'user_id': userId,
+          'money': localMoney.first['money'],
+          'updated_at': localMoney.first['updated_at'],
+        });
+      }
+    }
+
   } catch (e) {
     print("Sync failed (probably offline): $e");
   }

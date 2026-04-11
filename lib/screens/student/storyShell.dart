@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:basabuddy/Miscellaneous.dart';
+import 'package:basabuddy/bloc/freeze_bloc.dart';
 import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:basabuddy/components/FinishedStoryPopup.dart';
 import 'package:basabuddy/components/question_components/MatchingExercise.dart';
@@ -18,6 +19,7 @@ import 'package:http/http.dart' as http;
 import 'package:basabuddy/components/StreakServices.dart';
 import 'package:basabuddy/components/StreakNotifier.dart';
 import 'package:basabuddy/utils/database_helper.dart';
+import 'package:basabuddy/utils/points_calculator.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../colors.dart';
@@ -30,6 +32,7 @@ import '../../models/mulcho.dart';
 import '../../models/story.dart';
 import '../../models/storyPage.dart';
 import '../../utils/database_helper.dart';
+
 
 ///This class fetches the story, its pages and exercises, from the database
 /// Then orders them, displays them, and keeps track of the current page
@@ -685,9 +688,50 @@ class _StoryShellState extends State<StoryShell> {
       }
 
       final user = Supabase.instance.client.auth.currentUser;
+
+      int storyLevel = 1;
+      bool isFirstCompletion = false;
+      try {
+        final meta = await Supabase.instance.client
+            .from('list_stories')
+            .select('level')
+            .eq('story_id', widget.storyId)
+            .single();
+        storyLevel = (meta['level'] as int? ?? 1).clamp(1, 5);
+
+        // Check if the student has any previous completions of this story
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null) {
+          final existing = await Supabase.instance.client
+              .from('stage_level')
+              .select('story_id')
+              .eq('user_id', user.id)
+              .eq('story_id', widget.storyId)
+              .limit(1);
+          // If nothing exists yet, this is their first time
+          // (we check before addStageData inserts the new rows)
+          print("Existing? $existing");
+          isFirstCompletion = (existing as List).isEmpty;
+        }
+      } catch (e) {
+        print('Could not fetch story level: $e');
+      }
+
       final streakService = StreakService();
       if (user != null) {
         await streakService.updateStreak(user.id);
+        final db = await DatabaseHelper.instance.db;
+        final userId = user.id;
+        final row = await db.query(
+          'user_streak',
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+        final freezeCount = row.isNotEmpty
+          ? (row.first['freeze_count'] as int? ?? 0)
+          : 0;
+
+        context.read<FreezeBloc>().add(SetFreeze(freezeCount));
         if (!mounted) return;
         streakNotifier.refresh(user.id);
       }
@@ -697,13 +741,26 @@ class _StoryShellState extends State<StoryShell> {
 
       if (!mounted) return; 
 
-      BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
+      final int totalItemCount = totalItems.values.fold(0, (sum, v) => sum + v);
+      final int firstAttemptCount = firstAttemptCorrect.values.fold(0, (sum, v) => sum + v);
+
+      final int points = calculatePoints(
+        level: storyLevel,
+        totalItemCount: totalItemCount,
+        firstAttemptCount: firstAttemptCount,
+        isFirstCompletion: isFirstCompletion,
+      );
+
+      if (!mounted) return;
+      BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(points));
+
 
       ///Display onfinished popup
       showDialog(
         context: context,
         barrierDismissible: false, // user must act
         builder: (_) => FinishedStoryPopup(
+          pointsEarned: points,
           onContinue: () {
             //navigate to home
             context.go('/student/home');

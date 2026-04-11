@@ -5,9 +5,12 @@ import '../colors.dart';
 class FinishedStoryPopup extends StatelessWidget {
   final VoidCallback onContinue;
 
+  final int pointsEarned;
+
   const FinishedStoryPopup({
     super.key,
     required this.onContinue,
+    required this.pointsEarned
   });
 
   @override
@@ -38,9 +41,9 @@ class FinishedStoryPopup extends StatelessWidget {
 
                 // 📝 Content
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color:  selected,
+                    color: selected,
                     borderRadius: BorderRadius.all(Radius.circular(15)),
                   ),
                   child: const Text(
@@ -58,16 +61,47 @@ class FinishedStoryPopup extends StatelessWidget {
                 ///BODY
                 Container(
                   height: 300,
-                  padding: EdgeInsets.symmetric(vertical: 24),
+                  padding: const EdgeInsets.symmetric(vertical: 24),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(30)
                   ),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
                         'You totally nailed it!!',
                         textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 28),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Points earned row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            '+',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$pointsEarned',
+                            style: const TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Image.asset(
+                            'assets/icons/crystal.png',
+                            width: 36,
+                            height: 36,
+                          ),
+                        ],
                       ),
                     ],
                   ),

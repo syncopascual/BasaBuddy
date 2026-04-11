@@ -1,8 +1,11 @@
+import 'package:basabuddy/bloc/freeze_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:basabuddy/utils/database_helper.dart';
 
+import '../../bloc/money_bloc.dart';
 import '../../bloc/connectivity_bloc.dart';
 import '../../components/StreakServices.dart';
 
@@ -45,6 +48,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
     try {
       final data = await getProfileData();
+      final userId = supabase.auth.currentUser?.id;
+      if(userId != null) {
+        final db = await DatabaseHelper.instance.db;
+        final streakRow = await db.query(
+          'user_streak',
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+        final freezeCount = streakRow.isNotEmpty
+          ? (streakRow.first['freeze_count'] as int? ?? 0)
+          : 0;
+
+        if (mounted) {
+          context.read<FreezeBloc>().add(SetFreeze(freezeCount));
+        }
+      }
       setState(() {
         profileData = data;
         loading = false;
@@ -353,7 +372,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: Color(0xFF7FDBFF),
                         ),
                         const SizedBox(width: 12),
-                        const Text("Buy a Streak Freeze"),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Buy a Streak Freeze"),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Text("40"),
+                                Image.asset(
+                                  'assets/icons/crystal.png',
+                                  width: 20,
+                                  height: 20,
+                                ),
+                                SizedBox(width: 4),
+                                BlocBuilder<FreezeBloc, FreezeState>(
+                                  builder: (context, state) {
+                                    return Text("Freezes: ${state.freezeCount}/2");
+                                  },
+                                )
+                              ]
+                            )
+                          ]
+                        )
+
                       ],),
 
                       ElevatedButton(
@@ -363,8 +405,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           try {
                             // Freeze streak until end of next day
-                            await StreakService().freezeStreak(userId);
+                            final success = await StreakService().freezeStreak(userId);
 
+                            if (!context.mounted) return;
+
+                            if (!success) {
+                              final moneyRow = await DatabaseHelper.instance.db.then(
+                                (db) => db.query('user_money',
+                                where: 'user_id = ?', whereArgs: [userId]));
+
+                              final money = moneyRow.isNotEmpty
+                                ? (moneyRow.first['money'] as int? ?? 0)
+                                : 0;
+
+                              final msg = money < 40
+                                ? 'Not enough crystals! You need 40.'
+                                : 'You already have 2 streak freezes held.';
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(msg)),
+                              );
+                              return;
+                            }
+                            if (!context.mounted) return;
+                            context.read<MoneyBloc>().add(ChangeMoney(-40));
+                            context.read<FreezeBloc>().add(ChangeFreeze(1));
                             // Optional: show confirmation
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Streak frozen until tomorrow! ❄️')),

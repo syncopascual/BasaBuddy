@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/connectivity_bloc.dart';
 import '../bloc/money_bloc.dart';
 import '../bloc/translation_bloc.dart';
+import '../bloc/freeze_bloc.dart';
 import '../colors.dart';
 
 ///A sort of wrapper around the whole app, contains the bottom navigation bar
@@ -63,6 +64,10 @@ class StudentHomeShell  extends StatelessWidget {
             lazy: false,
             create: (BuildContext context) => translationBloc),
         BlocProvider(lazy: false, create: (BuildContext context) => GetIt.instance<ConnectivityBloc>()),
+        BlocProvider(
+          lazy: false,
+          create: (BuildContext context) => FreezeBloc()
+        ),
       ],
       child: Scaffold(
         appBar: TopAppBar(screenWidth),

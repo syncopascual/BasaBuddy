@@ -18,7 +18,7 @@ class DatabaseHelper {
   Future<Database> _initDb() async {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'basabuddy.db');
-    return await openDatabase(path, version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade,);
+    return await openDatabase(path, version: 3, onCreate: _onCreate, onUpgrade: _onUpgrade,);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -32,6 +32,15 @@ class DatabaseHelper {
       await db.execute("UPDATE stage_level SET updated_at = '$now'");
       await db.execute("UPDATE user_level_info SET updated_at = '$now'");
       await db.execute("UPDATE user_streak SET updated_at = '$now'");
+    }
+    if (oldVersion < 3) {
+      try {
+        await db.execute(
+          'ALTER TABLE user_streak ADD COLUMN freeze_count INTEGER DEFAULT 0',
+        );
+      } catch (e) {
+        print('Migration error (column may already exist): $e');
+      }
     }
   }
 
@@ -75,6 +84,7 @@ class DatabaseHelper {
         longest_streak INTEGER,
         last_active_date TEXT,
         streak_frozen_until TEXT,
+        freeze_count INTEGER,
         updated_at TEXT
       )
       ''');
