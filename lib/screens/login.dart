@@ -1,9 +1,11 @@
 import 'package:basabuddy/screens/student/home.dart';
+import 'package:basabuddy/screens/student/onboarding.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:basabuddy/utils/offline_sync.dart';
+import 'package:basabuddy/utils/database_helper.dart';
 
 import 'dart:io';
 import 'package:basabuddy/utils/error_handler.dart';
@@ -53,7 +55,18 @@ class _LoginState extends State<Login> {
         } catch (e) {
           print("Offline sync failed: $e");
         }
-        context.go('/student/home');
+
+        /// Check if this is the student's first login since install
+        final isDiagnosticDone = await DatabaseHelper.instance.isDiagnosticCompleted(user.id);
+        if (!mounted) return;
+
+        if (!isDiagnosticDone) {
+          /// First time - show onboarding
+          context.go('/onboarding');
+        } else {
+          /// Returning student - go home
+          context.go('/student/home');
+        }
       } else if (role == 'teacher'){
         context.go('/teacher/home');
       } else {

@@ -41,6 +41,12 @@ class DatabaseHelper {
       } catch (e) {
         print('Migration error (column may already exist): $e');
       }
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS user_settings (
+          user_id TEXT PRIMARY KEY,
+          diagnostic_completed INTEGER DEFAULT 0
+        )
+      ''');
     }
   }
 
@@ -89,6 +95,13 @@ class DatabaseHelper {
       )
       ''');
 
+    await db.execute('''
+      CREATE TABLE user_settings (
+        user_id TEXT PRIMARY KEY,
+        diagnostic_completed INTEGER DEFAULT 0
+      )
+      ''');
+
     await db.insert('user_money', {
       'user_id': 'your_user_id',//TODO:: add actual user id from supabase?
       'money': 0,
@@ -100,7 +113,13 @@ class DatabaseHelper {
       ) async {
     final Database database = await db;
     final result = await database.rawQuery('SELECT * FROM $table LIMIT 1');
+    print("query first $result");
     if (result.isEmpty) return null;
+    try{
+      fromJson(result.first);
+    } catch(e){
+      print(e);
+    }
     return fromJson(result.first);
   }
 
@@ -128,7 +147,8 @@ class DatabaseHelper {
       T Function(Map<String, dynamic>) fromJson,
       String where,
       List<dynamic> whereArgs,
-      ) async {
+      )
+  async {
     final Database database = await db;
     final result = await database.query(
       table,
@@ -154,6 +174,12 @@ class DatabaseHelper {
           }
         }
       }
+      // ADD THIS
+      print("=== DECODED ROW ===");
+      decoded.forEach((key, value) {
+        print("  $key: ${value.runtimeType} = $value");
+      });
+
       return fromJson(decoded);
     }).toList();
   }
@@ -222,5 +248,55 @@ class DatabaseHelper {
     );
   }
 
+  // Check if diagnostic is completed for a user
+  Future<bool> isDiagnosticCompleted(String userId) async {
+    final Database database = await db;
+    final result = await database.query(
+      'user_settings',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+    if (result.isEmpty) return false;
+    return (result.first['diagnostic_completed'] as int) == 1;
+  }
+
+  // Set diagnostic completed for a user
+  Future<void> setDiagnosticCompleted(String userId) async {
+    final Database database = await db;
+    final existing = await database.query(
+      'user_settings',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+    if (existing.isEmpty) {
+      await database.insert('user_settings', {
+        'user_id': userId,
+        'diagnostic_completed': 1,
+      });
+    } else {
+      await database.update(
+        'user_settings',
+        {'diagnostic_completed': 1},
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    }
+  }
+
+  // Get the placed level from diagnostic
+  Future<int> getDiagnosticLevel(String userId) async {
+    final Database database = await db;
+    final result = await database.query(
+      'user_level_info',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+    if (result.isEmpty) return 1;
+    // Return the average of all levels as placed level
+    final vocab = result.first['vocab_lvl'] as int? ?? 1;
+    final narrative = result.first['narrative_lvl'] as int? ?? 1;
+    final information = result.first['information_lvl'] as int? ?? 1;
+    return ((vocab + narrative + information) / 3).round().clamp(1, 5);
+  }
 
   }

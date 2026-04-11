@@ -1,6 +1,8 @@
 import 'package:basabuddy/components/question_components/MulchoExercise.dart';
 import 'package:basabuddy/models/mulcho.dart';
 import 'package:basabuddy/screens/student/home.dart';
+import 'package:basabuddy/screens/student/onboarding.dart';
+import 'package:basabuddy/screens/student/diagnosticExam.dart';
 import 'package:basabuddy/screens/teacher/content_detail.dart';
 import 'package:basabuddy/screens/teacher/home.dart';
 import 'package:basabuddy/screens/login.dart';
@@ -100,6 +102,14 @@ final router = GoRouter(
     GoRoute(
       path: '/signup',
       builder: (context, state) => Signup(),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingScreen(),
+    ),
+    GoRoute(
+      path: '/student/diagnostic',
+      builder: (context, state) => const DiagnosticExamScreen(),
     ),
     ShellRoute(
       navigatorKey: _shellNavigatorKey,

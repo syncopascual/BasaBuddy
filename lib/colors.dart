@@ -10,6 +10,27 @@ Color superDarkAccent = const Color(0xFFB76500);
 Color superLightAccent = const Color(0xFFFFEFAF);
 Color textColor = const Color(0xFF723B0F);
 
+Map<String, Map<String, Color>> moduleTheme = {
+  'narrative':{
+    'bottomBarBg': const Color(0xFFEFB76A),
+    'topBarBg':const Color(0xFFEEB76A),
+    'bottomBarUnselectedIcon': const Color(0xFF564415),
+    'bottomBarSelectedIcon': const Color(0xFFBF8300),
+  },
+  'vocab':{
+    'bottomBarBg': const Color(0xFFEFEA6A),
+    'topBarBg':const Color(0xFFEED16A),
+    'bottomBarUnselectedIcon': const Color(0xFF564415),
+    'bottomBarSelectedIcon': const Color(0xFFBF8300),
+  },
+  'information':{
+    'bottomBarBg': const Color(0xFFBAD8F3),
+    'topBarBg':const Color(0xFF8EB9E1),
+    'bottomBarUnselectedIcon': const Color(0xFF153756),
+    'bottomBarSelectedIcon': const Color(0xFF00B3D7),
+  }
+};
+
 Map<String, Map<String, Color>> popupTheme = {
   'correct':{
     'bgColor': const Color(0xFFD4FF8A),
