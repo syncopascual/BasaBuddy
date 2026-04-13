@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:basabuddy/components/VoiceService.dart';
 
 class FillBlankChoices extends StatelessWidget {
   final List<String> choices;
   final int? hiddenIndex;
   final Function(int) onChoiceTap;
+  final bool soundEnabled;
 
   const FillBlankChoices({
     super.key,
     required this.choices,
     required this.hiddenIndex,
     required this.onChoiceTap,
+    required this.soundEnabled
   });
 
   @override
@@ -21,7 +24,12 @@ class FillBlankChoices extends StatelessWidget {
         if (index == hiddenIndex) return const SizedBox.shrink();
 
         return GestureDetector(
-          onTap: () => onChoiceTap(index),
+          onTap: () {
+            onChoiceTap(index);
+            if (soundEnabled) {
+              VoiceService().speak(choices[index], true); // 👈 add this
+            }
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: 16,

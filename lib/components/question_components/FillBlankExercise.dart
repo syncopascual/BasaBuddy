@@ -27,6 +27,7 @@ class FillBlankExercise extends StatefulWidget {
 class _FillBlankExerciseState extends State<FillBlankExercise> {
   int? selectedIndex;
   final VoiceService _voice = VoiceService();
+  bool soundEnabled = false;
 
   void selectIndex(int index) {
     setState(() {
@@ -173,7 +174,52 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
                   FillBlankChoices(
                     choices: choices,
                     hiddenIndex: selectedIndex,
+                    soundEnabled: soundEnabled,
                     onChoiceTap: selectIndex,
+                  ),
+
+                  Container(
+                    padding: EdgeInsets.only(top: 12),
+                    decoration: BoxDecoration(
+                      border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Read words aloud",
+                          style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                        ),
+                        GestureDetector(
+                          onTap: () => setState(() => soundEnabled = !soundEnabled),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: soundEnabled ? Colors.blue.shade100 : Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  soundEnabled ? Icons.volume_up : Icons.volume_off,
+                                  size: 16,
+                                  color: soundEnabled ? Colors.blue.shade700 : Colors.grey,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  soundEnabled ? "On" : "Off",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: soundEnabled ? Colors.blue.shade700 : Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 32),
