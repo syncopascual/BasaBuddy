@@ -208,6 +208,18 @@ Future<void> initializeUserData(String userId) async {
             'updated_at': now
       }, onConflict: 'user_id',);
     }
+    final boosts = await Supabase.instance.client
+      .from('user_boosts')
+      .select()
+      .eq('user_id', userId);
+    if(boosts.isEmpty) {
+      await Supabase.instance.client.from('user_boosts').upsert({
+        'user_id': userId,
+        'stories_remaining': 0,
+        'updated_at': now,
+      }, onConflict: 'user_id');
+    }
+    
   } else if(role == "teacher"){
     final teacherInfo = await Supabase.instance.client
         .from('teacher_classes')

@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:basabuddy/Miscellaneous.dart';
+import 'package:basabuddy/bloc/booster_bloc.dart';
 import 'package:basabuddy/bloc/freeze_bloc.dart';
 import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:basabuddy/components/FinishedStoryPopup.dart';
@@ -752,7 +753,31 @@ class _StoryShellState extends State<StoryShell> {
       );
 
       if (!mounted) return;
-      BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(points));
+      final boosterBloc = context.read<BoosterBloc>();
+      final isActive = boosterBloc.state.isActive;
+      final boostedPoints = isActive ? points * 2 : points;
+      BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(boostedPoints));
+      if (isActive) {
+        final newVal = boosterBloc.state.storiesRemaining - 1;
+        final userId = Supabase.instance.client.auth.currentUser?.id;
+        if (userId != null) {
+          final now = DateTime.now().toUtc().toIso8601String();
+          final db = await DatabaseHelper.instance.db;
+          await db.insert('user_boosts', {
+            'user_id': userId,
+            'stories_remaining': newVal,
+            'updated_at': now,
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          try {
+            await Supabase.instance.client.from('user_boosts').upsert({
+              'user_id': userId,
+              'stories_remaining': newVal,
+              'updated_at': now,
+            }, onConflict: 'user_id');
+          } catch (_) {}
+        }
+        boosterBloc.add(SetBooster(newVal));
+      }
 
 
       ///Display onfinished popup
@@ -760,7 +785,7 @@ class _StoryShellState extends State<StoryShell> {
         context: context,
         barrierDismissible: false, // user must act
         builder: (_) => FinishedStoryPopup(
-          pointsEarned: points,
+          pointsEarned: boostedPoints,
           onContinue: () {
             //navigate to home
             context.go('/student/home');

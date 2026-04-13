@@ -184,6 +184,45 @@ Future<void> syncUserProgress() async {
       }
     }
 
+    final remoteBoost = await supabase
+      .from('user_boosts')
+      .select('stories_remaining, updated_at')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+  final localBoost = await db.query('user_boosts',
+      where: 'user_id = ?', whereArgs: [userId]);
+
+  if (remoteBoost == null && localBoost.isNotEmpty) {
+    await supabase.from('user_boosts').upsert({
+      'user_id': userId,
+      'stories_remaining': localBoost.first['stories_remaining'],
+      'updated_at': localBoost.first['updated_at'],
+    }, onConflict: 'user_id');
+  } else if (remoteBoost != null && localBoost.isEmpty) {
+    await db.insert('user_boosts', {
+      'user_id': userId,
+      'stories_remaining': remoteBoost['stories_remaining'],
+      'updated_at': remoteBoost['updated_at'],
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  } else if (remoteBoost != null && localBoost.isNotEmpty) {
+    final remoteAt = DateTime.parse(remoteBoost['updated_at']);
+    final localAt = DateTime.parse(localBoost.first['updated_at'] as String);
+    if (remoteAt.isAfter(localAt)) {
+      await db.insert('user_boosts', {
+        'user_id': userId,
+        'stories_remaining': remoteBoost['stories_remaining'],
+        'updated_at': remoteBoost['updated_at'],
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    } else {
+      await supabase.from('user_boosts').upsert({
+        'user_id': userId,
+        'stories_remaining': localBoost.first['stories_remaining'],
+        'updated_at': localBoost.first['updated_at'],
+      }, onConflict: 'user_id');
+    }
+  }
+
   } catch (e) {
     print("Sync failed (probably offline): $e");
   }

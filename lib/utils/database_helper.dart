@@ -19,7 +19,7 @@ class DatabaseHelper {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'basabuddy.db');
     print("📦 DB PATH: $path");
-    return await openDatabase(path, version: 4, onCreate: _onCreate, onUpgrade:  (db, oldVersion, newVersion) async {
+    return await openDatabase(path, version: 5, onCreate: _onCreate, onUpgrade:  (db, oldVersion, newVersion) async {
       print("🔥 ON UPGRADE TRIGGERED");
       print("OLD: $oldVersion NEW: $newVersion");
       await _onUpgrade(db, oldVersion, newVersion);
@@ -60,6 +60,15 @@ class DatabaseHelper {
         CREATE TABLE IF NOT EXISTS user_settings (
           user_id TEXT PRIMARY KEY,
           diagnostic_completed INTEGER DEFAULT 0
+        )
+      ''');
+    }
+    if (oldVersion < 5) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS user_boosts (
+          user_id TEXT PRIMARY KEY,
+          stories_remaining INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL
         )
       ''');
     }
@@ -118,6 +127,13 @@ class DatabaseHelper {
         diagnostic_completed INTEGER DEFAULT 0
       )
       ''');
+    await db.execute('''
+      CREATE TABLE user_boosts (
+        user_id TEXT PRIMARY KEY,
+        stories_remaining INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL
+      )
+    ''');
   }
   Future<T?> queryFirst<T>(
       String table,

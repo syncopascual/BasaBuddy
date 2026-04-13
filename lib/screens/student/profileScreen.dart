@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:basabuddy/utils/database_helper.dart';
 
+import '../../bloc/booster_bloc.dart';
 import '../../bloc/money_bloc.dart';
 import '../../bloc/connectivity_bloc.dart';
 import '../../components/StreakServices.dart';
@@ -452,6 +453,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(width: 36),
                         ],),
                       )
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(children: [
+                        Icon(Icons.bolt, color: Color(0xFFFFD700)),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("XP Booster"),
+                            const SizedBox(height: 4),
+                            Row(children: [
+                              Text("30"),
+                              Image.asset('assets/icons/crystal.png', width: 20, height: 20),
+                              const SizedBox(width: 4),
+                              BlocBuilder<BoosterBloc, BoosterState>(
+                                builder: (context, state) {
+                                  return Text(state.isActive
+                                      ? "${state.storiesRemaining} stories left"
+                                      : "Inactive");
+                                },
+                              ),
+                            ]),
+                          ],
+                        ),
+                      ]),
+                      BlocBuilder<BoosterBloc, BoosterState>(
+                        builder: (context, boosterState) {
+                          return ElevatedButton(
+                            onPressed: boosterState.isActive ? null : () async {
+                              final userId = supabase.auth.currentUser?.id;
+                              if (userId == null) return;
+
+                              final moneyRow = await DatabaseHelper.instance.db.then(
+                                (db) => db.query('user_money',
+                                    where: 'user_id = ?', whereArgs: [userId]));
+                              final money = moneyRow.isNotEmpty
+                                  ? (moneyRow.first['money'] as int? ?? 0)
+                                  : 0;
+
+                              if (money < 30) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Not enough crystals! You need 30.')),
+                                );
+                                return;
+                              }
+
+                              final now = DateTime.now().toUtc().toIso8601String();
+                              final db = await DatabaseHelper.instance.db;
+                              final newMoney = money - 30;
+
+                              await db.update('user_money',
+                                  {'money': newMoney, 'updated_at': now},
+                                  where: 'user_id = ?', whereArgs: [userId]);
+                              try {
+                                await supabase.from('user_money').upsert({
+                                  'user_id': userId,
+                                  'money': newMoney,
+                                  'updated_at': now,
+                                }, onConflict: 'user_id');
+                              } catch (_) {}
+
+                              if (!context.mounted) return;
+                              context.read<MoneyBloc>().add(SetMoney(newMoney));
+                              context.read<BoosterBloc>().add(SetBooster(3));
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('XP Booster active! Next 3 stories earn 2x 💥')),
+                              );
+                            },
+                            child: Row(children: [
+                              const SizedBox(width: 20),
+                              Text(boosterState.isActive ? "Active" : "Buy"),
+                              const SizedBox(width: 20),
+                            ]),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ],
