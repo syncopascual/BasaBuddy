@@ -110,15 +110,6 @@ class _TopAppBarState extends State<TopAppBar> {
                 ),
               ),
 
-              ImageIcon(
-                const AssetImage("assets/icons/leaves.png"),
-                color: leavesIcon,
-              ),
-              Container(
-                margin: EdgeInsets.fromLTRB(0, 0, widget.screenWidth * 0.08, 0),
-                child: Text("123",
-                    style: TextStyle(color: moduleTheme[state.theme]!['bottomBarUnselectedIcon'])),
-              ),
 
             ]);
       },

@@ -143,13 +143,17 @@ Future<void> syncUserProgress() async {
       whereArgs: [userId],
     );
 
+    print("REMOTE MONEY: $remoteMoney, LOCAL MONEY: $localMoney");
+
     if (remoteMoney == null && localMoney.isNotEmpty) {
       // No remote row yet — push local up
-      await supabase.from('user_money').insert({
+      await supabase.from('user_money').upsert({
         'user_id': userId,
         'money': localMoney.first['money'],
         'updated_at': localMoney.first['updated_at'],
-      });
+      },
+      onConflict: 'user_id',
+      );
     } else if (remoteMoney != null && localMoney.isEmpty) {
       // No local row — pull remote down
       await db.insert('user_money', {
@@ -176,7 +180,7 @@ Future<void> syncUserProgress() async {
           'user_id': userId,
           'money': localMoney.first['money'],
           'updated_at': localMoney.first['updated_at'],
-        });
+        }, onConflict: 'user_id',);
       }
     }
 

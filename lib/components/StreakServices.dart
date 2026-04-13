@@ -68,7 +68,7 @@ class StreakService {
       'user_id': userId,
       'money': newMoney,
       'updated_at': nowStr,
-    });
+    }, onConflict: 'user_id',);
   } catch(_){}
 
   final existingFrozenUntilStr = row?['streak_frozen_until'] as String?;

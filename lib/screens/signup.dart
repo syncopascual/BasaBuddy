@@ -202,11 +202,11 @@ Future<void> initializeUserData(String userId) async {
     if(money.isEmpty){
       await Supabase.instance.client
           .from('user_money')
-          .insert({
+          .upsert({
             'user_id': userId, 
             'money': 0,
             'updated_at': now
-      });
+      }, onConflict: 'user_id',);
     }
   } else if(role == "teacher"){
     final teacherInfo = await Supabase.instance.client

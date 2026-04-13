@@ -18,10 +18,18 @@ class DatabaseHelper {
   Future<Database> _initDb() async {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'basabuddy.db');
-    return await openDatabase(path, version: 3, onCreate: _onCreate, onUpgrade: _onUpgrade,);
+    print("📦 DB PATH: $path");
+    return await openDatabase(path, version: 4, onCreate: _onCreate, onUpgrade:  (db, oldVersion, newVersion) async {
+      print("🔥 ON UPGRADE TRIGGERED");
+      print("OLD: $oldVersion NEW: $newVersion");
+      await _onUpgrade(db, oldVersion, newVersion);
+    },);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    print("🔥 ON UPGRADE TRIGGERED");
+    print("OLD VERSION: $oldVersion");
+    print("NEW VERSION: $newVersion");
     if (oldVersion < 2) {
       final now = DateTime.now().toUtc().toIso8601String();
       await db.execute("ALTER TABLE stage_level ADD COLUMN updated_at TEXT");
@@ -33,11 +41,18 @@ class DatabaseHelper {
       await db.execute("UPDATE user_level_info SET updated_at = '$now'");
       await db.execute("UPDATE user_streak SET updated_at = '$now'");
     }
-    if (oldVersion < 3) {
+    if (oldVersion < 4) {
       try {
         await db.execute(
           'ALTER TABLE user_streak ADD COLUMN freeze_count INTEGER DEFAULT 0',
         );
+        await db.execute('ALTER TABLE user_money ADD COLUMN updated_at TEXT');
+
+        await db.execute('''
+          UPDATE user_money
+          SET updated_at = ?
+          WHERE updated_at IS NULL
+        ''', [DateTime.now().toUtc().toIso8601String()]);
       } catch (e) {
         print('Migration error (column may already exist): $e');
       }
@@ -51,11 +66,13 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    print("🟢 ON CREATE CALLED (FRESH DB)");
     await db.execute('''
       CREATE TABLE user_money (
         id INTEGER PRIMARY KEY,
         user_id TEXT,
-        money INTEGER
+        money INTEGER,
+        updated_at TEXT
       )
     ''');
 
@@ -101,11 +118,6 @@ class DatabaseHelper {
         diagnostic_completed INTEGER DEFAULT 0
       )
       ''');
-
-    await db.insert('user_money', {
-      'user_id': 'your_user_id',//TODO:: add actual user id from supabase?
-      'money': 0,
-    });
   }
   Future<T?> queryFirst<T>(
       String table,

@@ -428,7 +428,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               return;
                             }
                             if (!context.mounted) return;
-                            context.read<MoneyBloc>().add(ChangeMoney(-40));
+                            final moneyRow = await DatabaseHelper.instance.db.then(
+                              (db) => db.query('user_money', where: 'user_id = ?', whereArgs: [userId]));
+                            final newMoney = moneyRow.isNotEmpty ? (moneyRow.first['money'] as int? ?? 0) : 0;
+                            context.read<MoneyBloc>().add(SetMoney(newMoney));
                             context.read<FreezeBloc>().add(ChangeFreeze(1));
                             // Optional: show confirmation
                             ScaffoldMessenger.of(context).showSnackBar(
