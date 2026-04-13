@@ -153,6 +153,8 @@ class _StoryShellState extends State<StoryShell> {
 
 
 
+
+
   void wrongAnswer(StoryItem currentItem) {
     firstAttemptObjects.removeWhere(
           (item) => currentItem.eq(item),

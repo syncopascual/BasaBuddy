@@ -202,11 +202,7 @@ class DatabaseHelper {
           }
         }
       }
-      // ADD THIS
-      print("=== DECODED ROW ===");
-      decoded.forEach((key, value) {
-        print("  $key: ${value.runtimeType} = $value");
-      });
+
 
       return fromJson(decoded);
     }).toList();

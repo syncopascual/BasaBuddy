@@ -36,6 +36,14 @@ class _DiagnosticExerciseState extends State<DiagnosticExercise> {
   bool soundEnabled = false; 
 
   @override
+  void didUpdateWidget(DiagnosticExercise oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mulcho != widget.mulcho) {
+      choiceIndex.value = -1;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height:300,
