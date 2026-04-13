@@ -35,6 +35,14 @@ class _DiagnosticExerciseState extends State<DiagnosticExercise> {
   final VoiceService _voice = VoiceService();
 
   @override
+  void didUpdateWidget(DiagnosticExercise oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mulcho != widget.mulcho) {
+      choiceIndex.value = -1;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height:300,

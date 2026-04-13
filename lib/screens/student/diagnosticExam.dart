@@ -121,7 +121,7 @@ class _DiagnosticExamScreenState extends State<DiagnosticExamScreen> {
       );
 
 
-      print('pages n exercises queried');
+      //print('pages n exercises queried');
       /// Sort pages by page number
       _pages.sort((a, b) => a.pageNum.compareTo(b.pageNum));
 
@@ -186,11 +186,13 @@ class _DiagnosticExamScreenState extends State<DiagnosticExamScreen> {
   }
 
   void _advanceQuestion() {
+    print("advance question called");
     if (_currentQuestionIndex < _questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;
       });
     } else {
+      print("calling evaluate level");
       /// All questions answered - evaluate level
       _evaluateLevel();
     }
@@ -203,7 +205,8 @@ class _DiagnosticExamScreenState extends State<DiagnosticExamScreen> {
     if (_correctAnswers == 3) {
       /// Perfect score - try next level
       if (_currentLevel < 5) {
-        await _loadLevel(_currentLevel + 1);
+        _currentLevel +=1;
+        await _loadLevel(_currentLevel);
         return;
       } else {
         /// Completed all 5 levels perfectly
