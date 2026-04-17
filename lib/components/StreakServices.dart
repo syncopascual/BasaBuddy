@@ -153,6 +153,7 @@ class StreakService {
     if (lastActiveDate != null) {
       final lastDate = DateTime.parse(lastActiveDate).toUtc();
       final lastDateOnly = DateTime.utc(lastDate.year, lastDate.month, lastDate.day);
+      print("Have you taken another test today? ${todayUtc.difference(lastDateOnly).inDays == 0}");
       if (todayUtc.difference(lastDateOnly).inDays == 0) return;
     }
 
@@ -160,10 +161,33 @@ class StreakService {
     if (streakFrozenUntilStr != null) {
       final frozenUntil = DateTime.parse(streakFrozenUntilStr).toUtc();
       if (todayUtc.isBefore(frozenUntil)) {
-        await _saveStreak(db,userId, currentStreak, longestStreak, todayUtc.toIso8601String(), streakFrozenUntilStr, freezeCount, now);
+        // Check if the freeze is actually being consumed (user missed a day)
+        bool freezeConsumed = false;
+        int newFreezeCount = freezeCount;
+
+        if (lastActiveDate != null) {
+          final lastDate = DateTime.parse(lastActiveDate).toUtc();
+          final lastDateOnly = DateTime.utc(lastDate.year, lastDate.month, lastDate.day);
+          final difference = todayUtc.difference(lastDateOnly).inDays;
+
+          if (difference > 1) {
+            // A day was actually missed — consume one freeze
+            freezeConsumed = true;
+            newFreezeCount = (freezeCount - 1).clamp(0, freezeCount);
+          }
+        }
+
+        // Once all freezes are consumed, clear the frozen-until date
+        final String? newFrozenUntil = newFreezeCount > 0 ? streakFrozenUntilStr : null;
+
+        await _saveStreak(db, userId, currentStreak, longestStreak,
+            todayUtc.toIso8601String(), newFrozenUntil, newFreezeCount, now);
+
         try {
           await supabase.from('profiles').update({
             'lastActiveDate': todayUtc.toIso8601String(),
+            if (freezeConsumed) 'freezeCount': newFreezeCount,
+            if (freezeConsumed) 'streakFrozenUntil': newFrozenUntil,
           }).eq('id', userId);
         } catch (_) {}
         return;
