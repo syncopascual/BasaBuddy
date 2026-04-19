@@ -12,10 +12,14 @@ class UserMoney {
 
   final int money;
 
+  @JsonKey(name: 'updated_at')
+  final String updatedAt;
+
   UserMoney({
     required this.id,
     required this.userId,
     required this.money,
+    required this.updatedAt
   });
 
   factory UserMoney.fromJson(Map<String, dynamic> json) =>

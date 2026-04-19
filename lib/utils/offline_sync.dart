@@ -1,3 +1,4 @@
+import 'package:basabuddy/utils/sync_function.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:basabuddy/utils/database_helper.dart';
 import 'package:sqflite/sqflite.dart';
@@ -14,7 +15,39 @@ Future<void> syncUserProgress() async {
 
   final db = await DatabaseHelper.instance.db;
 
+  print("syncing stuff");
   try {
+    print("start");
+    ///Sync user exp
+    await syncTable(
+        tableName: 'user_exp',
+        userId: userId,
+        db: db,
+        supabase: supabase,
+        syncColumns:['narrative_exp', 'information_exp', 'vocab_exp']
+        );
+
+
+    ///Sync diagnostic test
+    await syncTable(
+        tableName: 'user_settings',
+        userId: userId,
+        db: db,
+        supabase: supabase,
+        syncColumns:['diagnostic_completed']
+    );
+
+    print("synced 2.5");
+    ///Sync user money
+    await syncTable(
+        tableName: 'user_money',
+        userId: userId,
+        db: db,
+        supabase: supabase,
+        syncColumns:['money']
+    );
+    print("synced 3");
+
 
     //Get remote module levels and update local database. (What about local -> supabase? Check later)
     final levelRes = await supabase
@@ -29,6 +62,7 @@ Future<void> syncUserProgress() async {
         ? DateTime.parse(localLevel.first['updated_at'] as String)
         : DateTime.fromMillisecondsSinceEpoch(0);
 
+    print("synced 3.5");
     if (remoteUpdatedAt.isAfter(localUpdatedAt)) {
       // Remote is newer, update local
       await db.insert('user_level_info', {
@@ -48,6 +82,8 @@ Future<void> syncUserProgress() async {
         'updated_at': localLevel.first['updated_at'],
       });
     }
+
+    print("synced 4");
 
     //Get user's stage levels (user's completed stories - one row for each story + skill combo). Local -> supabase, supabase -> local database. What about conflicts? Say, did stories offline then went online, or did stories online then went offline.
     final localStages = await db.query(
@@ -95,6 +131,7 @@ Future<void> syncUserProgress() async {
       );
     }
 
+
     //Get supabase's streak info, update local database. When should the streak info for remote be updated then?
     final response = await supabase
     .from('profiles')
@@ -130,6 +167,8 @@ Future<void> syncUserProgress() async {
         'updated_at': localStreak.first['updated_at'],
       }).eq('id', userId);
     }
+
+    print("SYNC FUNCTION DONE");
 
   } catch (e) {
     print("Sync failed (probably offline): $e");

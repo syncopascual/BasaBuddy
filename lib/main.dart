@@ -44,11 +44,7 @@ Future<void> main() async {
       await createTableFromCsv(db: db, tableName: tableName, csvPath: "csv_data/${tableName}_rows.csv");
     }
   }
-  ///Setup user data
-  final List<String> userDataTableNames = [
-    "user_level_info",
-    "user_money"
-  ];
+
 
 
   runApp(

@@ -48,23 +48,45 @@ class _LoginState extends State<Login> {
       if (!mounted) return;
       if (role =='student') {
         try {
-          syncUserProgress();
-        } catch (e) {
+          print("role is student, syncing from supabase");
+          await syncUserProgress();
+        } catch (e)
+        {
           print("Offline sync failed: $e");
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Login Failed, Please Try Again'),
+              )
+          );
+
+          context.go('/login');
         }
 
-        /// Check if this is the student's first login since install
-        final isDiagnosticDone = await DatabaseHelper.instance.isDiagnosticCompleted(user.id);
-        if (!mounted) return;
+        print("DONE SYNC -> proceeding to whatever AHEFJKDHGEFHISDKJS");
 
-        if (!isDiagnosticDone) {
+        /// Check if the student has already taken diagnostic test from supabase
+        final diagnosticInfo = await Supabase.instance.client
+            .from('user_settings')
+            .select('diagnostic_completed')
+            .eq('user_id', user.id)
+            .single();
+        print("login 4");
+
+        final isDiagnosticDone = diagnosticInfo["diagnostic_completed"];
+        if (!mounted) return;
+        print("isDiagnosticDone $isDiagnosticDone ${isDiagnosticDone.runtimeType}");
+
+        if (isDiagnosticDone == 0) {
+          print("Diagnostic NOT done");
           /// First time - show onboarding
           context.go('/onboarding');
         } else {
+          print("Diagnostic done, skipping onboarding");
           /// Returning student - go home
           context.go('/student/home');
         }
-      } else if (role == 'teacher'){
+      } else
+        if (role == 'teacher'){
         context.go('/teacher/home');
       } else {
           ScaffoldMessenger.of(context).showSnackBar(

@@ -176,12 +176,14 @@ Future<void> initializeUserData(String userId) async {
   final now = DateTime.now().toUtc().toIso8601String();
 
   if(role == "student"){
+
     final levelInfo = await Supabase.instance.client
       .from('user_current_story_progress')
       .select()
       .eq('user_id', userId);
 
     if(levelInfo.isEmpty){
+      print("inserting user_level_info row into supabase");
       await Supabase.instance.client
           .from('user_level_info')
           .insert({
@@ -193,6 +195,7 @@ Future<void> initializeUserData(String userId) async {
           }
           );
     }
+
     final money = await Supabase.instance.client
       .from('user_money')
       .select()
@@ -200,13 +203,51 @@ Future<void> initializeUserData(String userId) async {
 
   ///if user money doesnt exist, insert
     if(money.isEmpty){
+      print("inserting user_money row into supabase");
       await Supabase.instance.client
           .from('user_money')
           .insert({
             'user_id': userId, 
             'money': 0,
+            'updated_at': now
       });
     }
+    final exp = await Supabase.instance.client
+        .from('user_exp')
+        .select()
+        .eq('user_id', userId);
+
+    ///if user exp info doesnt exist, insert
+    if(exp.isEmpty){
+      print("inserting user_exp row into supabase");
+      await Supabase.instance.client
+          .from('user_exp')
+          .insert({
+            'user_id': userId,
+            'narrative_exp': 100,
+            'vocab_exp': 100,
+            'information_exp': 100,
+            'updated_at': now
+          });
+    }
+
+    final settingsDiagnostic = await Supabase.instance.client
+        .from('user_settings')
+        .select()
+        .eq('user_id', userId);
+
+    ///if user money doesnt exist, insert
+    if(settingsDiagnostic.isEmpty){
+      await Supabase.instance.client
+          .from('user_settings')
+          .insert({
+        'user_id': userId,
+        'diagnostic_completed': 0,
+        'updated_at': now
+      });
+    }
+
+
   } else if(role == "teacher"){
     final teacherInfo = await Supabase.instance.client
         .from('teacher_classes')

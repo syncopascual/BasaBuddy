@@ -80,18 +80,21 @@ class _ModuleState extends State<Module> {
 
       List<Story> stories = await DatabaseHelper.instance.queryWhere('list_stories', Story.fromJson, 'module = ?', [widget.moduleType]);
 
-      print("Stories");
-      print(stories);
+      //print("Stories");
+      //print(stories);
 
-      try{
-        UserLevelInfo? userInfo = await DatabaseHelper.instance.queryFirst<UserLevelInfo>('user_level_info', UserLevelInfo.fromJson);
-        print("user level info gotten");
-      }
-      catch(e) {
-        print("user level info e:");
-        print(e);
-      }
-      UserLevelInfo? userInfo = await DatabaseHelper.instance.queryFirst<UserLevelInfo>('user_level_info', UserLevelInfo.fromJson);
+      ///The user has to be logged in
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+
+      ///get story module type
+      List<UserLevelInfo> userLevelInfoList = await DatabaseHelper.instance
+          .queryWhere(
+          'user_level_info',
+          UserLevelInfo.fromJson,
+          'user_id = ?',
+          [userId]);
+      UserLevelInfo? userInfo = userLevelInfoList[0];
+
       print("user level info gotten");
       int moduleLevel = 5;
 
@@ -105,7 +108,6 @@ class _ModuleState extends State<Module> {
         case "vocab":
           moduleLevel = userInfo!.vocabLevel;
           break;
-
       }
 
 
@@ -122,7 +124,7 @@ class _ModuleState extends State<Module> {
         }
       }
 
-      print("story thumbnails: $storyThumbnails");
+      //print("story thumbnails: $storyThumbnails");
       ///sort stories according to level
       stories.sort((a, b) => a.level.compareTo(b.level));
 

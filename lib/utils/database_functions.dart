@@ -9,6 +9,7 @@ Future<void> createTableFromCsv({
   required String tableName,
   required String csvPath,
 }) async {
+  print("createTableFromCsv $tableName");
   // Check if table already exists
   final result = await db.rawQuery(
     "SELECT name FROM sqlite_master WHERE type='table' AND name=?",

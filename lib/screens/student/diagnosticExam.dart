@@ -12,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../colors.dart';
 import '../../components/DiagnosticPageContainer.dart';
 import '../../components/diagnostic_question.dart';
+import '../../utils/offline_sync.dart';
 
 class DiagnosticExamScreen extends StatefulWidget {
   const DiagnosticExamScreen({super.key});
@@ -223,9 +224,9 @@ class _DiagnosticExamScreenState extends State<DiagnosticExamScreen> {
     /// Save the result
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
-      await DatabaseHelper.instance.setDiagnosticCompleted(user.id);
+      await DatabaseHelper.instance.setDiagnosticCompleted(user.id, placedLevel);
       /// Also update user_level_info with the placed level
-      await _updateUserLevel(user.id, placedLevel);
+      await _updateUserLevelAndExp(user.id, placedLevel);
     }
 
     setState(() {
@@ -234,7 +235,10 @@ class _DiagnosticExamScreenState extends State<DiagnosticExamScreen> {
     });
   }
 
-  Future<void> _updateUserLevel(String userId, int level) async {
+
+  ///updates and tries to sync data
+  Future<void> _updateUserLevelAndExp(String userId, int level) async {
+    print("updating user level to $level");
     final db = await DatabaseHelper.instance.db;
     final now = DateTime.now().toUtc().toIso8601String();
 
@@ -250,6 +254,27 @@ class _DiagnosticExamScreenState extends State<DiagnosticExamScreen> {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
+
+    await db.update(
+      'user_exp',
+      {
+        'vocab_exp': level * 100,
+        'narrative_exp': level * 100,
+        'information_exp': level * 100,
+        'updated_at': now,
+      },
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+    print("_updateUserLevelAndExp: set all exp to ${level * 100}");
+
+    try{
+      print("attempting to sync user progress");
+      syncUserProgress();
+    } catch(e){
+      print("failed to sync user progress: $e");
+    }
+
 
   }
 

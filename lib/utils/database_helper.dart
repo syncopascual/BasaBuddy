@@ -48,9 +48,22 @@ class DatabaseHelper {
       CREATE TABLE user_money (
         id INTEGER PRIMARY KEY,
         user_id TEXT,
-        money INTEGER
+        money INTEGER,
+        updated_at TEXT
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE user_exp (
+        id INTEGER,
+        user_id TEXT PRIMARY KEY,
+        narrative_exp INTEGER,
+        vocab_exp INTEGER,
+        information_exp INTEGER,
+        updated_at TEXT
+      )
+    ''');
+
 
     await db.execute('''
         CREATE TABLE stage_level (
@@ -90,30 +103,15 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE user_settings (
         user_id TEXT PRIMARY KEY,
-        diagnostic_completed INTEGER DEFAULT 0
+        diagnostic_completed INTEGER DEFAULT 0,
+        updated_at TEXT
       )
       ''');
 
-    await db.insert('user_money', {
-      'user_id': 'your_user_id',//TODO:: add actual user id from supabase?
-      'money': 0,
-    });
+
+
   }
-  Future<T?> queryFirst<T>(
-      String table,
-      T Function(Map<String, dynamic>) fromJson,
-      ) async {
-    final Database database = await db;
-    final result = await database.rawQuery('SELECT * FROM $table LIMIT 1');
-    print("query first $result");
-    if (result.isEmpty) return null;
-    try{
-      fromJson(result.first);
-    } catch(e){
-      print(e);
-    }
-    return fromJson(result.first);
-  }
+
 
   Future<List<T>> queryAll<T>(
       String table,
@@ -147,7 +145,7 @@ class DatabaseHelper {
       where: where,
       whereArgs: whereArgs,
     );
-    print("query where");
+    //print("query where result $result");
     return result.map((row) {
       final decoded = Map<String, dynamic>.from(row);
       // Decode any JSON string fields back into Maps
@@ -172,84 +170,16 @@ class DatabaseHelper {
     }).toList();
   }
 
-// Update first matching row
-  Future<void> updateFirst<T>(
-      String table,
-      Map<String, dynamic> values,
-      String where,
-      List<dynamic> whereArgs,
-      ) async {
-    final Database database = await db;
-    await database.update(
-      table,
-      values,
-      where: '$where LIMIT 1',
-      whereArgs: whereArgs,
-    );
-  }
 
-  Future<void> updateFirstNoWhere(String table, Map<String, dynamic> values) async {
-    final Database database = await db;
-    await database.update(table, values);
-  }
 
-// Update all matching rows
-  Future<void> updateAll<T>(
-      String table,
-      Map<String, dynamic> values,
-      String where,
-      List<dynamic> whereArgs,
-      ) async {
-    final Database database = await db;
-    await database.update(
-      table,
-      values,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
 
-// Delete first matching row
-  Future<void> deleteFirst(
-      String table,
-      String where,
-      List<dynamic> whereArgs,
-      ) async {
-    final Database database = await db;
-    await database.rawDelete(
-      'DELETE FROM $table WHERE $where LIMIT 1',
-      whereArgs,
-    );
-  }
 
-// Delete all matching rows
-  Future<void> deleteAll(
-      String table,
-      String where,
-      List<dynamic> whereArgs,
-      ) async {
-    final Database database = await db;
-    await database.delete(
-      table,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
 
-  // Check if diagnostic is completed for a user
-  Future<bool> isDiagnosticCompleted(String userId) async {
-    final Database database = await db;
-    final result = await database.query(
-      'user_settings',
-      where: 'user_id = ?',
-      whereArgs: [userId],
-    );
-    if (result.isEmpty) return false;
-    return (result.first['diagnostic_completed'] as int) == 1;
-  }
 
-  // Set diagnostic completed for a user
-  Future<void> setDiagnosticCompleted(String userId) async {
+
+
+  // Set diagnostic completed for a user -> the value will be the level the user is placed in
+  Future<void> setDiagnosticCompleted(String userId, int level) async {
     final Database database = await db;
     final existing = await database.query(
       'user_settings',
@@ -259,12 +189,16 @@ class DatabaseHelper {
     if (existing.isEmpty) {
       await database.insert('user_settings', {
         'user_id': userId,
-        'diagnostic_completed': 1,
+        'diagnostic_completed': level,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       });
     } else {
       await database.update(
         'user_settings',
-        {'diagnostic_completed': 1},
+        {
+          'diagnostic_completed': level,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        },
         where: 'user_id = ?',
         whereArgs: [userId],
       );
