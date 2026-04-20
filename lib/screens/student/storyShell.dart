@@ -1,6 +1,8 @@
 import 'dart:ffi';
 
 import 'package:basabuddy/Miscellaneous.dart';
+import 'package:basabuddy/bloc/booster_bloc.dart';
+import 'package:basabuddy/bloc/freeze_bloc.dart';
 import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:basabuddy/components/FinishedStoryPopup.dart';
 import 'package:basabuddy/components/question_components/MatchingExercise.dart';
@@ -19,6 +21,7 @@ import 'package:http/http.dart' as http;
 import 'package:basabuddy/components/StreakServices.dart';
 import 'package:basabuddy/components/StreakNotifier.dart';
 import 'package:basabuddy/utils/database_helper.dart';
+import 'package:basabuddy/utils/points_calculator.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../colors.dart';
@@ -34,6 +37,7 @@ import '../../models/userExp.dart';
 import '../../models/userLevelInfo.dart';
 import '../../utils/database_helper.dart';
 import '../../utils/exp_checker.dart';
+
 
 ///This class fetches the story, its pages and exercises, from the database
 /// Then orders them, displays them, and keeps track of the current page
@@ -697,6 +701,18 @@ class _StoryShellState extends State<StoryShell> {
       final streakService = StreakService();
       if (user != null) {
         await streakService.updateStreak(user.id);
+        final db = await DatabaseHelper.instance.db;
+        final userId = user.id;
+        final row = await db.query(
+          'user_streak',
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+        final freezeCount = row.isNotEmpty
+          ? (row.first['freeze_count'] as int? ?? 0)
+          : 0;
+
+        context.read<FreezeBloc>().add(SetFreeze(freezeCount));
         if (!mounted) return;
         streakNotifier.refresh(user.id);
       }
@@ -823,11 +839,52 @@ class _StoryShellState extends State<StoryShell> {
       print("$firstAttemptCorrect, $totalItems, $totalAttempts");
       await addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
 
+      if (!mounted) return; 
+
+      final int totalItemCount = totalItems.values.fold(0, (sum, v) => sum + v);
+      final int firstAttemptCount = firstAttemptCorrect.values.fold(0, (sum, v) => sum + v);
+
+      final int points = calculatePoints(
+        level: story.level,
+        totalItemCount: totalItemCount,
+        firstAttemptCount: firstAttemptCount,
+        isFirstCompletion: sameStory.isEmpty? true : false,
+      );
+
+      if (!mounted) return;
+      final boosterBloc = context.read<BoosterBloc>();
+      final isActive = boosterBloc.state.isActive;
+      final boostedPoints = isActive ? points * 2 : points;
+      BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(boostedPoints));
+      if (isActive) {
+        final newVal = boosterBloc.state.storiesRemaining - 1;
+        final userId = Supabase.instance.client.auth.currentUser?.id;
+        if (userId != null) {
+          final now = DateTime.now().toUtc().toIso8601String();
+          final db = await DatabaseHelper.instance.db;
+          await db.insert('user_boosts', {
+            'user_id': userId,
+            'stories_remaining': newVal,
+            'updated_at': now,
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          try {
+            await Supabase.instance.client.from('user_boosts').upsert({
+              'user_id': userId,
+              'stories_remaining': newVal,
+              'updated_at': now,
+            }, onConflict: 'user_id');
+          } catch (_) {}
+        }
+        boosterBloc.add(SetBooster(newVal));
+      }
+
+
       ///Display onfinished popup
       showDialog(
         context: context,
         barrierDismissible: false, // user must act
         builder: (_) => FinishedStoryPopup(
+          pointsEarned: boostedPoints,
           onContinue: () {
             //navigate to home
             context.go('/student/home');

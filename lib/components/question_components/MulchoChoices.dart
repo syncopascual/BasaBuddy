@@ -11,8 +11,9 @@ class MulchoChoices extends StatefulWidget {
   final ValueNotifier<int?> selectedContainerIndex;
   final List<String> choices;
   final bool isEnglish;
+  final bool soundEnabled;
 
-  MulchoChoices({required this.selectedContainerIndex, required this.choices, required this.isEnglish});
+  MulchoChoices({required this.selectedContainerIndex, required this.choices, required this.isEnglish, required this.soundEnabled});
 
   @override
   _MulchoChoicesState createState() => _MulchoChoicesState();
@@ -24,13 +25,17 @@ class _MulchoChoicesState extends State<MulchoChoices> {
   Widget build(BuildContext context) {
 
     return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       itemCount: widget.choices.length, // Number of containers
       itemBuilder: (context, index) {
         return GestureDetector(
           onTap: () {
             widget.selectedContainerIndex.value = index;
             setState(() {}); // Redraw the UI
-            _voice.speak(widget.choices[index], widget.isEnglish);
+            if (widget.soundEnabled) { // 👈 only speak when enabled
+              _voice.speak(widget.choices[index], widget.isEnglish);
+            }
           },
           child: ValueListenableBuilder<int?>(
             valueListenable: widget.selectedContainerIndex,

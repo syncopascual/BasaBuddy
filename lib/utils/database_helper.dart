@@ -18,10 +18,18 @@ class DatabaseHelper {
   Future<Database> _initDb() async {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'basabuddy.db');
-    return await openDatabase(path, version: 3, onCreate: _onCreate, onUpgrade: _onUpgrade,);
+    print("📦 DB PATH: $path");
+    return await openDatabase(path, version: 5, onCreate: _onCreate, onUpgrade:  (db, oldVersion, newVersion) async {
+      print("🔥 ON UPGRADE TRIGGERED");
+      print("OLD: $oldVersion NEW: $newVersion");
+      await _onUpgrade(db, oldVersion, newVersion);
+    },);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    print("🔥 ON UPGRADE TRIGGERED");
+    print("OLD VERSION: $oldVersion");
+    print("NEW VERSION: $newVersion");
     if (oldVersion < 2) {
       final now = DateTime.now().toUtc().toIso8601String();
       await db.execute("ALTER TABLE stage_level ADD COLUMN updated_at TEXT");
@@ -33,7 +41,21 @@ class DatabaseHelper {
       await db.execute("UPDATE user_level_info SET updated_at = '$now'");
       await db.execute("UPDATE user_streak SET updated_at = '$now'");
     }
-    if (oldVersion < 3) {
+    if (oldVersion < 4) {
+      try {
+        await db.execute(
+          'ALTER TABLE user_streak ADD COLUMN freeze_count INTEGER DEFAULT 0',
+        );
+        await db.execute('ALTER TABLE user_money ADD COLUMN updated_at TEXT');
+
+        await db.execute('''
+          UPDATE user_money
+          SET updated_at = ?
+          WHERE updated_at IS NULL
+        ''', [DateTime.now().toUtc().toIso8601String()]);
+      } catch (e) {
+        print('Migration error (column may already exist): $e');
+      }
       await db.execute('''
         CREATE TABLE IF NOT EXISTS user_settings (
           user_id TEXT PRIMARY KEY,
@@ -41,9 +63,19 @@ class DatabaseHelper {
         )
       ''');
     }
+    if (oldVersion < 5) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS user_boosts (
+          user_id TEXT PRIMARY KEY,
+          stories_remaining INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    print("🟢 ON CREATE CALLED (FRESH DB)");
     await db.execute('''
       CREATE TABLE user_money (
         id INTEGER PRIMARY KEY,
@@ -96,6 +128,7 @@ class DatabaseHelper {
         longest_streak INTEGER,
         last_active_date TEXT,
         streak_frozen_until TEXT,
+        freeze_count INTEGER,
         updated_at TEXT
       )
       ''');
@@ -107,11 +140,29 @@ class DatabaseHelper {
         updated_at TEXT
       )
       ''');
-
-
-
+    await db.execute('''
+      CREATE TABLE user_boosts (
+        user_id TEXT PRIMARY KEY,
+        stories_remaining INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL
+      )
+    ''');
   }
-
+  Future<T?> queryFirst<T>(
+      String table,
+      T Function(Map<String, dynamic>) fromJson,
+      ) async {
+    final Database database = await db;
+    final result = await database.rawQuery('SELECT * FROM $table LIMIT 1');
+    print("query first $result");
+    if (result.isEmpty) return null;
+    try{
+      fromJson(result.first);
+    } catch(e){
+      print(e);
+    }
+    return fromJson(result.first);
+  }
 
   Future<List<T>> queryAll<T>(
       String table,
@@ -170,11 +221,26 @@ class DatabaseHelper {
     }).toList();
   }
 
+// Update first matching row
+  Future<void> updateFirst<T>(
+      String table,
+      Map<String, dynamic> values,
+      String where,
+      List<dynamic> whereArgs,
+      ) async {
+    final Database database = await db;
+    await database.update(
+      table,
+      values,
+      where: '$where LIMIT 1',
+      whereArgs: whereArgs,
+    );
+  }
 
-
-
-
-
+  Future<void> updateFirstNoWhere(String table, Map<String, dynamic> values) async {
+    final Database database = await db;
+    await database.update(table, values);
+  }
 
 
 
@@ -189,14 +255,14 @@ class DatabaseHelper {
     if (existing.isEmpty) {
       await database.insert('user_settings', {
         'user_id': userId,
-        'diagnostic_completed': level,
+        'diagnostic_completed': 1,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       });
     } else {
       await database.update(
         'user_settings',
         {
-          'diagnostic_completed': level,
+          'diagnostic_completed': 1,
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         },
         where: 'user_id = ?',

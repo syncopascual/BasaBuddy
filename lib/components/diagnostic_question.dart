@@ -33,6 +33,7 @@ class DiagnosticExercise extends StatefulWidget {
 class _DiagnosticExerciseState extends State<DiagnosticExercise> {
   final ValueNotifier<int> choiceIndex = ValueNotifier<int>(-1);
   final VoiceService _voice = VoiceService();
+  bool soundEnabled = false; 
 
   @override
   void didUpdateWidget(DiagnosticExercise oldWidget) {
@@ -80,7 +81,6 @@ class _DiagnosticExerciseState extends State<DiagnosticExercise> {
               color: Colors.white,
               borderRadius: BorderRadius.all(Radius.circular(45)),
             ),
-            height: 420,
             child: Column(
               children: [
                 Row(
@@ -99,9 +99,50 @@ class _DiagnosticExerciseState extends State<DiagnosticExercise> {
                   ],
                 ),
 
-                Expanded(
-                  child: MulchoChoices(selectedContainerIndex: choiceIndex, choices: widget.mulcho.choices.values.toList(), isEnglish: true),
-                )
+                MulchoChoices(selectedContainerIndex: choiceIndex, choices: widget.mulcho.choices.values.toList(), isEnglish: true, soundEnabled: soundEnabled,),
+                Container(
+                  padding: EdgeInsets.only(top: 12),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Read words aloud",
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      ),
+                      GestureDetector(
+                        onTap: () => setState(() => soundEnabled = !soundEnabled),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: soundEnabled ? Colors.blue.shade100 : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                soundEnabled ? Icons.volume_up : Icons.volume_off,
+                                size: 16,
+                                color: soundEnabled ? Colors.blue.shade700 : Colors.grey,
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                soundEnabled ? "On" : "Off",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: soundEnabled ? Colors.blue.shade700 : Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

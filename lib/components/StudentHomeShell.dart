@@ -9,6 +9,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/connectivity_bloc.dart';
 import '../bloc/money_bloc.dart';
 import '../bloc/translation_bloc.dart';
+import '../bloc/freeze_bloc.dart';
+import '../bloc/booster_bloc.dart';
 import '../colors.dart';
 
 ///A sort of wrapper around the whole app, contains the bottom navigation bar
@@ -24,6 +26,9 @@ class _StudentHomeShellState extends State<StudentHomeShell> {
   late final MoneyBloc moneyBloc;
   late final TranslationBloc translationBloc;
   late final ThemeBloc themeBloc;
+  late final FreezeBloc freezeBloc;
+  late final BoosterBloc boosterBloc;
+  
 
   @override
   void initState() {
@@ -31,6 +36,8 @@ class _StudentHomeShellState extends State<StudentHomeShell> {
     moneyBloc = MoneyBloc()..add(SyncMoney());
     translationBloc = TranslationBloc();
     themeBloc = ThemeBloc();
+    freezeBloc = FreezeBloc();
+    boosterBloc = BoosterBloc();
   }
 
   @override
@@ -38,6 +45,8 @@ class _StudentHomeShellState extends State<StudentHomeShell> {
     moneyBloc.close();
     translationBloc.close();
     themeBloc.close();
+    freezeBloc.close();
+    boosterBloc.close();
     super.dispose();
   }
 
@@ -83,6 +92,8 @@ class _StudentHomeShellState extends State<StudentHomeShell> {
         BlocProvider.value(value: moneyBloc),
         BlocProvider.value(value: translationBloc),
         BlocProvider.value(value: themeBloc),
+        BlocProvider.value(value: freezeBloc),
+        BlocProvider.value(value: boosterBloc),
         BlocProvider(lazy: false, create: (_) => GetIt.instance<ConnectivityBloc>()),
       ],
       child: Scaffold(
