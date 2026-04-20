@@ -27,52 +27,33 @@ int _expToLevel(int exp) {
 /// Checks if any modules have levelled up, updates the DB if so,
 /// and returns a map indicating which modules levelled up.
 /// e.g. {'narrative': true, 'vocab': false, 'information': false}
-Future<Map<String, bool>> checkAndApplyLevelUps() async {
+Future<Map<String, int>> checkAndApplyLevelUps() async {
   print("checkAndApplyLevelUps called");
 
   // 1. Query current exp
-
-  ///The user has to be logged in
   final userId = Supabase.instance.client.auth.currentUser?.id;
   List<UserExp> expList = await DatabaseHelper.instance
-      .queryWhere(
-      'user_exp',
-      UserExp.fromJson,
-      'user_id = ?',
-      [userId]);
+      .queryWhere('user_exp', UserExp.fromJson, 'user_id = ?', [userId]);
 
   if (expList.isEmpty) {
     print("exp_checker: expList is empty! cancelling level updating");
-    return {'narrative': false, 'vocab': false, 'information': false};
+    return {};
   }
   UserExp? expRow = expList[0];
   print("user_id $userId checkAndApplyLevelUps current exp: nar: ${expRow.narrativeExp} voc: ${expRow.vocabExp} inf: ${expRow.informationExp}");
 
-
-
-
-  if (expRow == null) return {'narrative': false, 'vocab': false, 'information': false};
-
+  if (expRow == null) return {};
 
   final int narrativeExp = expRow.narrativeExp as int? ?? 0;
   final int vocabExp = expRow.vocabExp as int? ?? 0;
   final int informationExp = expRow.informationExp as int? ?? 0;
 
   // 2. Query current levels
-
-
   List<UserLevelInfo> userLevelInfoList = await DatabaseHelper.instance
-      .queryWhere(
-      'user_level_info',
-      UserLevelInfo.fromJson,
-      'user_id = ?',
-      [userId]);
+      .queryWhere('user_level_info', UserLevelInfo.fromJson, 'user_id = ?', [userId]);
   UserLevelInfo? levelRow = userLevelInfoList[0];
 
-
-
-  if (levelRow == null) return {'narrative': false, 'vocab': false, 'information': false};
-
+  if (levelRow == null) return {};
 
   final int currentNarrativeLvl = levelRow.narrativeLevel as int? ?? 1;
   final int currentVocabLvl = levelRow.vocabLevel as int? ?? 1;
@@ -83,29 +64,24 @@ Future<Map<String, bool>> checkAndApplyLevelUps() async {
   final int newVocabLvl = _expToLevel(vocabExp);
   final int newInformationLvl = _expToLevel(informationExp);
 
-  // 4. Determine which modules levelled up
-  final Map<String, bool> leveledUp = {
-    'narrative': newNarrativeLvl > currentNarrativeLvl,
-    'vocab': newVocabLvl > currentVocabLvl,
-    'information': newInformationLvl > currentInformationLvl,
+  // 4. Determine which modules levelled up, storing the new level
+  final Map<String, int> leveledUp = {
+    if (newNarrativeLvl > currentNarrativeLvl) 'narrative': newNarrativeLvl,
+    if (newVocabLvl > currentVocabLvl) 'vocab': newVocabLvl,
+    if (newInformationLvl > currentInformationLvl) 'information': newInformationLvl,
   };
-
-
 
   print("checkAndApplyLevelUps: $leveledUp");
 
   // 5. If any levelled up, persist the new levels
-  final bool anyLeveledUp = leveledUp.values.any((v) => v);
-  if (anyLeveledUp) {
+  if (leveledUp.isNotEmpty) {
     print("checkAndApplyLevelUps: LEVEL UP! levels:");
     print("nar $newNarrativeLvl");
     print("voc $newVocabLvl");
     print("inf $newInformationLvl");
 
     final realdb = await DatabaseHelper.instance.db;
-    ///The user has to be logged in
     final userId = Supabase.instance.client.auth.currentUser?.id;
-
 
     await realdb.update(
       'user_level_info',
@@ -119,7 +95,6 @@ Future<Map<String, bool>> checkAndApplyLevelUps() async {
       whereArgs: [userId],
     );
   }
-
 
   return leveledUp;
 }

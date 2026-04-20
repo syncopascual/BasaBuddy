@@ -5,6 +5,7 @@ import 'package:basabuddy/bloc/booster_bloc.dart';
 import 'package:basabuddy/bloc/freeze_bloc.dart';
 import 'package:basabuddy/bloc/money_bloc.dart';
 import 'package:basabuddy/components/FinishedStoryPopup.dart';
+import 'package:basabuddy/components/LevelUpPopUp.dart';
 import 'package:basabuddy/components/question_components/MatchingExercise.dart';
 import 'package:basabuddy/components/question_components/MulchoExercise.dart';
 import 'package:basabuddy/components/question_components/OrderingExercise.dart';
@@ -754,6 +755,8 @@ class _StoryShellState extends State<StoryShell> {
       }
       Story? story = storyList[0];
 
+      Map<String, int> isLeveledUp = {};
+
       String? moduleType = story.module;
 
       final db = await DatabaseHelper.instance.db;
@@ -823,7 +826,9 @@ class _StoryShellState extends State<StoryShell> {
         }
 
         ///Check whether exp is enough to level up, todo: if may true, display a level up screen
-        checkAndApplyLevelUps();
+        isLeveledUp = await checkAndApplyLevelUps();
+
+
       }
       else {
         print("sameStory not empty, $sameStory");
@@ -879,6 +884,8 @@ class _StoryShellState extends State<StoryShell> {
       }
 
 
+
+
       ///Display onfinished popup
       showDialog(
         context: context,
@@ -886,11 +893,30 @@ class _StoryShellState extends State<StoryShell> {
         builder: (_) => FinishedStoryPopup(
           pointsEarned: boostedPoints,
           onContinue: () {
-            //navigate to home
-            context.go('/student/home');
-          },
+            if(isLeveledUp.isNotEmpty){
+              ///Display level up popup
+              showDialog(
+                context: context,
+                barrierDismissible: false, // user must act
+                builder: (_) => LevelUpPopUp(
+                  level: isLeveledUp.values.first,
+                  onContinue: () {
+                    //navigate to home
+                    context.go('/student/home');
+                  }, moduleType: moduleType,
+                ),
+              );
+            }
+            else {
+              //navigate to home
+              context.go('/student/home');
+            }
+
+          }, moduleType: moduleType,
         ),
       );
+
+
 
       try{
         print("storyShell: attempting to sync data");

@@ -8,17 +8,15 @@ final Map<String, String> bgImage = {
   'information': 'winter'
 };
 
-class FinishedStoryPopup extends StatelessWidget {
+class LevelUpPopUp extends StatelessWidget {
   final VoidCallback onContinue;
   final String moduleType;
+  final int level;
 
-
-  final int pointsEarned;
-
-  const FinishedStoryPopup({
+  const LevelUpPopUp({
     super.key,
     required this.onContinue,
-    required this.pointsEarned,
+    required this.level,
     required this.moduleType
   });
 
@@ -34,7 +32,13 @@ class FinishedStoryPopup extends StatelessWidget {
               image: AssetImage("assets/bg_images/${bgImage[moduleType]}.png"),
               fit: BoxFit.cover,
             ),
-            // Rounded corners for the pop-up
+            // Apply the gradient here
+            gradient:  LinearGradient(
+              colors: [finishPopupBg1,
+                finishPopupBg2],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ), // Rounded corners for the pop-up
           ),
           width: double.infinity,
           height: double.infinity,
@@ -46,7 +50,6 @@ class FinishedStoryPopup extends StatelessWidget {
 
                 const Spacer(),
 
-                // 📝 Content
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
@@ -54,7 +57,7 @@ class FinishedStoryPopup extends StatelessWidget {
                     borderRadius: BorderRadius.all(Radius.circular(15)),
                   ),
                   child: const Text(
-                    'Story Completed!',
+                    'Level Up!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,
@@ -70,14 +73,14 @@ class FinishedStoryPopup extends StatelessWidget {
                   height: 300,
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30)
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30)
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'You totally nailed it!!',
+                        'Great job!',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 28),
                       ),
@@ -88,7 +91,7 @@ class FinishedStoryPopup extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            '+',
+                            'Level',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -96,18 +99,13 @@ class FinishedStoryPopup extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '$pointsEarned',
+                            '$level',
                             style: const TextStyle(
                               fontSize: 36,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Image.asset(
-                            'assets/icons/crystal.png',
-                            width: 36,
-                            height: 36,
-                          ),
+
                         ],
                       ),
                     ],
