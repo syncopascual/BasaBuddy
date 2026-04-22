@@ -133,7 +133,8 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
 
 class _StoryShellState extends State<StoryShell> {
 
-  late Future<List<StoryItem>> _storyFuture;
+  late Future<List<StoryItem>> _storyItemsFuture;
+  List<StoryItem> _wrongItems = [];
   late Map<String, int> skillScores = {};
 
   ///scoring for each skill, will be uploaded to stage_data
@@ -157,14 +158,12 @@ class _StoryShellState extends State<StoryShell> {
   //todo: fix this, as currentPage accounts for exercises as well. this should be based on pageNum
   //todo: fix possible Invalid argument(s): No host specified in URI file:/// issues
 
-
-
-
-
   void wrongAnswer(StoryItem currentItem) {
+    _wrongItems.add(currentItem);
     firstAttemptObjects.removeWhere(
           (item) => currentItem.eq(item),
     );
+
     print("First wrong answer!");
   }
 
@@ -494,23 +493,26 @@ class _StoryShellState extends State<StoryShell> {
             nextPage(orderedStoryItems);
           },
           onWrongAnswer: () {
+
             wrongAnswer(allStoryItems[currentPage]);
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 1) + 1;
+            nextPage(orderedStoryItems);
           },
         );
         return page;
       case OrderData order:
         final page = OrderingExercise(
           orderData: component,
-          onCorrect: () {
+          onCorrectAnswer: () {
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 1) + 1;
             nextPage(orderedStoryItems);
           },
-          onWrong: () {
+          onWrongAnswer: () {
             wrongAnswer(allStoryItems[currentPage]);
             totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+            nextPage(orderedStoryItems);
           },
         );
         return page;
@@ -524,6 +526,7 @@ class _StoryShellState extends State<StoryShell> {
           onWrongAnswer: () {
             wrongAnswer(allStoryItems[currentPage]);
             totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+            nextPage(orderedStoryItems);
           },
         );
         return page;
@@ -564,14 +567,14 @@ class _StoryShellState extends State<StoryShell> {
   @override
   void initState() {
     super.initState();
-    _storyFuture = _fetchPagesNexercises();
+    _storyItemsFuture = _fetchPagesNexercises();
   }
 
   @override
   Widget build(BuildContext context) {
     print("story.dart");
     return FutureBuilder(
-        future: _storyFuture,
+        future: _storyItemsFuture,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             ///the loaded data
@@ -604,6 +607,7 @@ class _StoryShellState extends State<StoryShell> {
               ),
               child: Column(children: [
                 SizedBox(height: 20),
+                ///Progress bar
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: GradientLinearProgressBar(
@@ -613,6 +617,7 @@ class _StoryShellState extends State<StoryShell> {
                     unfilledColor: Colors.grey,
                   ),
                 ),
+
                 Flexible(
                   fit: FlexFit.loose,
                   child: SingleChildScrollView(
@@ -620,7 +625,6 @@ class _StoryShellState extends State<StoryShell> {
                     orderedStoryItems[currentPage].data, "", orderedStoryItems),
                   ),
                 ),
-                
                 SizedBox(height: 12),
                 ElevatedButton(onPressed: (){
                   nextPage(orderedStoryItems);
@@ -693,6 +697,17 @@ class _StoryShellState extends State<StoryShell> {
     ///if its the last page - STORY FINISHED
     if (currentPage == orderedStoryItems.length - 1) {
       print("last page, storyFinished $_storyFinished");
+
+      ///check if there are any wrong items that need answering
+      if(_wrongItems.isNotEmpty){
+        print("wrong items not empty!");
+        setState(() {
+          currentPage = 0;
+          _storyItemsFuture =  Future.value(_wrongItems);
+          _wrongItems = [];
+        });
+        return;
+      }
       if (_storyFinished) return; // ← prevent double trigger
       _storyFinished = true;
       ///get stage_data

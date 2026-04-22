@@ -10,14 +10,14 @@ import 'OrderColumn.dart';
 
 class OrderingExercise extends StatefulWidget {
   final OrderData orderData;
-  final VoidCallback onCorrect;
-  final VoidCallback onWrong;
+  final VoidCallback onCorrectAnswer;
+  final VoidCallback onWrongAnswer;
 
   const OrderingExercise({
     super.key,
     required this.orderData,
-    required this.onCorrect,
-    required this.onWrong,
+    required this.onCorrectAnswer,
+    required this.onWrongAnswer,
   });
 
   @override
@@ -46,9 +46,9 @@ class _OrderingExerciseState extends State<OrderingExercise> {
     ).every((e) => e);
 
     if (isCorrect) {
-      correctPopup(context, widget.onCorrect);
+      correctPopup(context, widget.onCorrectAnswer);
     } else {
-      wrongPopup(context, widget.onWrong);
+      wrongPopup(context, widget.onWrongAnswer);
     }
   }
 
