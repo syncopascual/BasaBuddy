@@ -50,7 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final data = await getProfileData();
       final userId = supabase.auth.currentUser?.id;
-      if(userId != null) {
+      if (userId != null) {
         final db = await DatabaseHelper.instance.db;
         final streakRow = await db.query(
           'user_streak',
@@ -58,8 +58,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           whereArgs: [userId],
         );
         final freezeCount = streakRow.isNotEmpty
-          ? (streakRow.first['freeze_count'] as int? ?? 0)
-          : 0;
+            ? (streakRow.first['freeze_count'] as int? ?? 0)
+            : 0;
 
         if (mounted) {
           context.read<FreezeBloc>().add(SetFreeze(freezeCount));
@@ -175,7 +175,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Something went wrong. Please try again.')),
+        const SnackBar(
+            content: Text('Something went wrong. Please try again.')),
       );
     }
   }
@@ -194,7 +195,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final classesRes = await supabase
         .from('class_students')
-        .select('classes(class_code,year,name,teacher_id, teacher:profiles(name))')
+        .select(
+            'classes(class_code,year,name,teacher_id, teacher:profiles(name))')
         .eq('student_id', userId);
 
     return {
@@ -218,7 +220,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.wifi_off_rounded, size: 80, color: Colors.white70),
+              const Icon(Icons.wifi_off_rounded,
+                  size: 80, color: Colors.white70),
               const SizedBox(height: 24),
               const Text(
                 "No Internet Connection",
@@ -263,7 +266,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 CircleAvatar(
                   radius: 36,
                   backgroundColor: const Color(0xFF3FC3D4),
-                  child: const Icon(Icons.person, size: 40, color: Colors.white),
+                  child:
+                      const Icon(Icons.person, size: 40, color: Colors.white),
                 ),
                 const SizedBox(width: 16),
                 Column(
@@ -344,8 +348,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(email),
                     ],
                   ),
-
-
                 ],
               ),
             ),
@@ -367,38 +369,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(children: [
-                        ImageIcon(
-                          const AssetImage("assets/icons/fire.png"),
-                          color: Color(0xFF7FDBFF),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text("Buy a Streak Freeze"),
-                            const SizedBox(height: 4),
-                            Row(
+                      Row(
+                        children: [
+                          ImageIcon(
+                            const AssetImage("assets/icons/fire.png"),
+                            color: Color(0xFF7FDBFF),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("40"),
-                                Image.asset(
-                                  'assets/icons/crystal.png',
-                                  width: 20,
-                                  height: 20,
-                                ),
-                                SizedBox(width: 4),
-                                BlocBuilder<FreezeBloc, FreezeState>(
-                                  builder: (context, state) {
-                                    return Text("Freezes: ${state.freezeCount}/2");
-                                  },
-                                )
-                              ]
-                            )
-                          ]
-                        )
-
-                      ],),
-
+                                const Text("Buy a Streak Freeze"),
+                                const SizedBox(height: 4),
+                                Row(children: [
+                                  Text("40"),
+                                  Image.asset(
+                                    'assets/icons/crystal.png',
+                                    width: 20,
+                                    height: 20,
+                                  ),
+                                  SizedBox(width: 4),
+                                  BlocBuilder<FreezeBloc, FreezeState>(
+                                    builder: (context, state) {
+                                      return Text(
+                                          "Freezes: ${state.freezeCount}/2");
+                                    },
+                                  )
+                                ])
+                              ])
+                        ],
+                      ),
                       ElevatedButton(
                         onPressed: () async {
                           final userId = supabase.auth.currentUser?.id;
@@ -406,22 +406,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           try {
                             // Freeze streak until end of next day
-                            final success = await StreakService().freezeStreak(userId);
+                            final success =
+                                await StreakService().freezeStreak(userId);
 
                             if (!context.mounted) return;
 
                             if (!success) {
-                              final moneyRow = await DatabaseHelper.instance.db.then(
-                                (db) => db.query('user_money',
-                                where: 'user_id = ?', whereArgs: [userId]));
+                              final moneyRow = await DatabaseHelper.instance.db
+                                  .then((db) => db.query('user_money',
+                                      where: 'user_id = ?',
+                                      whereArgs: [userId]));
 
                               final money = moneyRow.isNotEmpty
-                                ? (moneyRow.first['money'] as int? ?? 0)
-                                : 0;
+                                  ? (moneyRow.first['money'] as int? ?? 0)
+                                  : 0;
 
                               final msg = money < 40
-                                ? 'Not enough crystals! You need 40.'
-                                : 'You already have 2 streak freezes held.';
+                                  ? 'Not enough crystals! You need 40.'
+                                  : 'You already have 2 streak freezes held.';
 
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(msg)),
@@ -429,29 +431,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               return;
                             }
                             if (!context.mounted) return;
-                            final moneyRow = await DatabaseHelper.instance.db.then(
-                              (db) => db.query('user_money', where: 'user_id = ?', whereArgs: [userId]));
-                            final newMoney = moneyRow.isNotEmpty ? (moneyRow.first['money'] as int? ?? 0) : 0;
+                            final moneyRow = await DatabaseHelper.instance.db
+                                .then((db) => db.query('user_money',
+                                    where: 'user_id = ?', whereArgs: [userId]));
+                            final newMoney = moneyRow.isNotEmpty
+                                ? (moneyRow.first['money'] as int? ?? 0)
+                                : 0;
                             context.read<MoneyBloc>().add(SetMoney(newMoney));
                             context.read<FreezeBloc>().add(ChangeFreeze(1));
                             // Optional: show confirmation
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Streak frozen until tomorrow! ❄️')),
+                              const SnackBar(
+                                  content: Text('Bought a streak freeze! ❄️')),
                             );
 
                             // Refresh profile data in case you want to show frozen streak in UI
                             loadData();
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to freeze streak: $e')),
+                              SnackBar(
+                                  content: Text('Failed to freeze streak: $e')),
                             );
                           }
                         },
-                        child: Row(children: [
-                          const SizedBox(width: 36),
-                          const Text("Buy"),
-                          const SizedBox(width: 36),
-                        ],),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 36),
+                            const Text("Buy"),
+                            const SizedBox(width: 36),
+                          ],
+                        ),
                       )
                     ],
                   ),
@@ -468,7 +477,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const SizedBox(height: 4),
                             Row(children: [
                               Text("30"),
-                              Image.asset('assets/icons/crystal.png', width: 20, height: 20),
+                              Image.asset('assets/icons/crystal.png',
+                                  width: 20, height: 20),
                               const SizedBox(width: 4),
                               BlocBuilder<BoosterBloc, BoosterState>(
                                 builder: (context, state) {
@@ -484,47 +494,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       BlocBuilder<BoosterBloc, BoosterState>(
                         builder: (context, boosterState) {
                           return ElevatedButton(
-                            onPressed: boosterState.isActive ? null : () async {
-                              final userId = supabase.auth.currentUser?.id;
-                              if (userId == null) return;
+                            onPressed: boosterState.isActive
+                                ? null
+                                : () async {
+                                    final userId =
+                                        supabase.auth.currentUser?.id;
+                                    if (userId == null) return;
 
-                              final moneyRow = await DatabaseHelper.instance.db.then(
-                                (db) => db.query('user_money',
-                                    where: 'user_id = ?', whereArgs: [userId]));
-                              final money = moneyRow.isNotEmpty
-                                  ? (moneyRow.first['money'] as int? ?? 0)
-                                  : 0;
+                                    final moneyRow = await DatabaseHelper
+                                        .instance.db
+                                        .then((db) => db.query('user_money',
+                                            where: 'user_id = ?',
+                                            whereArgs: [userId]));
+                                    final money = moneyRow.isNotEmpty
+                                        ? (moneyRow.first['money'] as int? ?? 0)
+                                        : 0;
 
-                              if (money < 30) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Not enough crystals! You need 30.')),
-                                );
-                                return;
-                              }
+                                    if (money < 30) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Not enough crystals! You need 30.')),
+                                      );
+                                      return;
+                                    }
 
-                              final now = DateTime.now().toUtc().toIso8601String();
-                              final db = await DatabaseHelper.instance.db;
-                              final newMoney = money - 30;
+                                    final now = DateTime.now()
+                                        .toUtc()
+                                        .toIso8601String();
+                                    final db = await DatabaseHelper.instance.db;
+                                    final newMoney = money - 30;
 
-                              await db.update('user_money',
-                                  {'money': newMoney, 'updated_at': now},
-                                  where: 'user_id = ?', whereArgs: [userId]);
-                              try {
-                                await supabase.from('user_money').upsert({
-                                  'user_id': userId,
-                                  'money': newMoney,
-                                  'updated_at': now,
-                                }, onConflict: 'user_id');
-                              } catch (_) {}
+                                    await db.update('user_money',
+                                        {'money': newMoney, 'updated_at': now},
+                                        where: 'user_id = ?',
+                                        whereArgs: [userId]);
+                                    try {
+                                      await supabase.from('user_money').upsert({
+                                        'user_id': userId,
+                                        'money': newMoney,
+                                        'updated_at': now,
+                                      }, onConflict: 'user_id');
+                                    } catch (_) {}
 
-                              if (!context.mounted) return;
-                              context.read<MoneyBloc>().add(SetMoney(newMoney));
-                              context.read<BoosterBloc>().add(SetBooster(3));
+                                    if (!context.mounted) return;
+                                    context
+                                        .read<MoneyBloc>()
+                                        .add(SetMoney(newMoney));
+                                    context
+                                        .read<BoosterBloc>()
+                                        .add(SetBooster(3));
 
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('XP Booster active! Next 3 stories earn 2x 💥')),
-                              );
-                            },
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'XP Booster active! Next 3 stories earn 2x 💥')),
+                                    );
+                                  },
                             child: Row(children: [
                               const SizedBox(width: 20),
                               Text(boosterState.isActive ? "Active" : "Buy"),

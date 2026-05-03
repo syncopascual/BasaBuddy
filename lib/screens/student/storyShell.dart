@@ -39,24 +39,31 @@ import '../../models/userLevelInfo.dart';
 import '../../utils/database_helper.dart';
 import '../../utils/exp_checker.dart';
 
-
 ///This class fetches the story, its pages and exercises, from the database
 /// Then orders them, displays them, and keeps track of the current page
 
 class StoryShell extends StatefulWidget {
   final String storyId;
   final bool isTeacherStory;
-  const StoryShell({super.key, required this.storyId, this.isTeacherStory = false,});
+  const StoryShell({
+    super.key,
+    required this.storyId,
+    this.isTeacherStory = false,
+  });
 
   @override
   State<StoryShell> createState() => _StoryShellState();
 }
 
-Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int> totalItems, Map<String, int> totalAttempts,
-    Map<String, int> firstAttemptCorrect) async
-{
-  try{
-    print("addStageData called: $storyId, skillScores: $skillScores, totalItems:$totalItems, totalAttempts$totalAttempts");
+Future<void> addStageData(
+    storyId,
+    Map<String, int> skillScores,
+    Map<String, int> totalItems,
+    Map<String, int> totalAttempts,
+    Map<String, int> firstAttemptCorrect) async {
+  try {
+    print(
+        "addStageData called: $storyId, skillScores: $skillScores, totalItems:$totalItems, totalAttempts$totalAttempts");
     //get user id from user_level_info table
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return;
@@ -65,9 +72,11 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
     String safeDate = DateTime.now().toIsoDate();
     final db = await DatabaseHelper.instance.db;
 
-    for (final entry in skillScores.entries)  {
+    for (final entry in skillScores.entries) {
       final key = entry.key;
-      if (!totalItems.containsKey(key) || !totalAttempts.containsKey(key) || !firstAttemptCorrect.containsKey(key)) continue;
+      if (!totalItems.containsKey(key) ||
+          !totalAttempts.containsKey(key) ||
+          !firstAttemptCorrect.containsKey(key)) continue;
 
       //print("Processing skill: $key, date: $safeDate");
       try {
@@ -78,7 +87,7 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
         );
         print("Existing rows found for $key: ${existing.length}");
 
-        if (existing.isEmpty){
+        if (existing.isEmpty) {
           await db.insert(
             "stage_level",
             {
@@ -97,8 +106,11 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
           await db.update(
             'stage_level',
             {
-              'total_attempts': (existing.first['total_attempts'] as int) + totalAttempts[key]!,
-              'first_attempt_correct': (existing.first['first_attempt_correct'] as int) + firstAttemptCorrect[key]!,
+              'total_attempts': (existing.first['total_attempts'] as int) +
+                  totalAttempts[key]!,
+              'first_attempt_correct':
+                  (existing.first['first_attempt_correct'] as int) +
+                      firstAttemptCorrect[key]!,
               'updated_at': now,
             },
             where: 'user_id = ? AND story_id = ? AND skill= ? and date = ?',
@@ -121,18 +133,16 @@ Future<void> addStageData(storyId, Map<String, int> skillScores, Map<String, int
           'p_first_attempt_correct': firstAttemptCorrect[key]!,
           'p_updated_at': now,
         });
-      } catch(e) {
+      } catch (e) {
         print("Supabase upsert failed: $e");
       }
-  } 
-  } catch(e) {
+    }
+  } catch (e) {
     print("error uploading data");
   }
-
 }
 
 class _StoryShellState extends State<StoryShell> {
-
   late Future<List<StoryItem>> _storyItemsFuture;
   List<StoryItem> _wrongItems = [];
   late Map<String, int> skillScores = {};
@@ -161,7 +171,7 @@ class _StoryShellState extends State<StoryShell> {
   void wrongAnswer(StoryItem currentItem) {
     _wrongItems.add(currentItem);
     firstAttemptObjects.removeWhere(
-          (item) => currentItem.eq(item),
+      (item) => currentItem.eq(item),
     );
 
     print("First wrong answer!");
@@ -181,35 +191,31 @@ class _StoryShellState extends State<StoryShell> {
           .select()
           .eq('story_id', widget.storyId);
 
-      pages = (response as List)
-          .map((json) => Storypage.fromJson(json))
-          .toList();
+      pages =
+          (response as List).map((json) => Storypage.fromJson(json)).toList();
     } else {
       pages = await DatabaseHelper.instance.queryWhere(
-          'story_page',
-          Storypage.fromJson,
-          'story_id = ?',
-          [widget.storyId]);
+          'story_page', Storypage.fromJson, 'story_id = ?', [widget.storyId]);
       print("PAGES HERE: $pages");
     }
 
     final List<PageItem> wrappedPages =
-    pages.map((page) => PageItem(page)).toList();
+        pages.map((page) => PageItem(page)).toList();
 
     numPages = pages.length;
 
     for (int i = 0; i < pages.length; i++) {
       try {
-        String url = 'assets/story_pages/${pages[i].storyId}/${pages[i].pageNum}.png';
+        String url =
+            'assets/story_pages/${pages[i].storyId}/${pages[i].pageNum}.png';
         bool exists = true; //TODO: function that verifies that file exists
         print("image path $url");
 
-        if (exists){
+        if (exists) {
           imageURLs[pages[i].pageNum] = url;
         } else {
           imageURLs[pages[i].pageNum] = "";
         }
-
       } catch (e) {
         imageURLs[pages[i].pageNum] = ""; // fallback
       }
@@ -234,16 +240,12 @@ class _StoryShellState extends State<StoryShell> {
             print('key: $key, value: $value, type: ${value.runtimeType}');
           });
         }
-        mulcho = (response as List)
-            .map((json) => Mulcho.fromJson(json))
-            .toList();
+        mulcho =
+            (response as List).map((json) => Mulcho.fromJson(json)).toList();
         print("mulcho: $mulcho");
       } else {
-        mulcho = await DatabaseHelper.instance.queryWhere(
-            'mulcho_exercise',
-            Mulcho.fromJson,
-            'story_id = ?',
-            [widget.storyId]);
+        mulcho = await DatabaseHelper.instance.queryWhere('mulcho_exercise',
+            Mulcho.fromJson, 'story_id = ?', [widget.storyId]);
       }
       print("STORYSHELL.dart: mulcho fetched");
 
@@ -257,10 +259,8 @@ class _StoryShellState extends State<StoryShell> {
         ///the value of each skill is the amount of mistakes a student makes
         if (!skillScores.containsKey(mulcho[i].skill)) {
           skillScores[mulcho[i].skill] = 0;
-
         }
         totalItems[mulcho[i].skill] = (totalItems[mulcho[i].skill] ?? 0) + 1;
-
       }
       print("skillScores: $skillScores");
     } catch (e) {
@@ -272,16 +272,14 @@ class _StoryShellState extends State<StoryShell> {
     late List<OrderData> orderData;
     List<StoryItem> wrappedOrderData = [];
     try {
-
       if (widget.isTeacherStory) {
         final response = await Supabase.instance.client
             .from('ordering_exercise')
             .select()
             .eq('story_id', widget.storyId);
 
-        orderData = (response as List)
-            .map((json) => OrderData.fromJson(json))
-            .toList();
+        orderData =
+            (response as List).map((json) => OrderData.fromJson(json)).toList();
       } else {
         orderData = await DatabaseHelper.instance.queryWhere(
             'ordering_exercise',
@@ -290,7 +288,6 @@ class _StoryShellState extends State<StoryShell> {
             [widget.storyId]);
       }
       print("STORYSHELL.dart: ordering exercise fetched");
-
 
       ///for type safety
       wrappedOrderData =
@@ -303,7 +300,8 @@ class _StoryShellState extends State<StoryShell> {
         if (!skillScores.containsKey(orderData[i].skill)) {
           skillScores[orderData[i].skill] = 0;
         }
-        totalItems[orderData[i].skill] = (totalItems[orderData[i].skill] ?? 0) + 1;
+        totalItems[orderData[i].skill] =
+            (totalItems[orderData[i].skill] ?? 0) + 1;
       }
     } catch (e) {
       print("order error");
@@ -314,7 +312,6 @@ class _StoryShellState extends State<StoryShell> {
     late List<MatchingData> matchData;
     List<StoryItem> wrappedMatchData = [];
     try {
-
       if (widget.isTeacherStory) {
         final response = await Supabase.instance.client
             .from('matching_exercise')
@@ -333,7 +330,6 @@ class _StoryShellState extends State<StoryShell> {
       }
       print("STORYSHELL.dart: matching exercise fetched");
 
-
       ///for type safety
       wrappedMatchData =
           matchData.map<StoryItem>((data) => MatchItem(data)).toList();
@@ -345,7 +341,8 @@ class _StoryShellState extends State<StoryShell> {
         if (!skillScores.containsKey(matchData[i].skill)) {
           skillScores[matchData[i].skill] = 0;
         }
-        totalItems[matchData[i].skill] = (totalItems[matchData[i].skill] ?? 0) + 1;
+        totalItems[matchData[i].skill] =
+            (totalItems[matchData[i].skill] ?? 0) + 1;
       }
     } catch (e) {
       print("match error");
@@ -356,7 +353,6 @@ class _StoryShellState extends State<StoryShell> {
     late List<FillBlankData> fillBlankData;
     List<StoryItem> wrappedFillBlankData = [];
     try {
-
       if (widget.isTeacherStory) {
         final response = await Supabase.instance.client
             .from('fill_in_blank')
@@ -376,7 +372,6 @@ class _StoryShellState extends State<StoryShell> {
 
       print("STORYSHELL.dart: fill in blank exercise fetched");
 
-
       ///for type safety
       wrappedFillBlankData =
           fillBlankData.map<StoryItem>((data) => FillBlankItem(data)).toList();
@@ -390,7 +385,8 @@ class _StoryShellState extends State<StoryShell> {
         if (!skillScores.containsKey(fillBlankData[i].skill)) {
           skillScores[fillBlankData[i].skill] = 0;
         }
-        totalItems[fillBlankData[i].skill] = (totalItems[fillBlankData[i].skill] ?? 0) + 1;
+        totalItems[fillBlankData[i].skill] =
+            (totalItems[fillBlankData[i].skill] ?? 0) + 1;
       }
 
       print("skillScores: $skillScores");
@@ -411,7 +407,7 @@ class _StoryShellState extends State<StoryShell> {
       }
 
       ///stage data stuff: create map for totalAttempts
-      for(String skill in skillScores.keys){
+      for (String skill in skillScores.keys) {
         totalAttempts[skill] = 0;
       }
       firstAttemptObjects = wrappedExercises;
@@ -445,7 +441,7 @@ class _StoryShellState extends State<StoryShell> {
       print("ORDER UP: $ordered");
       return ordered;
     }
-    if(exercises.isEmpty){
+    if (exercises.isEmpty) {
       return pages;
     }
     for (int i = 1; i <= pages.length; i++) {
@@ -493,7 +489,6 @@ class _StoryShellState extends State<StoryShell> {
             nextPage(orderedStoryItems);
           },
           onWrongAnswer: () {
-
             wrongAnswer(allStoryItems[currentPage]);
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 1) + 1;
@@ -511,7 +506,8 @@ class _StoryShellState extends State<StoryShell> {
           },
           onWrongAnswer: () {
             wrongAnswer(allStoryItems[currentPage]);
-            totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+            totalAttempts[component.skill] =
+                (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
           },
         );
@@ -520,12 +516,14 @@ class _StoryShellState extends State<StoryShell> {
         final page = FillBlankExercise(
           fillBlankData: component,
           onCorrectAnswer: () {
-            totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+            totalAttempts[component.skill] =
+                (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
           },
           onWrongAnswer: () {
             wrongAnswer(allStoryItems[currentPage]);
-            totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+            totalAttempts[component.skill] =
+                (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
           },
         );
@@ -534,7 +532,8 @@ class _StoryShellState extends State<StoryShell> {
         final page = MatchingExercise(
           matchingData: component,
           onCorrect: () {
-            totalAttempts[component.skill] = (totalAttempts[component.skill] ?? 0) + 1;
+            totalAttempts[component.skill] =
+                (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
           },
         );
@@ -552,7 +551,9 @@ class _StoryShellState extends State<StoryShell> {
     }
     if (currentComponent is PageItem) {
       pageNum = currentComponent.data.pageNum;
-    } else if (currentComponent is Storypage) {pageNum = currentComponent.pageNum;}
+    } else if (currentComponent is Storypage) {
+      pageNum = currentComponent.pageNum;
+    }
 
     if (pageNum != null) {
       final url = imageURLs[pageNum];
@@ -607,6 +608,7 @@ class _StoryShellState extends State<StoryShell> {
               ),
               child: Column(children: [
                 SizedBox(height: 20),
+
                 ///Progress bar
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -621,97 +623,97 @@ class _StoryShellState extends State<StoryShell> {
                 Flexible(
                   fit: FlexFit.loose,
                   child: SingleChildScrollView(
-                    child: storyWidget(
-                    orderedStoryItems[currentPage].data, "", orderedStoryItems),
+                    child: storyWidget(orderedStoryItems[currentPage].data, "",
+                        orderedStoryItems),
                   ),
                 ),
                 SizedBox(height: 12),
-                ElevatedButton(onPressed: (){
-                  nextPage(orderedStoryItems);
-                }, child: Text("skip")),
-
+                ElevatedButton(
+                    onPressed: () {
+                      nextPage(orderedStoryItems);
+                    },
+                    child: Text("skip")),
 
                 ///Don't display back and next button for question items
                 orderedStoryItems[currentPage].runtimeType == PageItem
                     ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ///BACK button
-                    SizedBox(
-                      height: 30,
-                      child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: selected, // warm yellow
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ///BACK button
+                          SizedBox(
+                            height: 30,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: selected, // warm yellow
+                                ),
+                                onPressed: () {
+                                  ///if its the first page, dont do anything
+                                  if (currentPage == 0) {
+                                    return;
+                                  }
+                                  setState(() {
+                                    currentPage -= 1;
+                                  });
+                                },
+                                child: Text('Back',
+                                    style: TextStyle(color: textColor))),
                           ),
-                          onPressed: () {
-                            ///if its the first page, dont do anything
-                            if (currentPage == 0) {
-                              return;
-                            }
-                            setState(() {
-                              currentPage -= 1;
-                            });
-                          },
-                          child: Text('Back',
-                              style: TextStyle(color: textColor))),
-                    ),
 
-                    ///NEXT Button
-                    SizedBox(
-                      height: 30,
-                      child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: selected, // warm yellow
-                          ),
-                          onPressed: () async {
-                            ///if last page na
-                            /// increase user level for this module and navigate to home screen
-                            nextPage(orderedStoryItems);
-                          },
-                          child: Text('Next',
-                              style: TextStyle(color: textColor))),
-                    )
-                  ],
-                )
+                          ///NEXT Button
+                          SizedBox(
+                            height: 30,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: selected, // warm yellow
+                                ),
+                                onPressed: () async {
+                                  ///if last page na
+                                  /// increase user level for this module and navigate to home screen
+                                  nextPage(orderedStoryItems);
+                                },
+                                child: Text('Next',
+                                    style: TextStyle(color: textColor))),
+                          )
+                        ],
+                      )
                     : Text(""),
               ]),
             );
 
             ///Row containing next button and back button
           } else {
-            return  Container(
+            return Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage("assets/bg_images/grassy.png"),
                     fit: BoxFit.cover,
                   ),
                 ),
-                child: const Center(child: CircularProgressIndicator())
-            );
+                child: const Center(child: CircularProgressIndicator()));
           }
         });
   }
+
   bool _storyFinished = false;
   Future<void> nextPage(orderedStoryItems) async {
-
     ///if its the last page - STORY FINISHED
     if (currentPage == orderedStoryItems.length - 1) {
       print("last page, storyFinished $_storyFinished");
 
       ///check if there are any wrong items that need answering
-      if(_wrongItems.isNotEmpty){
+      if (_wrongItems.isNotEmpty) {
         print("wrong items not empty!");
         setState(() {
           currentPage = 0;
-          _storyItemsFuture =  Future.value(_wrongItems);
+          _storyItemsFuture = Future.value(_wrongItems);
           _wrongItems = [];
         });
         return;
       }
       if (_storyFinished) return; // ← prevent double trigger
       _storyFinished = true;
-      ///get stage_data
 
+      ///get stage_data
 
       final user = Supabase.instance.client.auth.currentUser;
       final streakService = StreakService();
@@ -724,9 +726,8 @@ class _StoryShellState extends State<StoryShell> {
           where: 'user_id = ?',
           whereArgs: [userId],
         );
-        final freezeCount = row.isNotEmpty
-          ? (row.first['freeze_count'] as int? ?? 0)
-          : 0;
+        final freezeCount =
+            row.isNotEmpty ? (row.first['freeze_count'] as int? ?? 0) : 0;
 
         context.read<FreezeBloc>().add(SetFreeze(freezeCount));
         if (!mounted) return;
@@ -738,137 +739,137 @@ class _StoryShellState extends State<StoryShell> {
         return;
       }
 
-      BlocProvider.of<MoneyBloc>(context).add(ChangeMoney(50));
       final userId = Supabase.instance.client.auth.currentUser?.id;
 
-      print("getting user exp");
-      ///Increase exp of story's module
-      List<UserExp> expList = await DatabaseHelper.instance
-          .queryWhere(
-          'user_exp',
-          UserExp.fromJson,
-          'user_id = ?',
-          [userId]);
-
-      if (expList.isEmpty) {
-        print("storyShell: expList is empty!");
-      }
-      UserExp? userExp = expList[0];
-
-
       print("getting story info to get module type");
+
       ///query story information to get module type
-      List<Story> storyList = await DatabaseHelper.instance
-          .queryWhere(
-          'list_stories',
-          Story.fromJson,
-          'story_id = ?',
-          [widget.storyId]);
-
-      if (storyList.isEmpty) {
-        print("storyShell: storyList is empty!");
-      }
-      Story? story = storyList[0];
-
+      Story? story;
       Map<String, int> isLeveledUp = {};
-
-      String? moduleType = story.module;
-
+      List<StageData> sameStory = [];
+      String? moduleType;
       final db = await DatabaseHelper.instance.db;
+
+      if (widget.isTeacherStory) {
+        final response = await Supabase.instance.client
+            .from('list_stories')
+            .select()
+            .eq('story_id', widget.storyId)
+            .single();
+        story = Story.fromJson(response);
+      } else {
+        List<Story> storyList = await DatabaseHelper.instance.queryWhere(
+            'list_stories', Story.fromJson, 'story_id = ?', [widget.storyId]);
+        if (storyList.isEmpty) {
+          print("storyShell: storyList is empty!");
+          return;
+        }
+        story = storyList[0];
+      }
+
+      moduleType = story.module;
+
+      print("getting user exp");
 
       ///check if the story_id + user_id is already in stage_level
       /// if it is, that means the story has already been answered, so no exp will be added
-      List<StageData> stories = await DatabaseHelper.instance.queryWhere('stage_level', StageData.fromJson, 'user_id = ?', [userId]);
-      List<StageData> sameStory = stories.where((story) => story.storyId == widget.storyId).toList();
+      List<StageData> stories = await DatabaseHelper.instance.queryWhere(
+          'stage_level', StageData.fromJson, 'user_id = ?', [userId]);
+      sameStory =
+          stories.where((story) => story.storyId == widget.storyId).toList();
 
+      ///Increase exp of story's module
+      if (!widget.isTeacherStory) {
+        List<UserExp> expList = await DatabaseHelper.instance
+            .queryWhere('user_exp', UserExp.fromJson, 'user_id = ?', [userId]);
 
-      ///check if the level of the story matches the user's level
-      ///the user will only gain exp if they answer a story belonging to their current level
-      List<UserLevelInfo> userLevelInfoList = await DatabaseHelper.instance
-          .queryWhere(
-          'user_level_info',
-          UserLevelInfo.fromJson,
-          'user_id = ?',
-          [userId]);
-      UserLevelInfo? userLevelInfo = userLevelInfoList[0];
-
-
-      print("checking sameStory");
-      ///the user hasnt answered the story yet and ^^: exp will be added
-      if(sameStory.isEmpty)
-      {
-        print("user hasn't answered story! Adding exp");
-        int newExp = 0;
-        switch(moduleType)
-        {
-          case "narrative":
-            if(userLevelInfo.narrativeLevel == story.level) {
-              newExp = userExp!.narrativeExp + 100;
-              print("updating narrative exp to: $newExp");
-              await db.update(
-                "user_exp",
-                {"narrative_exp": newExp},
-                where: 'user_id = ?',
-                whereArgs: [userId],
-              );
-            }
-
-            break;
-          case "information":
-            if(userLevelInfo.informationLevel == story.level) {
-              newExp = userExp!.informationExp + 100;
-              print("updating information exp to: $newExp");
-              await db.update(
-                "user_exp",
-                {"information_exp": newExp},
-                where: 'user_id = ?',
-                whereArgs: [userId],
-              );
-            }
-            break;
-          case "vocab":
-            if(userLevelInfo.vocabLevel == story.level) {
-              newExp = userExp!.vocabExp + 100;
-              print("userId $userId updating vocab exp to: $newExp");
-              await db.update(
-                "user_exp",
-                {"vocab_exp": newExp},
-                where: 'user_id = ?',
-                whereArgs: [userId],
-              );
-            }
-            break;
+        if (expList.isEmpty) {
+          print("storyShell: expList is empty!");
         }
+        UserExp? userExp = expList[0];
 
-        ///Check whether exp is enough to level up, todo: if may true, display a level up screen
-        isLeveledUp = await checkAndApplyLevelUps();
+        ///check if the level of the story matches the user's level
+        ///the user will only gain exp if they answer a story belonging to their current level
+        List<UserLevelInfo> userLevelInfoList = await DatabaseHelper.instance
+            .queryWhere('user_level_info', UserLevelInfo.fromJson,
+                'user_id = ?', [userId]);
+        UserLevelInfo? userLevelInfo = userLevelInfoList[0];
 
+        print("checking sameStory");
 
+        ///the user hasnt answered the story yet and ^^: exp will be added
+        if (sameStory.isEmpty) {
+          print("user hasn't answered story! Adding exp");
+          int newExp = 0;
+          switch (moduleType) {
+            case "narrative":
+              if (userLevelInfo.narrativeLevel == story.level) {
+                newExp = userExp!.narrativeExp + 100;
+                print("updating narrative exp to: $newExp");
+                await db.update(
+                  "user_exp",
+                  {"narrative_exp": newExp},
+                  where: 'user_id = ?',
+                  whereArgs: [userId],
+                );
+              }
+
+              break;
+            case "information":
+              if (userLevelInfo.informationLevel == story.level) {
+                newExp = userExp!.informationExp + 100;
+                print("updating information exp to: $newExp");
+                await db.update(
+                  "user_exp",
+                  {"information_exp": newExp},
+                  where: 'user_id = ?',
+                  whereArgs: [userId],
+                );
+              }
+              break;
+            case "vocab":
+              if (userLevelInfo.vocabLevel == story.level) {
+                newExp = userExp!.vocabExp + 100;
+                print("userId $userId updating vocab exp to: $newExp");
+                await db.update(
+                  "user_exp",
+                  {"vocab_exp": newExp},
+                  where: 'user_id = ?',
+                  whereArgs: [userId],
+                );
+              }
+              break;
+          }
+
+          ///Check whether exp is enough to level up, todo: if may true, display a level up screen
+          isLeveledUp = await checkAndApplyLevelUps();
+        } else {
+          print("sameStory not empty, $sameStory");
+        }
       }
-      else {
-        print("sameStory not empty, $sameStory");
-      }
 
-
-      for(StoryItem storyItem in firstAttemptObjects){
+      for (StoryItem storyItem in firstAttemptObjects) {
         ///tally items gotten correct in the first attempt per skill
-        firstAttemptCorrect[storyItem.data.skill] = (firstAttemptCorrect[storyItem.data.skill] ?? 0) + 1;
+        firstAttemptCorrect[storyItem.data.skill] =
+            (firstAttemptCorrect[storyItem.data.skill] ?? 0) + 1;
       }
 
       print("firstAttemptCorrect, totalItems, totalAttempts");
       print("$firstAttemptCorrect, $totalItems, $totalAttempts");
-      await addStageData(widget.storyId, skillScores, totalItems, totalAttempts, firstAttemptCorrect);
+      await addStageData(widget.storyId, skillScores, totalItems, totalAttempts,
+          firstAttemptCorrect);
 
-      if (!mounted) return; 
+      if (!mounted) return;
 
       final int totalItemCount = totalItems.values.fold(0, (sum, v) => sum + v);
-      final int firstAttemptCount = firstAttemptCorrect.values.fold(0, (sum, v) => sum + v);
+      final int firstAttemptCount =
+          firstAttemptCorrect.values.fold(0, (sum, v) => sum + v);
 
       final int points = calculatePoints(
         level: story.level,
         totalItemCount: totalItemCount,
         firstAttemptCount: firstAttemptCount,
-        isFirstCompletion: sameStory.isEmpty? true : false,
+        isFirstCompletion: sameStory.isEmpty ? true : false,
       );
 
       if (!mounted) return;
@@ -882,11 +883,14 @@ class _StoryShellState extends State<StoryShell> {
         if (userId != null) {
           final now = DateTime.now().toUtc().toIso8601String();
           final db = await DatabaseHelper.instance.db;
-          await db.insert('user_boosts', {
-            'user_id': userId,
-            'stories_remaining': newVal,
-            'updated_at': now,
-          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          await db.insert(
+              'user_boosts',
+              {
+                'user_id': userId,
+                'stories_remaining': newVal,
+                'updated_at': now,
+              },
+              conflictAlgorithm: ConflictAlgorithm.replace);
           try {
             await Supabase.instance.client.from('user_boosts').upsert({
               'user_id': userId,
@@ -898,9 +902,6 @@ class _StoryShellState extends State<StoryShell> {
         boosterBloc.add(SetBooster(newVal));
       }
 
-
-
-
       ///Display onfinished popup
       showDialog(
         context: context,
@@ -908,7 +909,7 @@ class _StoryShellState extends State<StoryShell> {
         builder: (_) => FinishedStoryPopup(
           pointsEarned: boostedPoints,
           onContinue: () {
-            if(isLeveledUp.isNotEmpty){
+            if (isLeveledUp.isNotEmpty) {
               ///Display level up popup
               showDialog(
                 context: context,
@@ -918,25 +919,23 @@ class _StoryShellState extends State<StoryShell> {
                   onContinue: () {
                     //navigate to home
                     context.go('/student/home');
-                  }, moduleType: moduleType,
+                  },
+                  moduleType: moduleType ?? '',
                 ),
               );
-            }
-            else {
+            } else {
               //navigate to home
               context.go('/student/home');
             }
-
-          }, moduleType: moduleType,
+          },
+          moduleType: moduleType ?? '',
         ),
       );
 
-
-
-      try{
+      try {
         print("storyShell: attempting to sync data");
         syncUserProgress();
-      } catch(e){
+      } catch (e) {
         print("failed to sync user progress: $e");
       }
 
@@ -945,7 +944,5 @@ class _StoryShellState extends State<StoryShell> {
     setState(() {
       currentPage += 1;
     });
-
-
   }
 }

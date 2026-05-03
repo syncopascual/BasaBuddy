@@ -59,7 +59,8 @@ class _AddStoryPageState extends State<AddStoryPage> {
         pageNumber++;
         if (item.englishTextController.text.trim().isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("English text is required on page $pageNumber")),
+            SnackBar(
+                content: Text("English text is required on page $pageNumber")),
           );
           return;
         }
@@ -74,7 +75,8 @@ class _AddStoryPageState extends State<AddStoryPage> {
             item.choices.values.any((c) => c.text.trim().isEmpty)) {
           error = "Please fill in all ordering fields.";
         } else if (item.type == 'matching' &&
-            item.pairs.any((p) => p.left.text.trim().isEmpty || p.right.text.trim().isEmpty)) {
+            item.pairs.any((p) =>
+                p.left.text.trim().isEmpty || p.right.text.trim().isEmpty)) {
           error = "Please fill in all matching pairs.";
         } else if (item.type == 'fill_in_blanks' &&
             (item.statement1Controller.text.trim().isEmpty &&
@@ -83,7 +85,8 @@ class _AddStoryPageState extends State<AddStoryPage> {
           error = "Please fill in all fill-in-the-blank fields.";
         }
         if (error != null) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(error)));
           return;
         }
       }
@@ -93,13 +96,17 @@ class _AddStoryPageState extends State<AddStoryPage> {
     final supabase = Supabase.instance.client;
 
     try {
-      final storyResponse = await supabase.from('list_stories').insert({
-        'title': titleController.text,
-        'description': descriptionController.text,
-        'module': selectedModule,
-        'level': level,
-        'class_id': widget.classId,
-      }).select().single();
+      final storyResponse = await supabase
+          .from('list_stories')
+          .insert({
+            'title': titleController.text,
+            'description': descriptionController.text,
+            'module': selectedModule,
+            'level': level,
+            'class_id': widget.classId,
+          })
+          .select()
+          .single();
 
       final storyId = storyResponse['story_id'];
       int pageNum = 0;
@@ -205,6 +212,25 @@ class _AddStoryPageState extends State<AddStoryPage> {
                 decoration: const InputDecoration(labelText: "Description"),
                 maxLines: 3,
               ),
+              const SizedBox(height: 16),
+              const Text("Reading Level",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: List.generate(5, (i) {
+                  final lvl = i + 1;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text("Level $lvl"),
+                      selected: level == lvl,
+                      onSelected: (_) => setState(() => level = lvl),
+                    ),
+                  );
+                }),
+              ),
               const SizedBox(height: 20),
               const Text("Pages",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -227,7 +253,8 @@ class _AddStoryPageState extends State<AddStoryPage> {
                       key: ValueKey(item.id),
                       index: index,
                       pageNumber: pageNumber,
-                      onDelete: () => setState(() => contentItems.removeAt(index)),
+                      onDelete: () =>
+                          setState(() => contentItems.removeAt(index)),
                     );
                   }
                   if (item is ExerciseInput) {
@@ -235,14 +262,16 @@ class _AddStoryPageState extends State<AddStoryPage> {
                       context,
                       key: ValueKey(item.id),
                       index: index,
-                      onDelete: () => setState(() => contentItems.removeAt(index)),
+                      onDelete: () =>
+                          setState(() => contentItems.removeAt(index)),
                       onUpdate: () => setState(() {}),
                     );
                   }
                   return SizedBox(key: ValueKey('empty_$index'));
                 }).toList(),
               ),
-              ElevatedButton(onPressed: addPage, child: const Text("+ Add Page")),
+              ElevatedButton(
+                  onPressed: addPage, child: const Text("+ Add Page")),
               const SizedBox(height: 20),
               Wrap(
                 spacing: 10,
@@ -354,9 +383,11 @@ class StoryPageInput extends StoryContentItem {
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
-                  key: ValueKey('${englishTextController.hashCode}_$englishSelected'),
-                  controller:
-                      englishSelected ? englishTextController : tagalogTextController,
+                  key: ValueKey(
+                      '${englishTextController.hashCode}_$englishSelected'),
+                  controller: englishSelected
+                      ? englishTextController
+                      : tagalogTextController,
                   decoration: InputDecoration(
                     labelText: englishSelected
                         ? "Page Text (English)"
@@ -364,7 +395,8 @@ class StoryPageInput extends StoryContentItem {
                   ),
                   maxLines: 4,
                   validator: (value) {
-                    if (isEnglish.value && (value == null || value.trim().isEmpty)) {
+                    if (isEnglish.value &&
+                        (value == null || value.trim().isEmpty)) {
                       return "English text is required";
                     }
                     return null;

@@ -28,12 +28,18 @@ class _AddStagePageState extends State<AddStagePage> {
   final TextEditingController descriptionController = TextEditingController();
 
   List<StoryContentItem> contentItems = [];
+  int level = 1;
   bool isPublishing = false;
   bool loadingStandalone = false;
 
   String? filterSkill;
   String? filterType;
-  final List<String> exerciseTypes = ['mulcho', 'ordering', 'matching', 'fill_in_blanks'];
+  final List<String> exerciseTypes = [
+    'mulcho',
+    'ordering',
+    'matching',
+    'fill_in_blanks'
+  ];
 
   Map<String, List<Map<String, dynamic>>> standaloneQuestions = {
     'mulcho': [],
@@ -65,10 +71,8 @@ class _AddStagePageState extends State<AddStagePage> {
       };
 
       for (final entry in typeMap.entries) {
-        final response = await supabase
-            .from(entry.key)
-            .select()
-            .eq('is_standalone', true);
+        final response =
+            await supabase.from(entry.key).select().eq('is_standalone', true);
 
         if (mounted) {
           standaloneQuestions[entry.value] =
@@ -86,7 +90,8 @@ class _AddStagePageState extends State<AddStagePage> {
     }
   }
 
-  void addStandaloneQuestionToStage(Map<String, dynamic> question, String type) {
+  void addStandaloneQuestionToStage(
+      Map<String, dynamic> question, String type) {
     final exercise = ExerciseInput(type: type);
 
     if (question['skill'] != null) exercise.skill = question['skill'];
@@ -95,16 +100,17 @@ class _AddStagePageState extends State<AddStagePage> {
       case 'mulcho':
         exercise.englishQuestionController.text = question['question'] ?? '';
         exercise.tagalogQuestionController.text =
-            (question['tagalog_question'] ?? '').replaceAll('\r', '').replaceAll('\n', '');
+            (question['tagalog_question'] ?? '')
+                .replaceAll('\r', '')
+                .replaceAll('\n', '');
         exercise.choices = Map<String, TextEditingController>.fromEntries(
-          (question['choices'] as Map)
-              .entries
-              .map((e) => MapEntry(e.key, TextEditingController(text: e.value))),
+          (question['choices'] as Map).entries.map(
+              (e) => MapEntry(e.key, TextEditingController(text: e.value))),
         );
-        exercise.tagalogChoices = Map<String, TextEditingController>.fromEntries(
-          (question['tagalog_choices'] as Map)
-              .entries
-              .map((e) => MapEntry(e.key, TextEditingController(text: e.value))),
+        exercise.tagalogChoices =
+            Map<String, TextEditingController>.fromEntries(
+          (question['tagalog_choices'] as Map).entries.map(
+              (e) => MapEntry(e.key, TextEditingController(text: e.value))),
         );
         exercise.correctMulchoIndex = question['answer'] != null
             ? int.parse(question['answer'].toString()) - 1
@@ -113,14 +119,13 @@ class _AddStagePageState extends State<AddStagePage> {
 
       case 'ordering':
         exercise.choices = Map<String, TextEditingController>.fromEntries(
-          (question['data'] as Map)
-              .entries
-              .map((e) => MapEntry(e.key, TextEditingController(text: e.value))),
+          (question['data'] as Map).entries.map(
+              (e) => MapEntry(e.key, TextEditingController(text: e.value))),
         );
-        exercise.tagalogChoices = Map<String, TextEditingController>.fromEntries(
-          (question['tagalog_data'] as Map)
-              .entries
-              .map((e) => MapEntry(e.key, TextEditingController(text: e.value))),
+        exercise.tagalogChoices =
+            Map<String, TextEditingController>.fromEntries(
+          (question['tagalog_data'] as Map).entries.map(
+              (e) => MapEntry(e.key, TextEditingController(text: e.value))),
         );
         break;
 
@@ -137,14 +142,19 @@ class _AddStagePageState extends State<AddStagePage> {
       case 'fill_in_blanks':
         exercise.statement1Controller.text = question['statement_1'] ?? '';
         exercise.statement2Controller.text = question['statement_2'] ?? '';
-        exercise.statement1TagalogController.text = question['tagalog_statement_1'] ?? '';
-        exercise.statement2TagalogController.text = question['tagalog_statement_2'] ?? '';
-        exercise.fillChoices =
-            (question['choices'] as List).map((c) => TextEditingController(text: c)).toList();
-        exercise.fillTagalogChoices =
-            (question['tagalog_choices'] as List).map((c) => TextEditingController(text: c)).toList();
+        exercise.statement1TagalogController.text =
+            question['tagalog_statement_1'] ?? '';
+        exercise.statement2TagalogController.text =
+            question['tagalog_statement_2'] ?? '';
+        exercise.fillChoices = (question['choices'] as List)
+            .map((c) => TextEditingController(text: c))
+            .toList();
+        exercise.fillTagalogChoices = (question['tagalog_choices'] as List)
+            .map((c) => TextEditingController(text: c))
+            .toList();
         exercise.correctFillBlanksIndex = question['answer'] != null
-            ? exercise.fillChoices.indexWhere((c) => c.text == question['answer'])
+            ? exercise.fillChoices
+                .indexWhere((c) => c.text == question['answer'])
             : null;
         break;
     }
@@ -154,7 +164,8 @@ class _AddStagePageState extends State<AddStagePage> {
 
   String capitalizeEachWord(String input) => input
       .split(' ')
-      .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1).toLowerCase() : '')
+      .map((w) =>
+          w.isNotEmpty ? w[0].toUpperCase() + w.substring(1).toLowerCase() : '')
       .join(' ');
 
   Future<void> publishStage() async {
@@ -164,13 +175,17 @@ class _AddStagePageState extends State<AddStagePage> {
     final supabase = Supabase.instance.client;
 
     try {
-      final stageResponse = await supabase.from('list_stories').insert({
-        'class_id': widget.classId,
-        'title': titleController.text.trim(),
-        'description': descriptionController.text.trim(),
-        'level': 1,
-        'module': 'teachers_pick',
-      }).select().single();
+      final stageResponse = await supabase
+          .from('list_stories')
+          .insert({
+            'class_id': widget.classId,
+            'title': titleController.text.trim(),
+            'description': descriptionController.text.trim(),
+            'level': level,
+            'module': 'teachers_pick',
+          })
+          .select()
+          .single();
 
       final stageId = stageResponse['story_id'];
       const int pageNumber = 0;
@@ -269,14 +284,36 @@ class _AddStagePageState extends State<AddStagePage> {
                 maxLines: 3,
               ),
 
+              const SizedBox(height: 16),
+              const Text("Reading Level",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: List.generate(5, (i) {
+                  final lvl = i + 1;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text("Level $lvl"),
+                      selected: level == lvl,
+                      onSelected: (_) => setState(() => level = lvl),
+                    ),
+                  );
+                }),
+              ),
+
               const SizedBox(height: 20),
 
               Row(children: [
                 const Text("Standalone Questions",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(width: 10),
                 ElevatedButton(
-                  onPressed: loadingStandalone ? null : fetchStandaloneQuestions,
+                  onPressed:
+                      loadingStandalone ? null : fetchStandaloneQuestions,
                   child: loadingStandalone
                       ? const SizedBox(
                           width: 20,
@@ -317,7 +354,9 @@ class _AddStagePageState extends State<AddStagePage> {
                     items: [null, ...allSkills].map((skill) {
                       return DropdownMenuItem(
                         value: skill,
-                        child: Text(skill == null ? "All Skills" : capitalizeEachWord(skill)),
+                        child: Text(skill == null
+                            ? "All Skills"
+                            : capitalizeEachWord(skill)),
                       );
                     }).toList(),
                     onChanged: (val) => setState(() => filterSkill = val),
@@ -345,11 +384,14 @@ class _AddStagePageState extends State<AddStagePage> {
                   return matchesType && matchesSkill;
                 }).map((q) => Card(
                       child: ListTile(
-                        title: Text(capitalizeEachWord(
-                            q['skill'] ?? q['question'] ?? q['statement_1'] ?? 'Question')),
+                        title: Text(capitalizeEachWord(q['skill'] ??
+                            q['question'] ??
+                            q['statement_1'] ??
+                            'Question')),
                         subtitle: Text(type.toUpperCase()),
                         trailing: ElevatedButton(
-                          onPressed: () => addStandaloneQuestionToStage(q, type),
+                          onPressed: () =>
+                              addStandaloneQuestionToStage(q, type),
                           child: const Text("Add to Stage"),
                         ),
                       ),
@@ -365,7 +407,8 @@ class _AddStagePageState extends State<AddStagePage> {
                 onReorder: (oldIndex, newIndex) {
                   if (newIndex > oldIndex) newIndex--;
                   setState(() {
-                    contentItems.insert(newIndex, contentItems.removeAt(oldIndex));
+                    contentItems.insert(
+                        newIndex, contentItems.removeAt(oldIndex));
                   });
                 },
                 children: contentItems.asMap().entries.map((entry) {
@@ -376,7 +419,8 @@ class _AddStagePageState extends State<AddStagePage> {
                       context,
                       key: ValueKey(item.id),
                       index: index,
-                      onDelete: () => setState(() => contentItems.removeAt(index)),
+                      onDelete: () =>
+                          setState(() => contentItems.removeAt(index)),
                       onUpdate: () => setState(() {}),
                     );
                   }
