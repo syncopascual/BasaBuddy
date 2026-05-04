@@ -12,12 +12,14 @@ class OrderingExercise extends StatefulWidget {
   final OrderData orderData;
   final VoidCallback onCorrectAnswer;
   final VoidCallback onWrongAnswer;
-
+  final int storyLevel;
+  
   const OrderingExercise({
     super.key,
     required this.orderData,
     required this.onCorrectAnswer,
     required this.onWrongAnswer,
+    required this.storyLevel
   });
 
   @override
@@ -46,9 +48,9 @@ class _OrderingExerciseState extends State<OrderingExercise> {
     ).every((e) => e);
 
     if (isCorrect) {
-      correctPopup(context, widget.onCorrectAnswer);
+      correctPopup(context, widget.onCorrectAnswer, "");
     } else {
-      wrongPopup(context, widget.onWrongAnswer);
+      wrongPopup(context, widget.onWrongAnswer, "Try Again");
     }
   }
 
@@ -122,7 +124,7 @@ class _OrderingExerciseState extends State<OrderingExercise> {
             ),
 
             /// Translate button
-            TranslationButton(context: context),
+            widget.storyLevel > 2 ? Text('') : TranslationButton(context: context),
           ],
         );
       },

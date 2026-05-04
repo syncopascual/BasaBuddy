@@ -202,7 +202,7 @@ class _ModuleState extends State<Module> {
                         storyLevel: stories[i].level,
                         imageAsset: storyThumbnails[stories[i].storyId]!,
                         onPressed: () => context.go(
-                            '/story/${stories[i].storyId}',
+                            '/story/${stories[i].storyId}/${stories[i].level}',
                             extra: widget.moduleType == 'teachers_pick'),
                       ),
                     ),

@@ -166,13 +166,13 @@ class _DiagnosticExerciseState extends State<DiagnosticExercise> {
                     //print("choiceIndex.value ${choiceIndex.value +1}, answer ${widget.mulcho.answer}");
                     ///if correct answer
                     if((choiceIndex.value+1) == int.parse(widget.mulcho.answer)){
-                      correctPopup(context, widget.onCorrectAnswer);
+                      correctPopup(context, widget.onCorrectAnswer, "");
                     } else{
                       print("wrong answer, correct answer");
                       print(choiceIndex.value+1);
                       print(widget.mulcho.answer);
 
-                      wrongPopup(context, widget.onWrongAnswer);
+                      wrongPopup(context, widget.onWrongAnswer, "");
                       print("wrong ans");}
 
                   }

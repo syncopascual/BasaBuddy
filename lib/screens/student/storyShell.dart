@@ -44,11 +44,13 @@ import '../../utils/exp_checker.dart';
 
 class StoryShell extends StatefulWidget {
   final String storyId;
+  final int storyLevel;
   final bool isTeacherStory;
   const StoryShell({
     super.key,
     required this.storyId,
     this.isTeacherStory = false,
+    required this.storyLevel
   });
 
   @override
@@ -476,6 +478,7 @@ class _StoryShellState extends State<StoryShell> {
         final page = PageContainer(
           storyPage: component,
           imageURL: url,
+          storyLevel: widget.storyLevel,
         );
         return page;
       case Mulcho mulcho:
@@ -493,7 +496,8 @@ class _StoryShellState extends State<StoryShell> {
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 1) + 1;
             nextPage(orderedStoryItems);
-          },
+          }, storyLevel: widget.storyLevel,
+
         );
         return page;
       case OrderData order:
@@ -509,7 +513,7 @@ class _StoryShellState extends State<StoryShell> {
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
-          },
+          }, storyLevel: widget.storyLevel,
         );
         return page;
       case FillBlankData fillBlank:
@@ -525,7 +529,7 @@ class _StoryShellState extends State<StoryShell> {
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
-          },
+          }, storyLevel: widget.storyLevel,
         );
         return page;
       case MatchingData match:

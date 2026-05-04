@@ -19,13 +19,14 @@ class MulchoExercise extends StatefulWidget {
   final Mulcho mulcho;
   final VoidCallback onCorrectAnswer;
   final VoidCallback onWrongAnswer;
+  final int storyLevel;
   const MulchoExercise({
     super.key,
     required this.bgImage,
     required this.mulcho,
     required this.onCorrectAnswer,
     required this.onWrongAnswer,
-
+    required this.storyLevel
   });
 
   @override
@@ -164,7 +165,7 @@ class _MulchoExerciseState extends State<MulchoExercise> {
           ),
 
           ///Translate button
-          TranslationButton(context: context),
+          widget.storyLevel > 2 ? Text('') : TranslationButton(context: context),
 
 
 
@@ -183,13 +184,13 @@ class _MulchoExerciseState extends State<MulchoExercise> {
                 //print("choiceIndex.value ${choiceIndex.value +1}, answer ${widget.mulcho.answer}");
                 ///if correct answer
                 if((choiceIndex.value+1) == int.parse(widget.mulcho.answer)){
-                  correctPopup(context, widget.onCorrectAnswer);
+                  correctPopup(context, widget.onCorrectAnswer, widget.mulcho.explanation);
                 } else{
                   print("wrong answer, correct answer");
                   print(choiceIndex.value+1);
                   print(widget.mulcho.answer);
 
-                  wrongPopup(context, widget.onWrongAnswer);
+                  wrongPopup(context, widget.onWrongAnswer, widget.mulcho.hint);
                   print("wrong ans");}
             
               }
