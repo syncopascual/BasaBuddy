@@ -19,12 +19,14 @@ class MulchoExercise extends StatefulWidget {
   final Mulcho mulcho;
   final VoidCallback onCorrectAnswer;
   final VoidCallback onWrongAnswer;
+  final int storyLevel;
   const MulchoExercise({
     super.key,
     required this.bgImage,
     required this.mulcho,
     required this.onCorrectAnswer,
     required this.onWrongAnswer,
+    required this.storyLevel
   });
 
   @override
@@ -163,7 +165,7 @@ class _MulchoExerciseState extends State<MulchoExercise> {
           ),
 
           ///Translate button
-          TranslationButton(context: context),
+          widget.storyLevel > 2 ? Text('') : TranslationButton(context: context),
 
 
 

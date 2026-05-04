@@ -12,12 +12,14 @@ class FillBlankExercise extends StatefulWidget {
   final FillBlankData fillBlankData;
   final VoidCallback onCorrectAnswer;
   final VoidCallback onWrongAnswer;
+  final int storyLevel;
 
   const FillBlankExercise({
     super.key,
     required this.fillBlankData,
     required this.onCorrectAnswer,
     required this.onWrongAnswer,
+    required this.storyLevel
   });
 
   @override
@@ -247,8 +249,10 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
               ),
             ),
 
-            ///Translate button
-            TranslationButton(context: context),
+
+            ///Translate button only appears level 2 below
+            widget.storyLevel > 2 ? Text('') : TranslationButton(context: context),
+
           ],
         );
       },

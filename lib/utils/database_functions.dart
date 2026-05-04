@@ -8,7 +8,8 @@ Future<void> createTableFromCsv({
   required Database db,
   required String tableName,
   required String csvPath,
-}) async {
+}) async
+{
   print("createTableFromCsv $tableName");
   // Check if table already exists
   final result = await db.rawQuery(

@@ -11,12 +11,15 @@ import 'package:basabuddy/components/VoiceService.dart';
 ///UI that displays a story page
 class PageContainer extends StatefulWidget {
 
+  final int storyLevel;
   final Storypage storyPage;
   final String imageURL;
+
   const PageContainer({
     super.key,
     required this.storyPage,
-    required this.imageURL
+    required this.imageURL,
+    required this.storyLevel
   });
 
   @override
@@ -39,12 +42,14 @@ class _PageContainerState extends State<PageContainer> {
         children: [
           Container(height:350),
           //Image.asset('assets/story/papaya.png', height: 200),
+
+
           ///TRANSLATION BUTTON
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [Container(
             margin: EdgeInsets.only(right: 10),
-              child: TranslationButton(context: context))],
+              child: widget.storyLevel > 2 ? Text('') : TranslationButton(context: context))],
           ),
           
           SizedBox(height: 10),
