@@ -64,10 +64,10 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
     final selectedWord = choices[selectedIndex!];
 
     if (selectedWord == answer) {
-      correctPopup(context, widget.onCorrectAnswer);
+      correctPopup(context, widget.onCorrectAnswer, widget.fillBlankData.explanation);
     } else {
       wrongPopup(context,
-          widget.onWrongAnswer);
+          widget.onWrongAnswer, widget.fillBlankData.hint);
     }
   }
 

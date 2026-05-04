@@ -23,8 +23,16 @@ Future<void> createTableFromCsv({
 
 
   // Read and parse CSV
-  final csvString = await rootBundle.loadString(csvPath);
-  final List<List<dynamic>> csvTable = const CsvToListConverter().convert(csvString);
+  final csvString = (await rootBundle.loadString(csvPath))
+      .replaceAll('\r\n', '\n')
+      .replaceAll('\r', '\n');
+
+  final List<List<dynamic>> csvTable = const CsvToListConverter(
+    eol: '\n',
+    shouldParseNumbers: false,
+  ).convert(csvString);
+
+  //final List<List<dynamic>> csvTable = const CsvToListConverter().convert(csvString);
 
   if (csvTable.isEmpty) throw Exception("CSV file is empty: $csvPath");
   if (csvTable.length < 2) throw Exception("CSV has no data rows: $csvPath");

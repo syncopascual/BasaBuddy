@@ -196,9 +196,10 @@ class DatabaseHelper {
       where: where,
       whereArgs: whereArgs,
     );
-    //print("query where result $result");
+    print("query where result $result");
     return result.map((row) {
       final decoded = Map<String, dynamic>.from(row);
+      print("decoded, $decoded");
       // Decode any JSON string fields back into Maps
       for (final key in decoded.keys.toList()) {
         final value = decoded[key];
@@ -210,7 +211,9 @@ class DatabaseHelper {
             } else if (parsed is List) {          // ← add this
               decoded[key] = List<dynamic>.from(parsed);
             }
-          } catch (_) {
+          } catch (e) {
+            //print("ERROR $e value $value decoded $decoded");
+            print('jsonDecode swallowed for key=$key value=$value error=$e');
             // Not a JSON string, leave as-is
           }
         }

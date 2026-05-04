@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'PopUp.dart';
 
-void correctPopup(context, callBack){
+void correctPopup(context, callBack, hint){
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -11,7 +11,7 @@ void correctPopup(context, callBack){
       return Popup(
         title: "Correct!",
         description:
-        "",
+        hint,
         onPressed: () {
           // your callback logic here
           callBack();
@@ -21,7 +21,7 @@ void correctPopup(context, callBack){
   );
 }
 
-void wrongPopup(context, callBack){
+void wrongPopup(context, callBack, hint){
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -30,7 +30,7 @@ void wrongPopup(context, callBack){
       return Popup(
         title: "Almost!",
         description:
-        "Try again",
+        hint,
         onPressed: () {
           // your callback logic here
           callBack();

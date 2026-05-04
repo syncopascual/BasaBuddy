@@ -65,7 +65,7 @@ class _MatchingExerciseState extends State<MatchingExercise> {
                 pairs: widget.matchingData.pairs,
                 soundEnabled: soundEnabled,
                 onCompleted: ()
-                   => correctPopup(context, widget.onCorrect)
+                   => correctPopup(context, widget.onCorrect, "")
                 ,
               ),),
 

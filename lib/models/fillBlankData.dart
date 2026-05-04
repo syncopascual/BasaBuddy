@@ -33,6 +33,14 @@ class FillBlankData {
 
   final List<String> choices;
 
+  @JsonKey(fromJson: _stringOrEmpty)
+  final String hint;
+
+  @JsonKey(fromJson: _stringOrEmpty)
+  final String explanation;
+
+  static String _stringOrEmpty(dynamic value) => value?.toString() ?? '';
+
   final String answer;
   @JsonKey(name: 'after_page')
   final int afterPage;
@@ -60,7 +68,9 @@ class FillBlankData {
     required this.tagalogStatement2,
     required this.tagalogChoices,
     required this.tagalogAnswer,
-    required this.isStandalone
+    required this.isStandalone,
+    required this.hint,
+    required this.explanation
 
   });
 

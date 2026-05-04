@@ -26,6 +26,14 @@ class Mulcho {
   @JsonKey(name: 'tagalog_choices', fromJson: _nullableMap)
   final Map<String, String>? tagalogChoices;
 
+  @JsonKey(fromJson: _stringOrEmpty)
+  final String hint;
+
+  @JsonKey(fromJson: _stringOrEmpty)
+  final String explanation;
+
+  static String _stringOrEmpty(dynamic value) => value?.toString() ?? '';
+
   static String? _nullableString(dynamic value) {
     if (value == null) return null;
     if (value is String && value.isEmpty) return null;
@@ -69,6 +77,8 @@ class Mulcho {
     required this.skill,
     required this.afterPage,
     required this.isStandalone,
+    required this.hint,
+    required this.explanation
   });
 
   factory Mulcho.fromJson(Map<String, dynamic> json) => _$MulchoFromJson(json);

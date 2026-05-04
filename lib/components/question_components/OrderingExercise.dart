@@ -46,9 +46,9 @@ class _OrderingExerciseState extends State<OrderingExercise> {
     ).every((e) => e);
 
     if (isCorrect) {
-      correctPopup(context, widget.onCorrectAnswer);
+      correctPopup(context, widget.onCorrectAnswer, "");
     } else {
-      wrongPopup(context, widget.onWrongAnswer);
+      wrongPopup(context, widget.onWrongAnswer, "Try Again");
     }
   }
 
