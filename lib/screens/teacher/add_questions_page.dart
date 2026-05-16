@@ -28,7 +28,6 @@ class _AddStagePageState extends State<AddStagePage> {
   final TextEditingController descriptionController = TextEditingController();
 
   List<StoryContentItem> contentItems = [];
-  int level = 1;
   bool isPublishing = false;
   bool loadingStandalone = false;
 
@@ -181,7 +180,7 @@ class _AddStagePageState extends State<AddStagePage> {
             'class_id': widget.classId,
             'title': titleController.text.trim(),
             'description': descriptionController.text.trim(),
-            'level': level,
+            'level': 1,
             'module': 'teachers_pick',
           })
           .select()
@@ -282,26 +281,6 @@ class _AddStagePageState extends State<AddStagePage> {
                 controller: descriptionController,
                 decoration: const InputDecoration(labelText: "Description"),
                 maxLines: 3,
-              ),
-
-              const SizedBox(height: 16),
-              const Text("Reading Level",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: List.generate(5, (i) {
-                  final lvl = i + 1;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text("Level $lvl"),
-                      selected: level == lvl,
-                      onSelected: (_) => setState(() => level = lvl),
-                    ),
-                  );
-                }),
               ),
 
               const SizedBox(height: 20),
