@@ -33,7 +33,8 @@ class _OrderingExerciseState extends State<OrderingExercise> {
   void initState() {
     super.initState();
 
-    final missingFilipino = widget.orderData.tagalogData.isEmpty;
+    final missingFilipino = widget.orderData.tagalogData == null ||
+        widget.orderData.tagalogData.values.any((v) => v.trim().isEmpty);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final isEnglish = context.read<TranslationBloc>().state.isEnglish;
