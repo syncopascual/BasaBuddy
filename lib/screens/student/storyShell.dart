@@ -703,11 +703,7 @@ class _StoryShellState extends State<StoryShell> {
                   ),
                 ),
                 SizedBox(height: 12),
-                ElevatedButton(
-                    onPressed: () {
-                      nextPage(orderedStoryItems);
-                    },
-                    child: Text("skip")),
+
 
                 ///Don't display back and next button for question items
                 orderedStoryItems[currentPage].runtimeType == PageItem ||
@@ -739,6 +735,7 @@ class _StoryShellState extends State<StoryShell> {
                           ///NEXT Button
                           SizedBox(
                             height: 30,
+
                             child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: selected, // warm yellow

@@ -118,17 +118,17 @@ class _OrderingExerciseState extends State<OrderingExercise> {
                     isEnglish: isEnglish,
                   ),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: onSubmit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: selected,
-                      ),
-                      child: const Text("Submit"),
-                    ),
-                  ),
                 ],
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: ElevatedButton(
+                onPressed: onSubmit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: selected,
+                ),
+                child: const Text("Submit"),
               ),
             ),
 

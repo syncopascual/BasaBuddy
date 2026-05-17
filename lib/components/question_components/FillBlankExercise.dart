@@ -273,8 +273,8 @@ class _FillBlankExerciseState extends State<FillBlankExercise> {
             ),
 
             /// SUBMIT
-            SizedBox(
-              width: double.infinity,
+            Align(
+              alignment: Alignment.bottomRight,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: selected,
