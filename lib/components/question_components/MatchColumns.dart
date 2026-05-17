@@ -28,10 +28,13 @@ class _MatchColumnsState extends State<MatchColumns> {
   String? firstSelection;
   bool firstIsLeft = true;
 
+  // Locks input while a correct/wrong reveal animation is playing.
+  bool _isResolving = false;
+
   final Map<String, TileState> tileStates = {};
   final Set<String> matchedWords = {};
   final VoiceService _voice = VoiceService();
-  
+
 
   @override
   void initState() {
@@ -46,13 +49,21 @@ class _MatchColumnsState extends State<MatchColumns> {
   }
 
   void onTileTap(String word, bool isLeft) {
-    if (tileStates[word] == TileState.disabled ||
-        tileStates[word] == TileState.correct) return;
-        
+    // 1. Block taps while a previous pair is still animating.
+    if (_isResolving) return;
+
+    // 2. Ignore already-resolved tiles.
+    final state = tileStates[word];
+    if (state == TileState.disabled || state == TileState.correct) return;
+
+    // 3. Ignore re-tapping the SAME tile that's already selected.
+    if (firstSelection == word) return;
+
     if (widget.soundEnabled) {
       _voice.stop();
       _voice.speak(word, true);
     }
+
     if (firstSelection == null) {
       setState(() {
         firstSelection = word;
@@ -62,28 +73,39 @@ class _MatchColumnsState extends State<MatchColumns> {
       return;
     }
 
-    // Prevent selecting two from same column
-    if (firstIsLeft == isLeft) return;
+    // Prevent selecting two from the same column — but reset the first pick
+    // instead of silently doing nothing, which feels less stuck.
+    if (firstIsLeft == isLeft) {
+      setState(() {
+        tileStates[firstSelection!] = TileState.normal;
+        firstSelection = word;
+        firstIsLeft = isLeft;
+        tileStates[word] = TileState.selected;
+      });
+      return;
+    }
 
-    double cardHeight = 420; // your container height
-    int numTiles = widget.pairs.length; // 5
-    
     final firstWord = firstSelection!;
     final isCorrect = widget.pairs[firstWord] == word ||
         widget.pairs[word] == firstWord;
+
+    // 4. Lock immediately and clear firstSelection so nothing else can race in.
+    _isResolving = true;
 
     if (isCorrect) {
       setState(() {
         tileStates[firstWord] = TileState.correct;
         tileStates[word] = TileState.correct;
+        firstSelection = null;
       });
 
       Timer(const Duration(milliseconds: 600), () {
+        if (!mounted) return;
         setState(() {
           tileStates[firstWord] = TileState.disabled;
           tileStates[word] = TileState.disabled;
           matchedWords.addAll([firstWord, word]);
-          firstSelection = null;
+          _isResolving = false;
         });
 
         if (matchedWords.length == widget.pairs.length * 2) {
@@ -93,13 +115,17 @@ class _MatchColumnsState extends State<MatchColumns> {
     } else {
       setState(() {
         tileStates[word] = TileState.wrong;
+        // Keep firstWord visually 'selected' during the wrong flash so the
+        // user sees what they tried to match.
       });
 
       Timer(const Duration(milliseconds: 600), () {
+        if (!mounted) return;
         setState(() {
           tileStates[firstWord] = TileState.normal;
           tileStates[word] = TileState.normal;
           firstSelection = null;
+          _isResolving = false;
         });
       });
     }
@@ -140,7 +166,7 @@ class _MatchColumnsState extends State<MatchColumns> {
           word,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 16),
-          softWrap: true,                // allow multiple lines
+          softWrap: true,
         ),
       ),
     );
@@ -148,21 +174,17 @@ class _MatchColumnsState extends State<MatchColumns> {
 
   @override
   Widget build(BuildContext context) {
-    double cardHeight = 420; // or MediaQuery if you want dynamic
-    int numTiles = widget.pairs.length; // 5 pairs
     return Row(
       children: [
         Expanded(
           child: Column(
-            children:
-            leftWords.map((w) => buildTile(w, true)).toList(),
+            children: leftWords.map((w) => buildTile(w, true)).toList(),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
-            children:
-            rightWords.map((w) => buildTile(w, false)).toList(),
+            children: rightWords.map((w) => buildTile(w, false)).toList(),
           ),
         ),
       ],
