@@ -267,6 +267,7 @@ class _AddStagePageState extends State<AddStagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(title: const Text("Add Stage")),
       body: Form(
         key: _formKey,

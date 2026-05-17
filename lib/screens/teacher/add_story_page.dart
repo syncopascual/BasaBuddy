@@ -194,6 +194,7 @@ class _AddStoryPageState extends State<AddStoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(title: const Text("Add New Story")),
       body: Form(
         key: _formKey,

@@ -39,7 +39,12 @@ class _SignupState extends State<Signup> {
         'role': _role,
         'name': _nameController.text.trim(),
       });
+
       await initializeUserData(user.id);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Successfully created account!")),
+      );
 
       context.go('/login');
     } catch (e) {

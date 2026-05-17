@@ -1,3 +1,4 @@
+import 'package:basabuddy/colors.dart';
 import 'package:basabuddy/components/StoryButton.dart';
 import 'package:basabuddy/models/mulcho.dart';
 import 'package:flutter/cupertino.dart';
@@ -91,7 +92,8 @@ class _ModuleState extends State<Module> {
       }
 
       return [stories, studentLevel];
-    } else {
+    }
+    else {
       ///Fetch stories
       print("MODULE.dart :: _fetchStories() called");
 
@@ -169,6 +171,10 @@ class _ModuleState extends State<Module> {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
+          if(snapshot.hasData && widget.moduleType == 'teachers_pick' && snapshot.data?[0].isEmpty)
+            {
+              return Center(child:  Text("No stories yet!", style: TextStyle(color: textColor, fontSize: 32)));
+            }
 
           final stories = snapshot.data?[0];
           final userLevel = snapshot.data?[1];
