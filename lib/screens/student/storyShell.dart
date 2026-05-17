@@ -506,7 +506,7 @@ class _StoryShellState extends State<StoryShell> {
   }
 
   ///
-  Widget storyWidget(component, url, orderedStoryItems) {
+  Widget storyWidget(component, url, orderedStoryItems, roundItems) {
     //print("component runtime type: ${component.runtimeType}");
     switch (component) {
       case Storypage page:
@@ -560,7 +560,7 @@ class _StoryShellState extends State<StoryShell> {
             nextPage(orderedStoryItems);
           },
           onWrongAnswer: () {
-            wrongAnswer(allStoryItems[currentPage]);
+            wrongAnswer(roundItems[currentPage]);
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 1) + 1;
             nextPage(orderedStoryItems);
@@ -577,7 +577,7 @@ class _StoryShellState extends State<StoryShell> {
             nextPage(orderedStoryItems);
           },
           onWrongAnswer: () {
-            wrongAnswer(allStoryItems[currentPage]);
+            wrongAnswer(roundItems[currentPage]);
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
@@ -594,7 +594,7 @@ class _StoryShellState extends State<StoryShell> {
             nextPage(orderedStoryItems);
           },
           onWrongAnswer: () {
-            wrongAnswer(allStoryItems[currentPage]);
+            wrongAnswer(roundItems[currentPage]);
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
@@ -641,6 +641,7 @@ class _StoryShellState extends State<StoryShell> {
 
   @override
   void initState() {
+    print("init state called");
     super.initState();
     context.read<TranslationBloc>().add(SetEnglish());
     _storyItemsFuture = _fetchPagesNexercises();
@@ -725,7 +726,7 @@ class _StoryShellState extends State<StoryShell> {
                     fit: FlexFit.loose,
                     child: SingleChildScrollView(
                       child: storyWidget(orderedStoryItems[currentPage].data, "",
-                          orderedStoryItems),
+                          orderedStoryItems, orderedStoryItems),
                     ),
                   ),
                   SizedBox(height: 12),
