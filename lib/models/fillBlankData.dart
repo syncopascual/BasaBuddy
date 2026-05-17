@@ -12,7 +12,6 @@ class FillBlankData {
   @JsonKey(name: 'story_id')
   final String storyId;
 
-
   @JsonKey(name: 'statement_1')
   final String statement1;
 
@@ -55,27 +54,28 @@ class FillBlankData {
     return value == 1;
   }
 
-  FillBlankData({
-    required this.id,
-    required this.storyId,
-    required this.statement1,
-    required this.statement2,
-    required this.choices,
-    required this.answer,
-    required this.skill,
-    required this.afterPage,
-    required this.tagalogStatement1,
-    required this.tagalogStatement2,
-    required this.tagalogChoices,
-    required this.tagalogAnswer,
-    required this.isStandalone,
-    required this.hint,
-    required this.explanation
-
-  });
+  FillBlankData(
+      {required this.id,
+      required this.storyId,
+      required this.statement1,
+      required this.statement2,
+      required this.choices,
+      required this.answer,
+      required this.skill,
+      required this.afterPage,
+      required this.tagalogStatement1,
+      required this.tagalogStatement2,
+      required this.tagalogChoices,
+      required this.tagalogAnswer,
+      required this.isStandalone,
+      required this.hint,
+      required this.explanation});
 
   factory FillBlankData.fromJson(Map<String, dynamic> json) {
-    //print('DEBUG FillBlankData.fromJson: $json');
+    print('DEBUG FillBlankData.fromJson: $json');
+
+    json['hint'] ??= '';
+    json['explanation'] ??= '';
 
     // Decode list fields if they come back as raw JSON strings
     if (json['choices'] is String) {

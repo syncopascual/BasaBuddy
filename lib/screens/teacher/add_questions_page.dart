@@ -48,6 +48,12 @@ class _AddStagePageState extends State<AddStagePage> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    fetchStandaloneQuestions();
+  }
+
+  @override
   void dispose() {
     titleController.dispose();
     descriptionController.dispose();
@@ -264,173 +270,182 @@ class _AddStagePageState extends State<AddStagePage> {
       appBar: AppBar(title: const Text("Add Stage")),
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Stage title
-              TextFormField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: "Stage Title"),
-                validator: (val) => val!.isEmpty ? 'Required' : null,
+        child: Column(
+          children: [
+            Expanded(
+              flex: 1,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(children: [
+                  // Stage title
+                  TextFormField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: "Stage Title"),
+                    validator: (val) => val!.isEmpty ? 'Required' : null,
+                  ),
+
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: "Description"),
+                    maxLines: 3,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Row(children: [
+                    const Text("Standalone Questions",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 10),
+                    if (loadingStandalone)
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                  ]),
+
+                  const SizedBox(height: 12),
+
+                  // Filters
+                  Row(children: [
+                    Flexible(
+                      child: DropdownButtonFormField<String>(
+                        value: filterType,
+                        isExpanded: true,
+                        hint: const Text("Filter by Type"),
+                        items: [null, ...exerciseTypes].map((type) {
+                          return DropdownMenuItem(
+                            value: type,
+                            child: Text(type == null
+                                ? "All Types"
+                                : capitalizeEachWord(
+                                    type.replaceAll('_', ' '))),
+                          );
+                        }).toList(),
+                        onChanged: (val) => setState(() => filterType = val),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: DropdownButtonFormField<String>(
+                        value: filterSkill,
+                        isExpanded: true,
+                        hint: const Text("Filter by Skill"),
+                        items: [null, ...allSkills].map((skill) {
+                          return DropdownMenuItem(
+                            value: skill,
+                            child: Text(skill == null
+                                ? "All Skills"
+                                : capitalizeEachWord(skill)),
+                          );
+                        }).toList(),
+                        onChanged: (val) => setState(() => filterSkill = val),
+                      ),
+                    ),
+                  ]),
+
+                  TextButton(
+                    onPressed: () => setState(() {
+                      filterType = null;
+                      filterSkill = null;
+                    }),
+                    child: const Text('Reset Filters'),
+                  ),
+
+                  ...standaloneQuestions.entries.expand((entry) {
+                    final type = entry.key;
+                    final questions = entry.value;
+
+                    return questions.where((q) {
+                      final matchesType =
+                          filterType == null || filterType == type;
+                      final matchesSkill = filterSkill == null ||
+                          (q['skill'] ?? '').toString().toLowerCase() ==
+                              filterSkill!.toLowerCase();
+                      return matchesType && matchesSkill;
+                    }).map((q) => Card(
+                          child: ListTile(
+                            title: Text(capitalizeEachWord(q['skill'] ??
+                                q['question'] ??
+                                q['statement_1'] ??
+                                'Question')),
+                            subtitle: Text(type.toUpperCase()),
+                            trailing: ElevatedButton(
+                              onPressed: () =>
+                                  addStandaloneQuestionToStage(q, type),
+                              child: const Text("Add to Stage"),
+                            ),
+                          ),
+                        ));
+                  }),
+                ]),
               ),
+            ),
 
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: "Description"),
-                maxLines: 3,
+            const Divider(thickness: 2),
+
+            // Added exercises (reorderable)
+            Expanded(
+              flex: 1,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(children: [
+                  const Text("Added Questions",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  ReorderableListView(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    onReorder: (oldIndex, newIndex) {
+                      if (newIndex > oldIndex) newIndex--;
+                      setState(() {
+                        contentItems.insert(
+                            newIndex, contentItems.removeAt(oldIndex));
+                      });
+                    },
+                    children: contentItems.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      if (item is ExerciseInput) {
+                        return item.buildExerciseWidget(
+                          context,
+                          key: ValueKey(item.id),
+                          index: index,
+                          onDelete: () =>
+                              setState(() => contentItems.removeAt(index)),
+                          onUpdate: () => setState(() {}),
+                        );
+                      }
+                      return SizedBox(key: ValueKey('placeholder_$index'));
+                    }).toList(),
+                  ),
+                ]),
               ),
-
-              const SizedBox(height: 20),
-
-              Row(children: [
-                const Text("Standalone Questions",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed:
-                      loadingStandalone ? null : fetchStandaloneQuestions,
-                  child: loadingStandalone
+            ),
+            // Publish button
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isPublishing ? null : publishStage,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: isPublishing
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: 24,
+                          height: 24,
                           child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2),
                         )
-                      : const Text("Load"),
-                ),
-              ]),
-
-              const SizedBox(height: 12),
-
-              // Filters
-              Row(children: [
-                Flexible(
-                  child: DropdownButtonFormField<String>(
-                    value: filterType,
-                    isExpanded: true,
-                    hint: const Text("Filter by Type"),
-                    items: [null, ...exerciseTypes].map((type) {
-                      return DropdownMenuItem(
-                        value: type,
-                        child: Text(type == null
-                            ? "All Types"
-                            : capitalizeEachWord(type.replaceAll('_', ' '))),
-                      );
-                    }).toList(),
-                    onChanged: (val) => setState(() => filterType = val),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Flexible(
-                  child: DropdownButtonFormField<String>(
-                    value: filterSkill,
-                    isExpanded: true,
-                    hint: const Text("Filter by Skill"),
-                    items: [null, ...allSkills].map((skill) {
-                      return DropdownMenuItem(
-                        value: skill,
-                        child: Text(skill == null
-                            ? "All Skills"
-                            : capitalizeEachWord(skill)),
-                      );
-                    }).toList(),
-                    onChanged: (val) => setState(() => filterSkill = val),
-                  ),
-                ),
-              ]),
-
-              TextButton(
-                onPressed: () => setState(() {
-                  filterType = null;
-                  filterSkill = null;
-                }),
-                child: const Text('Reset Filters'),
-              ),
-
-              ...standaloneQuestions.entries.expand((entry) {
-                final type = entry.key;
-                final questions = entry.value;
-
-                return questions.where((q) {
-                  final matchesType = filterType == null || filterType == type;
-                  final matchesSkill = filterSkill == null ||
-                      (q['skill'] ?? '').toString().toLowerCase() ==
-                          filterSkill!.toLowerCase();
-                  return matchesType && matchesSkill;
-                }).map((q) => Card(
-                      child: ListTile(
-                        title: Text(capitalizeEachWord(q['skill'] ??
-                            q['question'] ??
-                            q['statement_1'] ??
-                            'Question')),
-                        subtitle: Text(type.toUpperCase()),
-                        trailing: ElevatedButton(
-                          onPressed: () =>
-                              addStandaloneQuestionToStage(q, type),
-                          child: const Text("Add to Stage"),
-                        ),
-                      ),
-                    ));
-              }),
-
-              const SizedBox(height: 20),
-
-              // Added exercises (reorderable)
-              ReorderableListView(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                onReorder: (oldIndex, newIndex) {
-                  if (newIndex > oldIndex) newIndex--;
-                  setState(() {
-                    contentItems.insert(
-                        newIndex, contentItems.removeAt(oldIndex));
-                  });
-                },
-                children: contentItems.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  if (item is ExerciseInput) {
-                    return item.buildExerciseWidget(
-                      context,
-                      key: ValueKey(item.id),
-                      index: index,
-                      onDelete: () =>
-                          setState(() => contentItems.removeAt(index)),
-                      onUpdate: () => setState(() {}),
-                    );
-                  }
-                  return SizedBox(key: ValueKey('placeholder_$index'));
-                }).toList(),
-              ),
-
-              // Publish button
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: isPublishing ? null : publishStage,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: isPublishing
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Text("Publish Stage",
-                            style: TextStyle(fontSize: 16)),
-                  ),
+                      : const Text("Publish Stage",
+                          style: TextStyle(fontSize: 16)),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -24,7 +24,7 @@ class ClassContentItem {
 
   String get subtitle => isStory
       ? '$pageCount page${pageCount != 1 ? 's' : ''} · '
-        '$exerciseCount exercise${exerciseCount != 1 ? 's' : ''}'
+          '$exerciseCount exercise${exerciseCount != 1 ? 's' : ''}'
       : '$exerciseCount exercise${exerciseCount != 1 ? 's' : ''}';
 }
 
@@ -32,57 +32,48 @@ Future<ClassData> fetchClassInfo(String classId) async {
   ///Fetch list of students
   ///Join 'class_students' and 'profiles' tables to get names
 
-  final response = await Supabase.instance.client
-      .from('class_students')
-      .select('''
+  final response =
+      await Supabase.instance.client.from('class_students').select('''
           student_id,
           profiles:student_id (
             id,
             name
           )
-        ''')
-      .eq('class_id', classId);
+        ''').eq('class_id', classId);
 
   List<Student> students = [];
-  try{
-    students = (response as List)
-        .map((e) => Student.fromSupabase(e))
-        .toList();
-  } catch(e) {
+  try {
+    students = (response as List).map((e) => Student.fromSupabase(e)).toList();
+  } catch (e) {
     print(e);
   }
 
   ///fetch class name and code
-  final classNameCode = await Supabase.instance.client
-      .from('classes')
-      .select()
-      .eq('id', classId);
+  final classNameCode =
+      await Supabase.instance.client.from('classes').select().eq('id', classId);
 
   final className = classNameCode[0]["name"] as String;
-  final classCode =  classNameCode[0]["class_code"] as String;
+  final classCode = classNameCode[0]["class_code"] as String;
 
-  var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(classId, 'class');
+  var (
+    firstAttemptCorrect,
+    averageRetries,
+    storiesRead,
+    topSkills,
+    worstSkills
+  ) = await calculateSummary(classId, 'class');
 
   print("fetchClassInfo: worst and best skills");
   print(worstSkills);
   print(topSkills);
-  ClassData classData = ClassData(
-      students,
-      className,
-      classCode,
-      firstAttemptCorrect,
-      averageRetries,
-      storiesRead,
-      topSkills,
-      worstSkills
-  );
+  ClassData classData = ClassData(students, className, classCode,
+      firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills);
   return classData;
 }
 
 Future<List<ClassContentItem>> fetchClassContent(String classId) async {
-  final response = await Supabase.instance.client
-      .from('list_stories')
-      .select('''
+  final response =
+      await Supabase.instance.client.from('list_stories').select('''
         story_id,
         title,
         story_page (count),
@@ -90,9 +81,7 @@ Future<List<ClassContentItem>> fetchClassContent(String classId) async {
         ordering_exercise (count),
         matching_exercise (count),
         fill_in_blank (count)
-      ''')
-      .eq('class_id', classId)
-      .eq('module', 'teachers_pick');
+      ''').eq('class_id', classId).eq('module', 'teachers_pick');
 
   int _count(dynamic raw) {
     if (raw is List && raw.isNotEmpty) {
@@ -106,108 +95,105 @@ Future<List<ClassContentItem>> fetchClassContent(String classId) async {
   }
 
   return (response as List).map((item) {
-    final pageCount     = _count(item['story_page']);
+    final pageCount = _count(item['story_page']);
     final exerciseCount = _count(item['mulcho_exercise']) +
-                          _count(item['ordering_exercise']) +
-                          _count(item['matching_exercise']) +
-                          _count(item['fill_in_blank']);
+        _count(item['ordering_exercise']) +
+        _count(item['matching_exercise']) +
+        _count(item['fill_in_blank']);
 
     return ClassContentItem(
-      id:            item['story_id'] as String,
-      title:         item['title'] as String? ?? 'Untitled',
-      isStory:       pageCount > 0,
-      pageCount:     pageCount,
+      id: item['story_id'] as String,
+      title: item['title'] as String? ?? 'Untitled',
+      isStory: pageCount > 0,
+      pageCount: pageCount,
       exerciseCount: exerciseCount,
     );
   }).toList();
 }
-Future<StudentData> fetchStudentInfo(String studentId) async {
 
+Future<StudentData> fetchStudentInfo(String studentId) async {
   ///Fetch student name
-  final response = await Supabase.instance.client
-      .from('class_students')
-      .select('''
+  final response =
+      await Supabase.instance.client.from('class_students').select('''
           student_id,
           profiles:student_id (
             id,
             name
           )
-        ''')
-      .eq('student_id', studentId);
+        ''').eq('student_id', studentId);
 
-  final studentName = (response as List)
-      .map((e) => Student.fromSupabase(e))
-      .toList()[0].name;
+  final studentName =
+      (response as List).map((e) => Student.fromSupabase(e)).toList()[0].name;
 
-  var (firstAttemptCorrect, averageRetries, storiesRead, topSkills, worstSkills) = await calculateSummary(studentId, 'student');
+  var (
+    firstAttemptCorrect,
+    averageRetries,
+    storiesRead,
+    topSkills,
+    worstSkills
+  ) = await calculateSummary(studentId, 'student');
 
-  StudentData studentData = StudentData(
-      studentName,
-      firstAttemptCorrect,
-      averageRetries,
-      storiesRead,
-      topSkills,
-      worstSkills
-  );
+  StudentData studentData = StudentData(studentName, firstAttemptCorrect,
+      averageRetries, storiesRead, topSkills, worstSkills);
 
   return studentData;
 }
 
-
 ///returns firstAttemptCorrectRate, averageRetriesRate, storiesRead, top performing skills, and worst performing skills
 /// param type is to determine whether the data to be fetched is for the whole class or for a single student
-Future<(double, double, int, List<Map<String, double>>, List<Map<String, double>>)> calculateSummary(givenId, type) async{
-
+Future<
+    (
+      double,
+      double,
+      int,
+      List<Map<String, double>>,
+      List<Map<String, double>>
+    )> calculateSummary(givenId, type) async {
   List<Map<String, dynamic>> response = [];
 
   ///fetch data depending on type
-  if(type == 'student') {
+  if (type == 'student') {
     ///Get all rows of a student with all stage_level columns
-    response = await Supabase.instance.client
-        .from('stage_level')
-        .select('''
+    response = await Supabase.instance.client.from('stage_level').select('''
       *,
       profiles!inner (
         *
       )
-    ''')
-        .eq('profiles.id', givenId);
-  }
-  else ///else if class id is given
-    {
-      ///Get all rows of students of the class joined with all stage_level columns
-      response = await Supabase.instance.client
-          .from('stage_level')
-          .select('''
+    ''').eq('profiles.id', givenId);
+  } else
+
+  ///else if class id is given
+  {
+    ///Get all rows of students of the class joined with all stage_level columns
+    response = await Supabase.instance.client.from('stage_level').select('''
       *,
       profiles!inner (
         class_students!inner (
           class_id
         )
       )
-    ''')
-          .eq('profiles.class_students.class_id', givenId);
-    }
+    ''').eq('profiles.class_students.class_id', givenId);
+  }
 
-
-  List<Map<String, dynamic>> classPerformance =  (response as List).cast<Map<String, dynamic>>();
-
-
+  List<Map<String, dynamic>> classPerformance =
+      (response as List).cast<Map<String, dynamic>>();
 
   ///Get firstAttemptCorrect, averageRetry
   var (firstAttemptCorrectRate, averageRetryRate) = getRates(classPerformance);
 
-
   ///Get focus areas
-  var (:topPerforming, :worstPerforming) =
-  getFocusAndStrengthAreas(response);
+  var (:topPerforming, :worstPerforming) = getFocusAndStrengthAreas(response);
 
   ///get total stories read
   int totalStoriesRead = getTotalStoriesRead(response);
 
-
-  return (firstAttemptCorrectRate, averageRetryRate, totalStoriesRead, topPerforming, worstPerforming);
-
+  return (
+    firstAttemptCorrectRate,
+    averageRetryRate,
+    totalStoriesRead,
+    topPerforming,
+    worstPerforming
+  );
 }
 
 String formatRate(double? value) {
@@ -220,7 +206,7 @@ String formatRetryRate(double? value) {
   return '${value.toStringAsFixed(1)}×';
 }
 
-int getTotalStoriesRead(List<Map<String, dynamic>> response){
+int getTotalStoriesRead(List<Map<String, dynamic>> response) {
   ///get total stories read:
   final uniqueReads = <String>{};
 
@@ -234,11 +220,15 @@ int getTotalStoriesRead(List<Map<String, dynamic>> response){
   }
   return uniqueReads.length;
 }
-///returns firstAttemptCorrectRate, averageRetryRate
-(double, double) getRates(List rows){
-  Map<String, double> sumOfData= {"first_attempt_correct":0,"total_attempts":0, "total_items":0};
-  for(Map skillEntry in rows){
 
+///returns firstAttemptCorrectRate, averageRetryRate
+(double, double) getRates(List rows) {
+  Map<String, double> sumOfData = {
+    "first_attempt_correct": 0,
+    "total_attempts": 0,
+    "total_items": 0
+  };
+  for (Map skillEntry in rows) {
     ///first_attempt_correct
     final current = sumOfData["first_attempt_correct"] ?? 0;
     final increment = (skillEntry["first_attempt_correct"] as int?) ?? 0;
@@ -257,44 +247,47 @@ int getTotalStoriesRead(List<Map<String, dynamic>> response){
 
     sumOfData["total_attempts"] = current3 + increment3;
   }
-  double firstAttemptCorrectRate = sumOfData["total_items"]! == 0 ? double.nan : sumOfData["first_attempt_correct"]! / sumOfData["total_items"]!;
-  double averageRetryRate = (sumOfData["total_items"]! - sumOfData["first_attempt_correct"]!) == 0 ? double.nan : (sumOfData["total_attempts"]! - sumOfData["total_items"]!)/ (sumOfData["total_items"]! - sumOfData["first_attempt_correct"]!);
-
+  double firstAttemptCorrectRate = sumOfData["total_items"]! == 0
+      ? double.nan
+      : sumOfData["first_attempt_correct"]! / sumOfData["total_items"]!;
+  double averageRetryRate =
+      (sumOfData["total_items"]! - sumOfData["first_attempt_correct"]!) == 0
+          ? double.nan
+          : (sumOfData["total_attempts"]! - sumOfData["total_items"]!) /
+              (sumOfData["total_items"]! - sumOfData["first_attempt_correct"]!);
 
   return (firstAttemptCorrectRate, averageRetryRate);
 }
 
 ({
-List<Map<String, double>> topPerforming,
-List<Map<String, double>> worstPerforming
+  List<Map<String, double>> topPerforming,
+  List<Map<String, double>> worstPerforming
 }) getFocusAndStrengthAreas(
-    List<Map<String, dynamic>> response, {
-      double threshold = 0.7,
-    })
-{
-
+  List<Map<String, dynamic>> response, {
+  double threshold = 0.7,
+}) {
   ///different skills summaries
   Map<String, Map<String, double>> perSkillSummaries = {};
 
   ///separate entries into different skills
   Map<String, List<Map<String, dynamic>>> rowsPerSkill = {};
-  for(var entry in response){
+  for (var entry in response) {
     final skill = entry["skill"];
-    if(rowsPerSkill[entry["skill"]] == null){
+    if (rowsPerSkill[entry["skill"]] == null) {
       perSkillSummaries[skill] = {};
       rowsPerSkill[skill] = [];
       rowsPerSkill[skill]?.add(entry);
-    } else
-    {
+    } else {
       rowsPerSkill[skill]?.add(entry);
     }
-
   }
 
   ///for each skill, get firstAttemptCorrectRates and averageRetryRates
-  rowsPerSkill.forEach((skill, listEntry){
-    var(firstAttemptCorrectRateSkill, averageRetryRateSkill) = getRates(listEntry);
-    perSkillSummaries[skill]!["firstAttemptCorrect"] = firstAttemptCorrectRateSkill;
+  rowsPerSkill.forEach((skill, listEntry) {
+    var (firstAttemptCorrectRateSkill, averageRetryRateSkill) =
+        getRates(listEntry);
+    perSkillSummaries[skill]!["firstAttemptCorrect"] =
+        firstAttemptCorrectRateSkill;
     perSkillSummaries[skill]!["averageRetryRate"] = averageRetryRateSkill;
   });
   if (perSkillSummaries.isEmpty) {
@@ -305,9 +298,9 @@ List<Map<String, double>> worstPerforming
   final skills = perSkillSummaries.entries
       .where((e) => e.value.containsKey('firstAttemptCorrect'))
       .map((e) => (
-  skill: e.key,
-  score: e.value['firstAttemptCorrect']!,
-  ))
+            skill: e.key,
+            score: e.value['firstAttemptCorrect']!,
+          ))
       .toList();
 
   if (skills.length <= 3) {
@@ -328,20 +321,14 @@ List<Map<String, double>> worstPerforming
   // More than 3 skills → sort
   skills.sort((a, b) => b.score.compareTo(a.score));
 
-  final topPerforming = skills
-      .take(2)
-      .map((s) => {s.skill: s.score})
-      .toList();
+  final topPerforming = skills.take(2).map((s) => {s.skill: s.score}).toList();
 
-  final worstPerforming = skills
-      .reversed
-      .take(2)
-      .map((s) => {s.skill: s.score})
-      .toList();
+  final worstPerforming =
+      skills.reversed.take(2).map((s) => {s.skill: s.score}).toList();
 
   return (
-  topPerforming: topPerforming,
-  worstPerforming: worstPerforming,
+    topPerforming: topPerforming,
+    worstPerforming: worstPerforming,
   );
 }
 
@@ -374,14 +361,7 @@ String _initials(String name) {
 class ClassPage extends StatelessWidget {
   final String classId;
 
-
-
-  const ClassPage({
-    super.key,
-    required this.classId
-  });
-
-
+  const ClassPage({super.key, required this.classId});
 
   @override
   Widget build(BuildContext context) {
@@ -429,14 +409,14 @@ class ClassPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               'Code: ${data.classCode}',
               style: const TextStyle(
                 fontSize: 12,
-                color: Color(0xFF9FE1CB),
+                color: Color(0xFF1D9E75),
               ),
             ),
           ),
@@ -468,10 +448,10 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
   }
 
   void _refreshContent() {
-  setState(() {
-    _contentFuture = fetchClassContent(widget.classId);
-  });
-}
+    setState(() {
+      _contentFuture = fetchClassContent(widget.classId);
+    });
+  }
 
   Future<void> _onStudentTap(Student student) async {
     setState(() => _loadingStudentId = student.studentId);
@@ -540,10 +520,12 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Class content',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                 if (itemCount != null)
                   Text('$itemCount item${itemCount != 1 ? 's' : ''}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.grey.shade400)),
               ],
             ),
             const SizedBox(height: 8),
@@ -562,7 +544,8 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text('No content added yet.',
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                    style:
+                        TextStyle(fontSize: 13, color: Colors.grey.shade500)),
               )
             else
               ...snapshot.data!.map((item) => _buildContentCard(item)),
@@ -574,10 +557,14 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
 
   Widget _buildContentCard(ClassContentItem item) {
     // Stories → blue, Stages → purple
-    final Color badgeBg   = item.isStory ? const Color(0xFFE6F1FB) : const Color(0xFFEEEDFE);
-    final Color badgeIcon = item.isStory ? const Color(0xFF185FA5) : const Color(0xFF534AB7);
-    final Color pillBg    = item.isStory ? const Color(0xFFE6F1FB) : const Color(0xFFEEEDFE);
-    final Color pillText  = item.isStory ? const Color(0xFF0C447C) : const Color(0xFF3C3489);
+    final Color badgeBg =
+        item.isStory ? const Color(0xFFE6F1FB) : const Color(0xFFEEEDFE);
+    final Color badgeIcon =
+        item.isStory ? const Color(0xFF185FA5) : const Color(0xFF534AB7);
+    final Color pillBg =
+        item.isStory ? const Color(0xFFE6F1FB) : const Color(0xFFEEEDFE);
+    final Color pillText =
+        item.isStory ? const Color(0xFF0C447C) : const Color(0xFF3C3489);
     final String pillLabel = item.isStory ? 'Story' : 'Stage';
 
     return Padding(
@@ -588,7 +575,8 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            context.push('/teacher/content_detail', extra: {'storyId': item.id, 'isStory': item.isStory});
+            context.push('/teacher/content_detail',
+                extra: {'storyId': item.id, 'isStory': item.isStory});
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -635,7 +623,8 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
                 const SizedBox(width: 8),
                 // Type pill
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: pillBg,
                     borderRadius: BorderRadius.circular(10),
@@ -647,7 +636,8 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
                           color: pillText)),
                 ),
                 const SizedBox(width: 6),
-                Icon(Icons.chevron_right, size: 18, color: Colors.grey.shade300),
+                Icon(Icons.chevron_right,
+                    size: 18, color: Colors.grey.shade300),
               ],
             ),
           ),
@@ -688,11 +678,17 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
 
     return Row(
       children: [
-        Expanded(child: _metricTile('Stories read', '${data.storiesRead}', Colors.black87)),
+        Expanded(
+            child: _metricTile(
+                'Stories read', '${data.storiesRead}', Colors.black87)),
         const SizedBox(width: 8),
-        Expanded(child: _metricTile('Accuracy', formatRate(accuracy), accuracyColor)),
+        Expanded(
+            child:
+                _metricTile('Accuracy', formatRate(accuracy), accuracyColor)),
         const SizedBox(width: 8),
-        Expanded(child: _metricTile('Avg retries', formatRetryRate(retries), retryColor)),
+        Expanded(
+            child: _metricTile(
+                'Avg retries', formatRetryRate(retries), retryColor)),
       ],
     );
   }
@@ -712,7 +708,9 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
           const SizedBox(height: 4),
           Text(value,
               style: TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.w500, color: valueColor)),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                  color: valueColor)),
         ],
       ),
     );
@@ -735,15 +733,15 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
               const Color(0xFFFBEAF0), const Color(0xFF72243E)),
           if (data.worstSkills.isNotEmpty && data.topSkills.isNotEmpty)
             const SizedBox(height: 12),
-          _skillSection('Excelling in', data.topSkills,
-              const Color(0xFFEAF3DE), const Color(0xFF27500A)),
+          _skillSection('Excelling in', data.topSkills, const Color(0xFFEAF3DE),
+              const Color(0xFF27500A)),
         ],
       ),
     );
   }
 
-  Widget _skillSection(
-      String label, List<Map<String, double>> skills, Color bg, Color textColor) {
+  Widget _skillSection(String label, List<Map<String, double>> skills, Color bg,
+      Color textColor) {
     if (skills.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -768,7 +766,9 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
               ),
               child: Text(entry.key,
                   style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w500, color: textColor)),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: textColor)),
             );
           }).toList(),
         ),
@@ -787,7 +787,8 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
             bg: const Color(0xFFE1F5EE),
             textColor: const Color(0xFF085041),
             onTap: () async {
-              await context.push('/teacher/add_story_page', extra: widget.classId);
+              await context.push('/teacher/add_story_page',
+                  extra: widget.classId);
               _refreshContent();
             },
           ),
@@ -799,7 +800,8 @@ class _ClassPageBodyState extends State<_ClassPageBody> {
             bg: const Color(0xFFFAEEDA),
             textColor: const Color(0xFF633806),
             onTap: () async {
-              await context.push('/teacher/add_questions_page', extra: widget.classId);
+              await context.push('/teacher/add_questions_page',
+                  extra: widget.classId);
               _refreshContent();
             },
           ),
@@ -920,9 +922,12 @@ class _StoryIconPainter extends CustomPainter {
     canvas.drawRRect(rect, paint);
 
     // Lines
-    canvas.drawLine(Offset(4, size.height * 0.35), Offset(size.width - 4, size.height * 0.35), paint);
-    canvas.drawLine(Offset(4, size.height * 0.55), Offset(size.width - 4, size.height * 0.55), paint);
-    canvas.drawLine(Offset(4, size.height * 0.75), Offset(size.width * 0.6,  size.height * 0.75), paint);
+    canvas.drawLine(Offset(4, size.height * 0.35),
+        Offset(size.width - 4, size.height * 0.35), paint);
+    canvas.drawLine(Offset(4, size.height * 0.55),
+        Offset(size.width - 4, size.height * 0.55), paint);
+    canvas.drawLine(Offset(4, size.height * 0.75),
+        Offset(size.width * 0.6, size.height * 0.75), paint);
   }
 
   @override
@@ -946,9 +951,15 @@ class _StageIconPainter extends CustomPainter {
     final w = size.width;
 
     // Three rows of decreasing width
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, 0,       w,       h * 0.25), rr), paint);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, h * 0.4, w,       h * 0.25), rr), paint);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, h * 0.8, w * 0.6, h * 0.25), rr), paint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, w, h * 0.25), rr), paint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(Rect.fromLTWH(0, h * 0.4, w, h * 0.25), rr),
+        paint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(0, h * 0.8, w * 0.6, h * 0.25), rr),
+        paint);
   }
 
   @override

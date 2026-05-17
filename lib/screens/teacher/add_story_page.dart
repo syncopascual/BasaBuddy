@@ -118,7 +118,9 @@ class _AddStoryPageState extends State<AddStoryPage> {
             'story_id': storyId,
             'page_num': pageNum,
             'text': item.englishTextController.text,
-            'tagalog_text': item.tagalogTextController.text,
+            'tagalog_text': item.tagalogTextController.text.trim().isEmpty
+                ? 'none'
+                : item.tagalogTextController.text,
           });
         }
         if (item is ExerciseInput) {

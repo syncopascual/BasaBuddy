@@ -15,10 +15,11 @@ class Mulcho {
 
   final Map<String, String> choices;
 
-  @JsonKey(name: 'answer', fromJson: _answerFromDynamic, toJson: _answerToString)  // ← updated
+  @JsonKey(
+      name: 'answer',
+      fromJson: _answerFromDynamic,
+      toJson: _answerToString) // ← updated
   final String answer;
-
-
 
   @JsonKey(name: 'tagalog_question', fromJson: _nullableString)
   final String? tagalogQuestion;
@@ -55,7 +56,6 @@ class Mulcho {
   @JsonKey(name: 'is_standalone', fromJson: _boolFromInt)
   final bool isStandalone;
 
-
   static String _answerFromDynamic(dynamic value) => value.toString();
   static String _answerToString(String value) => value;
 
@@ -66,20 +66,19 @@ class Mulcho {
     return false;
   }
 
-  Mulcho({
-    required this.id,
-    required this.storyId,
-    required this.question,
-    required this.choices,
-    required this.answer,
-    this.tagalogQuestion,
-    this.tagalogChoices,
-    required this.skill,
-    required this.afterPage,
-    required this.isStandalone,
-    required this.hint,
-    required this.explanation
-  });
+  Mulcho(
+      {required this.id,
+      required this.storyId,
+      required this.question,
+      required this.choices,
+      required this.answer,
+      this.tagalogQuestion,
+      this.tagalogChoices,
+      required this.skill,
+      required this.afterPage,
+      required this.isStandalone,
+      required this.hint,
+      required this.explanation});
 
   factory Mulcho.fromJson(Map<String, dynamic> json) => _$MulchoFromJson(json);
   Map<String, dynamic> toJson() => _$MulchoToJson(this);

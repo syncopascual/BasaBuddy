@@ -5,15 +5,16 @@ class FillBlankChoices extends StatelessWidget {
   final List<String> choices;
   final int? hiddenIndex;
   final Function(int) onChoiceTap;
+  final bool isEnglish;
   final bool soundEnabled;
 
-  const FillBlankChoices({
-    super.key,
-    required this.choices,
-    required this.hiddenIndex,
-    required this.onChoiceTap,
-    required this.soundEnabled
-  });
+  const FillBlankChoices(
+      {super.key,
+      required this.choices,
+      required this.hiddenIndex,
+      required this.onChoiceTap,
+      required this.isEnglish,
+      required this.soundEnabled});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +28,7 @@ class FillBlankChoices extends StatelessWidget {
           onTap: () {
             onChoiceTap(index);
             if (soundEnabled) {
-              VoiceService().speak(choices[index], true); // 👈 add this
+              VoiceService().speak(choices[index], isEnglish);
             }
           },
           child: Container(

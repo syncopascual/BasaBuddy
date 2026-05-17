@@ -4,6 +4,7 @@ import 'package:basabuddy/Miscellaneous.dart';
 import 'package:basabuddy/bloc/booster_bloc.dart';
 import 'package:basabuddy/bloc/freeze_bloc.dart';
 import 'package:basabuddy/bloc/money_bloc.dart';
+import 'package:basabuddy/bloc/translation_bloc.dart';
 import 'package:basabuddy/components/FinishedStoryPopup.dart';
 import 'package:basabuddy/components/LevelUpPopUp.dart';
 import 'package:basabuddy/components/question_components/MatchingExercise.dart';
@@ -46,12 +47,11 @@ class StoryShell extends StatefulWidget {
   final String storyId;
   final int storyLevel;
   final bool isTeacherStory;
-  const StoryShell({
-    super.key,
-    required this.storyId,
-    this.isTeacherStory = false,
-    required this.storyLevel
-  });
+  const StoryShell(
+      {super.key,
+      required this.storyId,
+      this.isTeacherStory = false,
+      required this.storyLevel});
 
   @override
   State<StoryShell> createState() => _StoryShellState();
@@ -200,6 +200,29 @@ class _StoryShellState extends State<StoryShell> {
           'story_page', Storypage.fromJson, 'story_id = ?', [widget.storyId]);
       print("PAGES HERE: $pages");
     }
+
+    String? description;
+    try {
+      if (widget.isTeacherStory) {
+        final response = await Supabase.instance.client
+            .from('list_stories')
+            .select('description')
+            .eq('story_id', widget.storyId)
+            .single();
+        description = response['description'] as String?;
+      } else {
+        List<Story> storyList = await DatabaseHelper.instance.queryWhere(
+            'list_stories', Story.fromJson, 'story_id = ?', [widget.storyId]);
+        if (storyList.isNotEmpty) {
+          description = storyList[0].description;
+        }
+      }
+    } catch (e) {
+      print("description fetch error: $e");
+    }
+
+    print("description value: $description");
+    print("pages count: ${pages.length}");
 
     final List<PageItem> wrappedPages =
         pages.map((page) => PageItem(page)).toList();
@@ -415,14 +438,26 @@ class _StoryShellState extends State<StoryShell> {
       firstAttemptObjects = wrappedExercises;
       print("ordering items...");
 
+      print("wrappedPages count: ${wrappedPages.length}");
+      print("wrappedExercises count: ${wrappedExercises.length}");
+
       ///order this correctly
+      print(
+          "pages.isEmpty: ${pages.isEmpty}, exercises count: ${wrappedExercises.length}");
       final orderedItems = orderItems(wrappedPages, wrappedExercises);
+      print("orderedItems count: ${orderedItems.length}");
+
+      if (description != null && description.isNotEmpty) {
+        final descItem = DescriptionItem(DescriptionData(description));
+        orderedItems.insert(0, descItem);
+      }
       allStoryItems = orderedItems;
       print("fetched pages and exercises!");
 
       return orderedItems;
     } catch (e) {
       print("ORDERING ERROR $e");
+      print("ORDERING ERROR stack: ${StackTrace.current}");
     }
 
     return [];
@@ -444,7 +479,7 @@ class _StoryShellState extends State<StoryShell> {
       return ordered;
     }
     if (exercises.isEmpty) {
-      return pages;
+      return List<StoryItem>.from(pages);
     }
     for (int i = 1; i <= pages.length; i++) {
       final page = pages.firstWhere((m) => m.data.pageNum == i);
@@ -475,12 +510,45 @@ class _StoryShellState extends State<StoryShell> {
     //print("component runtime type: ${component.runtimeType}");
     switch (component) {
       case Storypage page:
-        final page = PageContainer(
+        return PageContainer(
           storyPage: component,
           imageURL: url,
           storyLevel: widget.storyLevel,
         );
-        return page;
+      case DescriptionData desc:
+        return Container(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(height: 350),
+              Text(
+                "About this Story",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 10),
+
+              ///PAGE TEXT
+              Container(
+                width: double.infinity,
+                height: 200,
+                padding: EdgeInsets.symmetric(horizontal: 36, vertical: 36),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(45)),
+                ),
+                child: Text(
+                  desc.description,
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        );
       case Mulcho mulcho:
         final page = MulchoExercise(
           mulcho: component,
@@ -496,8 +564,8 @@ class _StoryShellState extends State<StoryShell> {
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 1) + 1;
             nextPage(orderedStoryItems);
-          }, storyLevel: widget.storyLevel,
-
+          },
+          storyLevel: widget.storyLevel,
         );
         return page;
       case OrderData order:
@@ -513,7 +581,8 @@ class _StoryShellState extends State<StoryShell> {
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
-          }, storyLevel: widget.storyLevel,
+          },
+          storyLevel: widget.storyLevel,
         );
         return page;
       case FillBlankData fillBlank:
@@ -529,7 +598,8 @@ class _StoryShellState extends State<StoryShell> {
             totalAttempts[component.skill] =
                 (totalAttempts[component.skill] ?? 0) + 1;
             nextPage(orderedStoryItems);
-          }, storyLevel: widget.storyLevel,
+          },
+          storyLevel: widget.storyLevel,
         );
         return page;
       case MatchingData match:
@@ -572,6 +642,7 @@ class _StoryShellState extends State<StoryShell> {
   @override
   void initState() {
     super.initState();
+    context.read<TranslationBloc>().add(SetEnglish());
     _storyItemsFuture = _fetchPagesNexercises();
   }
 
@@ -639,7 +710,9 @@ class _StoryShellState extends State<StoryShell> {
                     child: Text("skip")),
 
                 ///Don't display back and next button for question items
-                orderedStoryItems[currentPage].runtimeType == PageItem
+                orderedStoryItems[currentPage].runtimeType == PageItem ||
+                        orderedStoryItems[currentPage].runtimeType ==
+                            DescriptionItem
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -854,6 +927,7 @@ class _StoryShellState extends State<StoryShell> {
 
       for (StoryItem storyItem in firstAttemptObjects) {
         ///tally items gotten correct in the first attempt per skill
+        if (storyItem is DescriptionItem) continue;
         firstAttemptCorrect[storyItem.data.skill] =
             (firstAttemptCorrect[storyItem.data.skill] ?? 0) + 1;
       }

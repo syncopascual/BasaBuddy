@@ -8,19 +8,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/translation_bloc.dart';
 import 'package:basabuddy/components/VoiceService.dart';
+
 ///UI that displays a story page
 class PageContainer extends StatefulWidget {
-
   final int storyLevel;
   final Storypage storyPage;
   final String imageURL;
 
-  const PageContainer({
-    super.key,
-    required this.storyPage,
-    required this.imageURL,
-    required this.storyLevel
-  });
+  const PageContainer(
+      {super.key,
+      required this.storyPage,
+      required this.imageURL,
+      required this.storyLevel});
 
   @override
   State<PageContainer> createState() => _PageContainerState();
@@ -34,58 +33,70 @@ class _PageContainerState extends State<PageContainer> {
     _voice.stop();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(height:350),
+          Container(height: 350),
           //Image.asset('assets/story/papaya.png', height: 200),
-
 
           ///TRANSLATION BUTTON
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [Container(
-            margin: EdgeInsets.only(right: 10),
-              child: widget.storyLevel > 2 ? Text('') : TranslationButton(context: context))],
+            children: [
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: BlocBuilder<TranslationBloc, TranslationState>(
+                    builder: (_, state) {
+                  bool hasNoFilipino = widget.storyPage.tagalogText == 'none' ||
+                      widget.storyPage.tagalogText == null;
+                  bool shouldHide = widget.storyLevel > 2 ||
+                      (hasNoFilipino && state.isEnglish);
+
+                  return shouldHide
+                      ? SizedBox.shrink()
+                      : TranslationButton(context: context);
+                }),
+              ),
+            ],
           ),
-          
+
           SizedBox(height: 10),
 
           ///PAGE TEXT
           Container(
-            width: double.infinity,
-            height: 200,
-            padding: EdgeInsets.symmetric(horizontal: 36, vertical: 36),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(45)),
-            ),
-            child: BlocBuilder<TranslationBloc, TranslationState>(
-                builder: (_, state){
-                  final text = state.isEnglish
+              width: double.infinity,
+              height: 200,
+              padding: EdgeInsets.symmetric(horizontal: 36, vertical: 36),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(45)),
+              ),
+              child: BlocBuilder<TranslationBloc, TranslationState>(
+                  builder: (_, state) {
+                final text = state.isEnglish
                     ? widget.storyPage.text
                     : widget.storyPage.tagalogText;
-                  return Row(
-                    children: [
-                      Expanded(
+                return Row(
+                  children: [
+                    Expanded(
                         child: SingleChildScrollView(
-                          child: Text(text)
-                        )
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.volume_up),
-                        onPressed: () {
-                          _voice.speak(text, state.isEnglish);
-                        },
-                      ),
-                    ],
-                  );
-                })
-          ),  
+                            child: (text == 'none' && !state.isEnglish)
+                                ? Text("Walang salin sa Filipino")
+                                : Text(text))),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.volume_up),
+                      onPressed: () {
+                        _voice.speak(text, state.isEnglish);
+                      },
+                    ),
+                  ],
+                );
+              })),
         ],
       ),
     );
