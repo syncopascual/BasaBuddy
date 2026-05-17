@@ -649,123 +649,151 @@ class _StoryShellState extends State<StoryShell> {
   @override
   Widget build(BuildContext context) {
     print("story.dart");
-    return FutureBuilder(
-        future: _storyItemsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            ///the loaded data
-            var orderedStoryItems = snapshot.data!;
-
-            if (orderedStoryItems.isEmpty) {
-              return Container(
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("assets/bg_images/grassy.png"),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: const Center(
-                  child: Text(
-                    "This stage has no story pages yet.",
-                    style: TextStyle(fontSize: 20, color: Colors.white),
-                  ),
-                ),
-              );
-            }
-            //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
-
-            return Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: determineBg(orderedStoryItems[currentPage]),
-                  fit: BoxFit.cover,
-                ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // Custom back behavior — for example, confirm before leaving:
+        final shouldLeave = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Leave story?'),
+            content: const Text('Your progress on this story will be lost.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Stay'),
               ),
-              child: Column(children: [
-                SizedBox(height: 20),
-
-                ///Progress bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: GradientLinearProgressBar(
-                    value: currentPage / orderedStoryItems.length,
-                    leftColor: Color(0xFF22C03A),
-                    rightColor: Color(0xFFB2FF3E),
-                    unfilledColor: Colors.grey,
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Leave'),
+              ),
+            ],
+          ),
+        );
+        if (shouldLeave == true && mounted) {
+          context.go('/student/home');  // or wherever you want to send them
+        }
+      },
+      child: FutureBuilder(
+          future: _storyItemsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              ///the loaded data
+              var orderedStoryItems = snapshot.data!;
+      
+              if (orderedStoryItems.isEmpty) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/bg_images/grassy.png"),
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                ),
-
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: SingleChildScrollView(
-                    child: storyWidget(orderedStoryItems[currentPage].data, "",
-                        orderedStoryItems),
+                  child: const Center(
+                    child: Text(
+                      "This stage has no story pages yet.",
+                      style: TextStyle(fontSize: 20, color: Colors.white),
+                    ),
                   ),
-                ),
-                SizedBox(height: 12),
-
-
-                ///Don't display back and next button for question items
-                orderedStoryItems[currentPage].runtimeType == PageItem ||
-                        orderedStoryItems[currentPage].runtimeType ==
-                            DescriptionItem
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ///BACK button
-                          SizedBox(
-                            height: 30,
-                            child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: selected, // warm yellow
-                                ),
-                                onPressed: () {
-                                  ///if its the first page, dont do anything
-                                  if (currentPage == 0) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    currentPage -= 1;
-                                  });
-                                },
-                                child: Text('Back',
-                                    style: TextStyle(color: textColor))),
-                          ),
-
-                          ///NEXT Button
-                          SizedBox(
-                            height: 30,
-
-                            child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: selected, // warm yellow
-                                ),
-                                onPressed: () async {
-                                  ///if last page na
-                                  /// increase user level for this module and navigate to home screen
-                                  nextPage(orderedStoryItems);
-                                },
-                                child: Text('Next',
-                                    style: TextStyle(color: textColor))),
-                          )
-                        ],
-                      )
-                    : Text(""),
-              ]),
-            );
-
-            ///Row containing next button and back button
-          } else {
-            return Container(
+                );
+              }
+              //print("storyShell.dart urls: $imageURLs, current page: $currentPage");
+      
+              return Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage("assets/bg_images/grassy.png"),
+                    image: determineBg(orderedStoryItems[currentPage]),
                     fit: BoxFit.cover,
                   ),
                 ),
-                child: const Center(child: CircularProgressIndicator()));
-          }
-        });
+                child: Column(children: [
+                  SizedBox(height: 20),
+      
+                  ///Progress bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: GradientLinearProgressBar(
+                      value: currentPage / orderedStoryItems.length,
+                      leftColor: Color(0xFF22C03A),
+                      rightColor: Color(0xFFB2FF3E),
+                      unfilledColor: Colors.grey,
+                    ),
+                  ),
+      
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: SingleChildScrollView(
+                      child: storyWidget(orderedStoryItems[currentPage].data, "",
+                          orderedStoryItems),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+      
+      
+                  ///Don't display back and next button for question items
+                  orderedStoryItems[currentPage].runtimeType == PageItem ||
+                          orderedStoryItems[currentPage].runtimeType ==
+                              DescriptionItem
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ///BACK button
+                            SizedBox(
+                              height: 30,
+                              child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: selected, // warm yellow
+                                  ),
+                                  onPressed: () {
+                                    ///if its the first page, go back to
+                                    if (currentPage == 0) {
+      
+                                      return;
+                                    }
+                                    setState(() {
+                                      currentPage -= 1;
+                                    });
+                                  },
+                                  child: Text('Back',
+                                      style: TextStyle(color: textColor))),
+                            ),
+      
+                            ///NEXT Button
+                            SizedBox(
+                              height: 30,
+      
+                              child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: selected, // warm yellow
+                                  ),
+                                  onPressed: () async {
+                                    ///if last page na
+                                    /// increase user level for this module and navigate to home screen
+                                    nextPage(orderedStoryItems);
+                                  },
+                                  child: Text('Next',
+                                      style: TextStyle(color: textColor))),
+                            )
+                          ],
+                        )
+                      : Text(""),
+                ]),
+              );
+      
+              ///Row containing next button and back button
+            } else {
+              return Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/bg_images/grassy.png"),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  child: const Center(child: CircularProgressIndicator()));
+            }
+          }),
+    );
   }
 
   bool _storyFinished = false;
